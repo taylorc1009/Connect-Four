@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+/.vs/C-Connect-Four/v16/Browse.VC.db
+/.vs/C-Connect-Four/v16/Browse.VC.opendb
+/.vs/ProjectSettings.json
+/.vs/slnx.sqlite
