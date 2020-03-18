@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define NAME_MAX 10
+#define NAME_MAX 32 // 2 extra to accomodate for '\0' and '\n'
 
 typedef enum { false, true } bool;
 
@@ -14,6 +14,13 @@ struct Settings {
 };
 
 void setup(struct Settings *settings);
+
+void clean_stdin(void) { // causes app to hang
+	int c;
+	do {
+		c = getchar();
+	} while (c != '\n' && c != EOF);
+}
 
 int main(int argc, char **argv) {
 	system("cls");
@@ -54,26 +61,26 @@ int main(int argc, char **argv) {
 			case 5:
 				break;
 		}
-	free(settings->player1);
-	free(settings->player2);
-	free(settings);
-	system("cls");
-	printf("Connect 4 closed, goodbye!\n");
-	return 0;
+	exit:
+		free(settings->player1);
+		free(settings->player2);
+		free(settings);
+		system("cls");
+		printf("Connect 4 closed, goodbye!\n");
+		return 0;
 }
 
 int validateOption(int min, int max) {
 	bool valid = false;
-	int num = 0;
-
+	int num;
 	while (!valid) { // still causes an infinite loop if a char is entered
 		char term;
+		num = 0;
 		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
 			printf("\n! invalid input: please re-enter an number between %d and %d\n> ", min, max);
-		}
-		else
+			clean_stdin();
+		} else
 			valid = true;
-		fflush(stdin);
 	}
 	return num;
 }
@@ -90,37 +97,29 @@ void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding 
 }
 
 void getName(char** player) { // dynamically resizes the allocation of the player name char array based on the input
-	char buffer[41];
-	size_t curLen = 0;
-	size_t curMax = NAME_MAX;
+	char buffer[NAME_MAX];
 	getname:
-		fflush(stdin);
+		//clean_stdin();
 		fgets(buffer, sizeof(buffer), stdin);
 		removeExcessSpaces(buffer);
-		if (buffer[0] == '\0' || buffer[0] == 0) {
+		size_t bufLen = strlen(buffer);
+		if(buffer == 0 || buffer[0] == '\0') {
 			printf("\n! name empty, please enter one\n> ");
 			goto getname;
-		} else if (strlen(buffer) > 40) { // doesn't work because the size of buffer is always set to 40, need a way of getting the length of the input itself
-			printf("\n! name is too long, please re-enter\n> ");
+		} else if (bufLen > 30) {
+			printf("\n! name to long, please re-enter\n> ");
 			goto getname;
 		} else {
-			size_t bufLen = strlen(buffer);
-			
 			if (buffer[bufLen - 1] == '\n') {
 				buffer[bufLen - 1] = '\0';
 				bufLen--;
 			}
 
-			if (curLen + bufLen + 1 > curMax) {
-				size_t newLen = curMax * 2 + 1;
-				if (bufLen + 1 > newLen)
-					newLen = bufLen + 1;
-				*player = (char*) realloc(*player, newLen);
+			if (bufLen > sizeof(*player)) {
+				*player = (char*)realloc(*player, sizeof(char) * bufLen);
 			}
-			strcpy(*player + curLen, buffer);
-			curLen += bufLen;
+			strcpy(*player, buffer);
 		}
-		printf("\n%s [%d]", *player, (int)strlen(*player));
 }
 
 void setup(struct Settings *settings) {
@@ -128,7 +127,7 @@ void setup(struct Settings *settings) {
 	getName(&(settings)->player1);
 
 	if (settings->solo) {
-		settings->player2 = "bot";
+		settings->player2 = "Bot";
 		printf("\nWelcome %s!", settings->player1);
 	}
 	else {
