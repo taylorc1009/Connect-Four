@@ -83,17 +83,22 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-int validateOption(int min, int max) {
+int validateOption(int min, int max) { // used to validate numbers within a given range
 	bool valid = false;
-	int num;
-	while (!valid) { // still causes an infinite loop if a char is entered
+	int num = 0;
+
+	while (num == 0) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 		char term;
 		num = 0;
 		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
 			printf("\n! invalid input: please re-enter an number between %d and %d\n> ", min, max);
-			//cleanStdin();
-		} else
-			valid = true;
+			char c = NUL;
+			do {
+				c = getchar();
+			} while (!isdigit(c));
+			ungetc(c, stdin);
+			num = 0;
+		}
 	}
 	return num;
 }
