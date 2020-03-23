@@ -114,22 +114,19 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 	memset(buffer, NUL, NAME_MAX);
 
 	char* input = NULL;
-	//getname:
 	while (input == NULL) {
-		
 		input = fgets(buffer, NAME_MAX, stdin);
-		//removeExcessSpaces(input);
 		size_t bufLen = strlen(buffer);
+		removeExcessSpaces(buffer);
+
 		if (buffer == 0 || buffer[0] == '\0') {
 			printf("\n! name empty, please enter one\n> ");
-			//goto getname;
 			input = NULL;
 		}
-		//else if (bufLen > NAME_MAX - 2) {
+		
 		else if (buffer[bufLen - 1] != '\n') {
-			printf("\n! name to long, please re-enter\n> ");
+			printf("\n! name too long, please re-enter\n> ");
 			cleanStdin();
-			//goto getname;
 			input = NULL;
 		}
 		else {
@@ -137,6 +134,7 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 				input[bufLen - 1] = '\0';
 				bufLen--;
 			}
+			removeExcessSpaces(input);
 
 			if (bufLen > sizeof(*player))
 				*player = (char*)realloc(*player, sizeof(char) * bufLen);
