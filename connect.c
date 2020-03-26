@@ -29,14 +29,13 @@ int main(int argc, char **argv) {
 	system("cls");
 
 	struct Settings* settings = (struct Settings*) malloc(sizeof(struct Settings));
-	settings->boardX = 9;
-	settings->boardY = 7;
+	settings->boardX = 7;
+	settings->boardY = 6;
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
 	settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit", settings->boardX, settings->boardY);
 	
-	//mainmenu:
 	int option = 0;
 	while (option == 0) {
 		settings->solo = false;
@@ -100,21 +99,20 @@ int validateOption(int min, int max) { // used to validate numbers within a give
 	return num;
 }
 
-// this currently erases '\n', so try to stop this
 void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding spaces from strings
-	int i, x;
-	for (i = x = 0; str[i]; ++i)
+	int i, j;
+	for (i = j = 0; str[i]; ++i)
 		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
-			str[x++] = str[i];
+			str[j++] = str[i];
 
-	if (str[x - 1] != '\n') {
-		if (isspace(str[x]))
-			str[x - 1] = '\n';
-		str[x] = '\0';
+	if (str[j - 1] != '\n') {
+		if (isspace(str[j]))
+			str[j - 1] = '\n';
+		str[j] = '\0';
 	}
-	else if (isspace(str[x - 2])) {
-		str[x - 2] = '\n';
-		str[x - 1] = '\0';
+	else if (isspace(str[j - 2])) {
+		str[j - 2] = '\n';
+		str[j - 1] = '\0';
 	}
 }
 
@@ -163,10 +161,10 @@ void setup(struct Settings *settings) {
 	else {
 		printf("\nPlayer 2, please enter your name\n> ");
 		getName(&(settings)->player2);
-		printf("\nWelcome %s and %s!", settings->player1, settings->player2);
+		printf("\nWelcome %s and %s!\n\n", settings->player1, settings->player2);
 	}
 
-	// This may not need to be resized as players are not stored within the struct, only its pointers are
+	// this may not need to be resized as player names are not stored within the struct, only their pointers are
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
 
 	displayBoard(settings);
@@ -175,19 +173,23 @@ void setup(struct Settings *settings) {
 void displayBoard(struct Settings *settings) {
 	int i, j;
 
-	for (i = 0; i < &(settings)->boardY; i++) {
+	for (i = 0; i < settings->boardY; i++) {
 		printf("+");
-		for (j = 0; j < &(settings)->boardX; j++)
+		for (j = 0; j < settings->boardX; j++)
 			printf("---+");
 		printf("\n");
 		printf("|");
-		for (j = 0; j < &(settings)->boardX; j++)
+		for (j = 0; j < settings->boardX; j++)
 			printf("   |");
 		printf("\n");
 	}
 
 	printf("+");
-	for (j = 0; j < &(settings)->boardX; j++)
+	for (j = 0; j < settings->boardX; j++)
 		printf("---+");
+	printf("\n");
+
+	for (j = 1; j < settings->boardX + 1; j++)
+		printf("  %d ", j);
 	printf("\n");
 }
