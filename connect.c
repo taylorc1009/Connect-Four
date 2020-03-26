@@ -14,8 +14,9 @@ struct Settings {
 	bool solo;
 };
 
-void setup(struct Settings *settings);
-void displayBoard(struct Settings* settings);
+void setup(struct Settings* settings);
+void play(struct Settings* settings);
+void displayBoard(int x, int y);
 
 static inline void cleanStdin()
 {
@@ -25,7 +26,7 @@ static inline void cleanStdin()
 	}
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 	system("cls");
 
 	struct Settings* settings = (struct Settings*) malloc(sizeof(struct Settings));
@@ -150,7 +151,7 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 	free(buffer);
 }
 
-void setup(struct Settings *settings) {
+void setup(struct Settings* settings) {
 	printf("\nPlayer 1, please enter your name\n> ");
 	getName(&(settings)->player1);
 
@@ -167,29 +168,53 @@ void setup(struct Settings *settings) {
 	// this may not need to be resized as player names are not stored within the struct, only their pointers are
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
 
-	displayBoard(settings);
+	play(settings);
 }
 
-void displayBoard(struct Settings *settings) {
-	int i, j;
+void play(struct Settings* settings) {
+	int column, x, y;
+	x = settings->boardX;
+	y = settings->boardY;
+	column = x;
 
-	for (i = 0; i < settings->boardY; i++) {
+	bool p1ToPlay = true;
+
+	do {
+		displayBoard(x, y);
+		printf("\n\n");
+		if (p1ToPlay)
+			printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player1);
+		else
+			printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player2);
+		column = validateOption(0, x);
+		if (column == 0)
+			break;
+		//else
+		p1ToPlay = !p1ToPlay;
+	} while (column >= 1 && column <= x)
+}
+
+void displayBoard(int x, int y) {
+	int i, j;
+	system("cls");
+
+	for (i = 0; i < y; i++) {
 		printf("+");
-		for (j = 0; j < settings->boardX; j++)
+		for (j = 0; j < x; j++)
 			printf("---+");
 		printf("\n");
 		printf("|");
-		for (j = 0; j < settings->boardX; j++)
+		for (j = 0; j < x; j++)
 			printf("   |");
 		printf("\n");
 	}
 
 	printf("+");
-	for (j = 0; j < settings->boardX; j++)
+	for (j = 0; j < x; j++)
 		printf("---+");
 	printf("\n");
 
-	for (j = 1; j < settings->boardX + 1; j++)
+	for (j = 1; j < x + 1; j++)
 		printf("  %d ", j);
 	printf("\n");
 }
