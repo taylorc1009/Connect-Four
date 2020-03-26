@@ -15,6 +15,7 @@ struct Settings {
 };
 
 void setup(struct Settings *settings);
+void displayBoard(struct Settings* settings);
 
 static inline void cleanStdin()
 {
@@ -44,7 +45,6 @@ int main(int argc, char **argv) {
 		switch (option) {
 			case 1:
 				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = O, player 2 = X) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.", settings->boardX, settings->boardY);
-				//goto mainmenu;
 				option = 0;
 				break;
 
@@ -54,20 +54,17 @@ int main(int argc, char **argv) {
 				printf("\nPlease enter the height (amount of rows) you want to play with\n> ");
 				settings->boardY = validateOption(3, 12);
 				printf("\nBoard dimensions changed successfully to %dx%d", settings->boardX, settings->boardY);
-				//goto mainmenu;
 				option = 0;
 				break;
 
 			case 3:
 				setup(settings);
-				//goto mainmenu;
 				option = 0;
 				break;
 
 			case 4:
 				settings->solo = true;
 				setup(settings);
-				//goto mainmenu;
 				option = 0;
 				break;
 
@@ -103,15 +100,22 @@ int validateOption(int min, int max) { // used to validate numbers within a give
 	return num;
 }
 
+// this currently erases '\n', so try to stop this
 void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding spaces from strings
 	int i, x;
 	for (i = x = 0; str[i]; ++i)
-		if (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1])))
+		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
 			str[x++] = str[i];
-	if (isspace(str[x - 1]))
-		str[x - 1] = '\0';
-	else
+
+	if (str[x - 1] != '\n') {
+		if (isspace(str[x]))
+			str[x - 1] = '\n';
 		str[x] = '\0';
+	}
+	else if (isspace(str[x - 2])) {
+		str[x - 2] = '\n';
+		str[x - 1] = '\0';
+	}
 }
 
 void getName(char** player) { // dynamically resizes the allocation of the player name char array based on the input
@@ -121,20 +125,18 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 	char* input = NULL;
 	while (input == NULL) {
 		input = fgets(buffer, NAME_MAX, stdin);
-		size_t bufLen = strlen(buffer);
 		removeExcessSpaces(buffer);
+		size_t bufLen = strlen(buffer);
 
 		if (buffer == 0 || buffer[0] == '\0') {
 			printf("\n! name empty, please enter one\n> ");
 			input = NULL;
-		}
-		
+		} 
 		else if (buffer[bufLen - 1] != '\n') {
-			printf("\n! name too long, please re-enter\n> ");
+			printf("\n! name too long (%d), please re-enter\n> ", bufLen);
 			cleanStdin();
 			input = NULL;
-		}
-		else {
+		} else {
 			if (input[bufLen - 1] == '\n') {
 				input[bufLen - 1] = '\0';
 				bufLen--;
@@ -163,5 +165,29 @@ void setup(struct Settings *settings) {
 		getName(&(settings)->player2);
 		printf("\nWelcome %s and %s!", settings->player1, settings->player2);
 	}
+
+	// This may not need to be resized as players are not stored within the struct, only its pointers are
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
+
+	displayBoard(settings);
+}
+
+void displayBoard(struct Settings *settings) {
+	int i, j;
+
+	for (i = 0; i < &(settings)->boardY; i++) {
+		printf("+");
+		for (j = 0; j < &(settings)->boardX; j++)
+			printf("---+");
+		printf("\n");
+		printf("|");
+		for (j = 0; j < &(settings)->boardX; j++)
+			printf("   |");
+		printf("\n");
+	}
+
+	printf("+");
+	for (j = 0; j < &(settings)->boardX; j++)
+		printf("---+");
+	printf("\n");
 }
