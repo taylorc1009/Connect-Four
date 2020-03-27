@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "hashmap.h"
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
 #define NUL '\0' // used to "nullify" a char
@@ -164,12 +165,12 @@ void setup(struct Settings* settings) {
 
 	if (settings->solo) {
 		settings->player2 = "Bot";
-		printf("\nWelcome %s!\n Starting...", settings->player1);
+		printf("\nWelcome %s!\n> Starting...", settings->player1);
 	}
 	else {
 		printf("\nPlayer 2, please enter your name\n> ");
 		getName(&(settings)->player2);
-		printf("\nWelcome %s and %s!\n Starting...", settings->player1, settings->player2);
+		printf("\nWelcome %s and %s!\n> Starting...", settings->player1, settings->player2);
 	}
 
 	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
@@ -187,20 +188,22 @@ void play(struct Settings* settings) {
 
 	bool p1ToPlay = true;
 
+	struct table* columns = createTable(settings->boardX);
+
 	do {
 		displayBoard(x, y);
 		printf("\n\n");
 		char* curPlayer;
 		if (p1ToPlay)
 			curPlayer = settings->player1;
-			//printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player1);
 		else
 			curPlayer = settings->player2;
-			//printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player2);
 		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
 		column = validateOption(0, x);
-		if (column == 0)
+		if (column == 0) {
+			printf("\n! game closed\n");
 			break;
+		}
 		//else
 		p1ToPlay = !p1ToPlay;
 	} while (column >= 1 && column <= x);
