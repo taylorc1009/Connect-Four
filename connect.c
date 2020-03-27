@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
 #define NUL '\0' // used to "nullify" a char
@@ -18,12 +19,17 @@ void setup(struct Settings* settings);
 void play(struct Settings* settings);
 void displayBoard(int x, int y);
 
-static inline void cleanStdin()
-{
+static inline void cleanStdin() {
 	char c = NUL;
 	while ((c = getchar()) != '\n' && c != EOF) {
 		// Do nothing until input buffer is fully flushed. 
 	}
+}
+
+void delay(int numOfSeconds) {
+	int milliSeconds = 1000 * numOfSeconds;
+	clock_t startTime = clock();
+	while (clock() < startTime + milliSeconds);
 }
 
 int main(int argc, char** argv) {
@@ -80,13 +86,13 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-int validateOption(int min, int max) { // used to validate numbers within a given range
+int validateOption(int min, int max) { // used to validate integers within a given range
 	bool valid = false;
-	int num = 0;
+	int num = -1;
 
-	while (num == 0) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
+	while (num == -1) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 		char term;
-		num = 0;
+		//num = -1;
 		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
 			printf("\n! invalid input: please re-enter an number between %d and %d\n> ", min, max);
 			char c = NUL;
@@ -94,7 +100,7 @@ int validateOption(int min, int max) { // used to validate numbers within a give
 				c = getchar();
 			} while (!isdigit(c));
 			ungetc(c, stdin);
-			num = 0;
+			num = -1;
 		}
 	}
 	return num;
@@ -102,12 +108,13 @@ int validateOption(int min, int max) { // used to validate numbers within a give
 
 void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding spaces from strings
 	int i, j;
+
 	for (i = j = 0; str[i]; ++i)
 		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
 			str[j++] = str[i];
 
 	if (str[j - 1] != '\n') {
-		if (isspace(str[j]))
+		if (isspace(str[j - 1]))
 			str[j - 1] = '\n';
 		str[j] = '\0';
 	}
@@ -157,17 +164,18 @@ void setup(struct Settings* settings) {
 
 	if (settings->solo) {
 		settings->player2 = "Bot";
-		printf("\nWelcome %s!", settings->player1);
+		printf("\nWelcome %s!\n Starting...", settings->player1);
 	}
 	else {
 		printf("\nPlayer 2, please enter your name\n> ");
 		getName(&(settings)->player2);
-		printf("\nWelcome %s and %s!\n\n", settings->player1, settings->player2);
+		printf("\nWelcome %s and %s!\n Starting...", settings->player1, settings->player2);
 	}
 
-	// this may not need to be resized as player names are not stored within the struct, only their pointers are
+	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
-
+	
+	delay(2);
 	play(settings);
 }
 
@@ -187,11 +195,11 @@ void play(struct Settings* settings) {
 		else
 			printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player2);
 		column = validateOption(0, x);
-		if (column == 0)
-			break;
+		//if (column == 0)
+			//break;
 		//else
 		p1ToPlay = !p1ToPlay;
-	} while (column >= 1 && column <= x)
+	} while (column >= 1 && column <= x);
 }
 
 void displayBoard(int x, int y) {
