@@ -41,16 +41,16 @@ int main(int argc, char** argv) {
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
 	settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit", settings->boardX, settings->boardY);
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", settings->boardX, settings->boardY);
 	
 	int option = 0;
 	while (option == 0) {
 		settings->solo = false;
-		printf("\n\nWhat would you like to do?\n> ");
+		printf("\nWhat would you like to do?\n> ");
 		option = validateOption(1, 5);
 		switch (option) {
 			case 1:
-				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = O, player 2 = X) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.", settings->boardX, settings->boardY);
+				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = O, player 2 = X) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", settings->boardX, settings->boardY);
 				option = 0;
 				break;
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 				settings->boardX = validateOption(3, 12);
 				printf("\nPlease enter the height (amount of rows) you want to play with\n> ");
 				settings->boardY = validateOption(3, 12);
-				printf("\nBoard dimensions changed successfully to %dx%d", settings->boardX, settings->boardY);
+				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				option = 0;
 				break;
 
@@ -134,7 +134,7 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 		removeExcessSpaces(buffer);
 		size_t bufLen = strlen(buffer);
 
-		if (buffer == 0 || buffer[0] == '\0') {
+		if (buffer == 0 || buffer[0] == '\n' || buffer[0] == '\0') {
 			printf("\n! name empty, please enter one\n> ");
 			input = NULL;
 		} 
@@ -190,13 +190,17 @@ void play(struct Settings* settings) {
 	do {
 		displayBoard(x, y);
 		printf("\n\n");
+		char* curPlayer;
 		if (p1ToPlay)
-			printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player1);
+			curPlayer = settings->player1;
+			//printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player1);
 		else
-			printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player2);
+			curPlayer = settings->player2;
+			//printf("Make your move %s, select a column number (0 to save and exit)\n> ", settings->player2);
+		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
 		column = validateOption(0, x);
-		//if (column == 0)
-			//break;
+		if (column == 0)
+			break;
 		//else
 		p1ToPlay = !p1ToPlay;
 	} while (column >= 1 && column <= x);
