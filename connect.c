@@ -222,14 +222,14 @@ void play(struct Settings* settings) {
 		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
 		column = validateOption(0, x);
 		if (column == 0) {
-			/*for (int i = 0; i < board->size; i++) {
-				for (int j = 0; i < board->list[i]->stack->size; j++) {
-					printf("1");
+			for (int i = 0; i < board->size; i++) {
+				for (int j = 0; j < board->list[i]->stack->size; j++) {
 					free(board->list[i]->stack->list[j]);
 				}
 				free(board->list[i]->stack);
 				free(board->list[i]);
-			}*/
+			}
+			free(board->list);
 			free(board);
 			printf("\n! game closed");
 			delay(2);
