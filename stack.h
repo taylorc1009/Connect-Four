@@ -12,7 +12,6 @@ struct stack {
 	int top;
 	int size;
 };
-
 struct stack* createStack(int size) {
 	struct stack* s = (struct stack*)malloc(sizeof(struct stack));
 	s->top = -1;

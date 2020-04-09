@@ -33,6 +33,10 @@ void delay(int numOfSeconds) {
 	while (clock() < startTime + milliSeconds);
 }
 
+void welcome(struct Settings* s) {
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", s->boardX, s->boardY);
+}
+
 int main(int argc, char** argv) {
 	system("cls");
 
@@ -42,7 +46,7 @@ int main(int argc, char** argv) {
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
 	settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", settings->boardX, settings->boardY);
+	welcome(settings);
 	
 	int option = 0;
 	while (option == 0) {
@@ -67,23 +71,27 @@ int main(int argc, char** argv) {
 			case 3:
 				setup(settings);
 				option = 0;
+				system("cls");
+				welcome(settings);
 				break;
 
 			case 4:
 				settings->solo = true;
 				setup(settings);
 				option = 0;
+				system("cls");
+				welcome(settings);
 				break;
 
 			case 5:
+				free(settings->player1);
+				free(settings->player2);
+				free(settings);
+				system("cls");
+				printf("Connect 4 closed, goodbye!\n");
 				break;
 		}
 	}
-	free(settings->player1);
-	free(settings->player2);
-	free(settings);
-	system("cls");
-	printf("Connect 4 closed, goodbye!\n");
 	return 0;
 }
 
@@ -176,7 +184,7 @@ void setup(struct Settings* settings) {
 	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
 	
-	delay(2);
+	//delay(2);
 	play(settings);
 }
 
@@ -188,7 +196,7 @@ void play(struct Settings* settings) {
 
 	bool p1ToPlay = true;
 
-	struct table* columns = createTable(settings->boardX);
+	struct table* board = createTable(x, y);
 
 	do {
 		displayBoard(x, y);
@@ -201,7 +209,8 @@ void play(struct Settings* settings) {
 		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
 		column = validateOption(0, x);
 		if (column == 0) {
-			printf("\n! game closed\n");
+			printf("\n! game closed");
+			delay(2);
 			break;
 		}
 		//else
@@ -230,6 +239,9 @@ void displayBoard(int x, int y) {
 	printf("\n");
 
 	for (j = 1; j < x + 1; j++)
-		printf("  %d ", j);
+		if(j < 10)
+			printf("  %d ", j);
+		else
+			printf(" %d ", j);
 	printf("\n");
 }

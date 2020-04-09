@@ -6,19 +6,26 @@
 
 struct node {
     int key;
-    struct stack* val;
+    struct stack* stack;
     struct node* next;
 };
 struct table {
     int size;
     struct node** list;
 };
-struct table* createTable(int size) {
+void insertStack(struct table* t, int key, int size);
+struct table* createTable(int x, int y) {
     struct table* t = (struct table*)malloc(sizeof(struct table));
-    t->size = size;
-    t->list = (struct node**)malloc(sizeof(struct node*) * size);
-    for (int i = 0; i < size; i++)
-        t->list[i] = NULL; // this is where we will define the columns as stacks?
+    t->size = x;
+    t->list = (struct node**)malloc(sizeof(struct node*) * x);
+    //printf("\n\n! DEV:\n - nodes to build: %d\n - nodes built: ", x);
+    for (int i = 0; i < x; i++) {
+        //printf("%d", i + 1);
+        /*t->list[i]->key = i;
+        t->list[i]->stack = createStack(y);
+        t->list[i]-*/
+        insertStack(t, i, y);
+    }
     return t;
 }
 int hashCode(struct table* t, int key) {
@@ -26,23 +33,28 @@ int hashCode(struct table* t, int key) {
         return -(key % t->size);
     return key % t->size;
 }
-void insert(struct table* t, int key, char val) {
+void insertStack(struct table* t, int key, int size) { // would it be better to recursively call this method on the next node? Rather than iterating it with the amount of stacks we expect
+    if (key >= t->size)
+        return; // return boolean to determine success
     int pos = hashCode(t, key);
-    struct node* list = t->list[pos];
+    //struct node* list = t->list[pos];*/
     struct node* newNode = (struct node*)malloc(sizeof(struct node));
-    struct node* temp = list;
+    /*struct node* temp = list;
     while (temp) {
         if (temp->key == key) {
-            //temp->val = val;
-            push(temp->val, val);
+            temp->val = val;
+            //push(temp->stack, val);
             return;
         }
         temp = temp->next;
-    }
+    }*/
     newNode->key = key;
-    //newNode->val = val;
-    push(newNode->val, val);
-    newNode->next = list;
+    newNode->stack = createStack(size);
+    //push(newNode->stack, val);
+    if (pos + 1 <= t->size)
+        newNode->next = t->list[pos + 1];
+    else
+        newNode->next = NULL;
     t->list[pos] = newNode;
 }
 struct stack* lookup(struct table* t, int key) {
@@ -51,11 +63,11 @@ struct stack* lookup(struct table* t, int key) {
     struct node* temp = list;
     while (temp) {
         if (temp->key == key) {
-            return temp->val;
+            return temp->stack;
         }
         temp = temp->next;
     }
-    return -1;
+    return NULL;
 }
 
 /*#include <stdio.h>
