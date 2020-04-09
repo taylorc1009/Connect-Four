@@ -62,7 +62,6 @@ struct stack* hashGet(struct table* t, int key) {
     struct node* list = t->list[pos];
     struct node* temp = list;
     while (temp) {
-        //printf("1");
         if (temp->key == key) {
             return temp->stack;
         }

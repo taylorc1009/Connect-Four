@@ -237,10 +237,10 @@ void play(struct Settings* settings) {
 			}
 			else { // implement ctrl+Z and ctrl+Y as undo & redo?
 				full = push(hashGet(board, column - 1), token);
-				if (!full)
+				if (full)
 					printf("\n! column full, please choose another\n> ");
 			}
-		} while (!full);
+		} while (full);
 		//}
 		p1ToPlay = !p1ToPlay;
 	} while (column >= 1 && column <= x);

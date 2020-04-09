@@ -26,7 +26,7 @@ struct stack* createStack(int size) {
 }
 bool push(struct stack* s, char val) { // return boolean to determine push success
 	if (s->top == s->size - 1)
-		return false;
+		return true;
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
 	if (s->top != -1)
 		newNode->prev = s->list[s->top];
@@ -36,7 +36,7 @@ bool push(struct stack* s, char val) { // return boolean to determine push succe
 	newNode->val = val;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
-	return true;
+	return false;
 }
 struct stackNode** pop(struct stack* s) {
 	struct stackNode** data;
