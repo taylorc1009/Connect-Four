@@ -6,7 +6,7 @@
 typedef enum { false, true } bool;
 
 struct stackNode {
-	char val;
+	char* val;
 	struct stackNode* prev;
 	struct stackNode* next;
 };
@@ -24,7 +24,7 @@ struct stack* createStack(int size) {
 		s->list[i] = NULL;
 	return s;
 }
-bool push(struct stack* s, char val) { // return boolean to determine push success
+bool push(struct stack* s, char* val) { // return boolean to determine push success
 	if (s->top == s->size - 1)
 		return true;
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
@@ -49,7 +49,7 @@ struct stackNode** pop(struct stack* s) {
 	// should the data be freed here? No, we still need this portion of memory to be reserved in case new data is added here later
 	return data;
 }
-char stackGet(struct stack* s, int index) {
+char* stackGet(struct stack* s, int index) {
 	if (index < s->size && s->list[index] != NULL)
 		return s->list[index]->val;
 	else

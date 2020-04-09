@@ -5,6 +5,11 @@
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
 
+// C console colours (source = https://stackoverflow.com/a/3586005/11136104)
+#define P1COL "\x1B[31m" // red
+#define P2COL "\x1B[33m" // yellow
+#define PNRM "\x1B[0m" // default console text color
+
 struct Settings {
 	int boardX;
 	int boardY;
@@ -20,7 +25,7 @@ void displayBoard(int x, int y, struct table* b);
 static inline void cleanStdin() {
 	char c = NUL;
 	while ((c = getchar()) != '\n' && c != EOF) {
-		// Do nothing until input buffer is fully flushed 
+		// do nothing until input buffer is fully flushed 
 	}
 }
 
@@ -165,17 +170,17 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 }
 
 void setup(struct Settings* settings) {
-	printf("\nPlayer 1, please enter your name\n> ");
+	printf("\n%sPlayer 1%s, please enter your name\n> ", P1COL, PNRM);
 	getName(&(settings)->player1);
 
 	if (settings->solo) {
 		settings->player2 = "Bot";
-		printf("\nWelcome %s!\n> Starting...", settings->player1);
+		printf("\nWelcome %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM);
 	}
 	else {
-		printf("\nPlayer 2, please enter your name\n> ");
+		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
 		getName(&(settings)->player2);
-		printf("\nWelcome %s and %s!\n> Starting...", settings->player1, settings->player2);
+		printf("\nWelcome %s%s%s and %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
 	}
 
 	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
@@ -184,10 +189,6 @@ void setup(struct Settings* settings) {
 	delay(2);
 	play(settings);
 }
-
-#define KRED  "\x1B[31m"
-#define KYEL  "\x1B[33m"
-#define KWHT  "\x1B[37m"
 
 void play(struct Settings* settings) {
 	int column, x, y;
@@ -203,21 +204,21 @@ void play(struct Settings* settings) {
 		displayBoard(x, y, board);
 		printf("\n\n");
 		char* curPlayer;
-		char token;
+		char* token;
 		if (p1ToPlay) {
 			curPlayer = settings->player1;
-			token = 'X';
+			token = P1COL;
 		}
 		else {
 			curPlayer = settings->player2;
-			token = 'O';
+			token = P2COL;
 		}
 		/*if (!p1ToPlay && settings->solo)
 			printf("%s is making a move", settings->player2);
 			delay(2);
 			AIMakeMove();
 		else {*/
-		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
+		printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", token, curPlayer, PNRM);
 		bool full;
 		do {
 			column = validateOption(0, x);
@@ -257,11 +258,11 @@ void displayBoard(int x, int y, struct table* b) { // add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			char token = stackGet(hashGet(b, j), (y - 1) - i);
-			if (token == NUL)
+			char* col = stackGet(hashGet(b, j), (y - 1) - i);
+			if (col == NUL)
 				printf("   |");
 			else
-				printf(" %c |", token);
+				printf(" %sO%s |", col, PNRM);
 		}
 		printf("\n");
 	}
