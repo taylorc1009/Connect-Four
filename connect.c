@@ -237,6 +237,9 @@ void play(struct Settings* settings) {
 				break;
 			}
 			else { // implement ctrl+Z and ctrl+Y as undo & redo?
+
+				//TODO change the token back to R/Y or 1/2, this char* isn't practical for performing the checks and save/load
+
 				full = push(hashGet(board, column - 1), token);
 				if (full)
 					printf("\n! column full, please choose another\n> ");
