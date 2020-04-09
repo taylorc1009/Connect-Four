@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NUL '\0' // used to "nullify" a char
+
 struct stackNode {
 	char val;
 	struct stackNode* prev;
@@ -46,4 +48,14 @@ struct stackNode** pop(struct stack* s) {
 	s->top--;
 	// should the data be freed here? No, we still need this portion of memory to be reserved in case new data is added here later
 	return data;
+}
+char stackGet(struct stack* s, int index) {
+	if (index < s->top) {
+		//printf("nonull");
+		return s->list[index]->val;
+	}
+	else {
+		//printf("ye null");
+		return NUL;
+	}
 }

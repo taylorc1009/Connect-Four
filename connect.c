@@ -4,7 +4,6 @@
 #include "hashmap.h"
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
-#define NUL '\0' // used to "nullify" a char
 
 typedef enum { false, true } bool;
 
@@ -18,7 +17,7 @@ struct Settings {
 
 void setup(struct Settings* settings);
 void play(struct Settings* settings);
-void displayBoard(int x, int y);
+void displayBoard(int x, int y, struct table* b);
 
 static inline void cleanStdin() {
 	char c = NUL;
@@ -199,7 +198,7 @@ void play(struct Settings* settings) {
 	struct table* board = createTable(x, y);
 
 	do {
-		displayBoard(x, y);
+		displayBoard(x, y, board);
 		printf("\n\n");
 		char* curPlayer;
 		if (p1ToPlay)
@@ -218,7 +217,7 @@ void play(struct Settings* settings) {
 	} while (column >= 1 && column <= x);
 }
 
-void displayBoard(int x, int y) {
+void displayBoard(int x, int y, struct table* b) {
 	int i, j;
 	system("cls");
 
@@ -228,8 +227,13 @@ void displayBoard(int x, int y) {
 			printf("---+");
 		printf("\n");
 		printf("|");
-		for (j = 0; j < x; j++)
-			printf("   |");
+		for (j = 0; j < x; j++) {
+			char token = stackGet(hashGet(b, x - 1), y);
+			if (token == NUL)
+				printf("   |");
+			else
+				printf(" %c |", token);
+		}
 		printf("\n");
 	}
 
