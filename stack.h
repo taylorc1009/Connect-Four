@@ -9,7 +9,6 @@ struct stackNode {
 	struct stackNode* next;
 };
 struct stack {
-	//int* array;
 	struct stackNode** list;
 	int top;
 	int size;
@@ -24,6 +23,7 @@ struct stack* createStack(int size) {
 	return s;
 }
 void push(struct stack* s, char val) { // return boolean to determine push success
+	
 	if (s->top == s->size - 1) {
 		printf(" Stack is full . Couldn ’t push ’%d’ onto stack \n", val);
 		return;
@@ -50,12 +50,8 @@ struct stackNode** pop(struct stack* s) {
 	return data;
 }
 char stackGet(struct stack* s, int index) {
-	if (index < s->top) {
-		//printf("nonull");
+	if (index < s->size && s->list[index] != NULL)
 		return s->list[index]->val;
-	}
-	else {
-		//printf("ye null");
+	else
 		return NUL;
-	}
 }

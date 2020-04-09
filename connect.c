@@ -183,9 +183,13 @@ void setup(struct Settings* settings) {
 	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
 	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
 	
-	//delay(2);
+	delay(2);
 	play(settings);
 }
+
+#define KRED  "\x1B[31m"
+#define KYEL  "\x1B[33m"
+#define KWHT  "\x1B[37m"
 
 void play(struct Settings* settings) {
 	int column, x, y;
@@ -201,23 +205,45 @@ void play(struct Settings* settings) {
 		displayBoard(x, y, board);
 		printf("\n\n");
 		char* curPlayer;
-		if (p1ToPlay)
+		char token;
+		if (p1ToPlay) {
 			curPlayer = settings->player1;
-		else
+			token = 'X';
+		}
+		else {
 			curPlayer = settings->player2;
+			token = 'O';
+		}
+		/*if (!p1ToPlay && settings->solo)
+			printf("%s is making a move", settings->player2);
+			delay(2);
+			AIMakeMove();
+		else {*/
 		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
 		column = validateOption(0, x);
 		if (column == 0) {
+			/*for (int i = 0; i < board->size; i++) {
+				for (int j = 0; i < board->list[i]->stack->size; j++) {
+					printf("1");
+					free(board->list[i]->stack->list[j]);
+				}
+				free(board->list[i]->stack);
+				free(board->list[i]);
+			}*/
+			free(board);
 			printf("\n! game closed");
 			delay(2);
 			break;
 		}
-		//else
-		p1ToPlay = !p1ToPlay;
+		else { // implement ctrl+Z and ctrl+Y as undo & redo?
+			push(hashGet(board, column - 1), token);
+			p1ToPlay = !p1ToPlay;
+		}
+		//}
 	} while (column >= 1 && column <= x);
 }
 
-void displayBoard(int x, int y, struct table* b) {
+void displayBoard(int x, int y, struct table* b) { // add a move down animation?
 	int i, j;
 	system("cls");
 
@@ -228,7 +254,7 @@ void displayBoard(int x, int y, struct table* b) {
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			char token = stackGet(hashGet(b, x - 1), y);
+			char token = stackGet(hashGet(b, j), (y - 1) - i);
 			if (token == NUL)
 				printf("   |");
 			else

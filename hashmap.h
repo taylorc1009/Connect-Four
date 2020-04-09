@@ -13,7 +13,7 @@ struct table {
     int size;
     struct node** list;
 };
-void insertStack(struct table* t, int key, int size);
+void insertStackToNode(struct table* t, int key, int size);
 struct table* createTable(int x, int y) {
     struct table* t = (struct table*)malloc(sizeof(struct table));
     t->size = x;
@@ -24,7 +24,7 @@ struct table* createTable(int x, int y) {
         /*t->list[i]->key = i;
         t->list[i]->stack = createStack(y);
         t->list[i]-*/
-        insertStack(t, i, y);
+        insertStackToNode(t, i, y);
     }
     return t;
 }
@@ -33,7 +33,7 @@ int hashCode(struct table* t, int key) {
         return -(key % t->size);
     return key % t->size;
 }
-void insertStack(struct table* t, int key, int size) { // would it be better to recursively call this method on the next node? Rather than iterating it with the amount of stacks we expect
+void insertStackToNode(struct table* t, int key, int size) { // would it be better to recursively call this method on the next node? Rather than iterating it with the amount of stacks we expect
     if (key >= t->size)
         return; // return boolean to determine success
     int pos = hashCode(t, key);
