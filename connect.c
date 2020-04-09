@@ -5,8 +5,6 @@
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
 
-typedef enum { false, true } bool;
-
 struct Settings {
 	int boardX;
 	int boardY;
@@ -22,7 +20,7 @@ void displayBoard(int x, int y, struct table* b);
 static inline void cleanStdin() {
 	char c = NUL;
 	while ((c = getchar()) != '\n' && c != EOF) {
-		// Do nothing until input buffer is fully flushed. 
+		// Do nothing until input buffer is fully flushed 
 	}
 }
 
@@ -220,26 +218,31 @@ void play(struct Settings* settings) {
 			AIMakeMove();
 		else {*/
 		printf("Make your move %s, select a column number (0 to save and exit)\n> ", curPlayer);
-		column = validateOption(0, x);
-		if (column == 0) {
-			for (int i = 0; i < board->size; i++) {
-				for (int j = 0; j < board->list[i]->stack->size; j++) {
-					free(board->list[i]->stack->list[j]);
+		bool full;
+		do {
+			column = validateOption(0, x);
+			if (column == 0) {
+				for (int i = 0; i < board->size; i++) {
+					for (int j = 0; j < board->list[i]->stack->size; j++) {
+						free(board->list[i]->stack->list[j]);
+					}
+					free(board->list[i]->stack);
+					free(board->list[i]);
 				}
-				free(board->list[i]->stack);
-				free(board->list[i]);
+				free(board->list);
+				free(board);
+				printf("\n! game closed");
+				delay(2);
+				break;
 			}
-			free(board->list);
-			free(board);
-			printf("\n! game closed");
-			delay(2);
-			break;
-		}
-		else { // implement ctrl+Z and ctrl+Y as undo & redo?
-			push(hashGet(board, column - 1), token);
-			p1ToPlay = !p1ToPlay;
-		}
+			else { // implement ctrl+Z and ctrl+Y as undo & redo?
+				full = push(hashGet(board, column - 1), token);
+				if (!full)
+					printf("\n! column full, please choose another\n> ");
+			}
+		} while (!full);
 		//}
+		p1ToPlay = !p1ToPlay;
 	} while (column >= 1 && column <= x);
 }
 

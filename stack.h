@@ -3,6 +3,8 @@
 
 #define NUL '\0' // used to "nullify" a char
 
+typedef enum { false, true } bool;
+
 struct stackNode {
 	char val;
 	struct stackNode* prev;
@@ -22,12 +24,9 @@ struct stack* createStack(int size) {
 		s->list[i] = NULL;
 	return s;
 }
-void push(struct stack* s, char val) { // return boolean to determine push success
-	
-	if (s->top == s->size - 1) {
-		printf(" Stack is full . Couldn ’t push ’%d’ onto stack \n", val);
-		return;
-	}
+bool push(struct stack* s, char val) { // return boolean to determine push success
+	if (s->top == s->size - 1)
+		return false;
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
 	if (s->top != -1)
 		newNode->prev = s->list[s->top];
@@ -37,6 +36,7 @@ void push(struct stack* s, char val) { // return boolean to determine push succe
 	newNode->val = val;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
+	return true;
 }
 struct stackNode** pop(struct stack* s) {
 	struct stackNode** data;

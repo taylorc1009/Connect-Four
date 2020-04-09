@@ -37,7 +37,7 @@ void insertStackToNode(struct table* t, int key, int size) { // would it be bett
     if (key >= t->size)
         return; // return boolean to determine success
     int pos = hashCode(t, key);
-    //struct node* list = t->list[pos];*/
+    //struct node* list = t->list[pos];
     struct node* newNode = (struct node*)malloc(sizeof(struct node));
     /*struct node* temp = list;
     while (temp) {
