@@ -63,9 +63,9 @@ int main(int argc, char** argv) {
 
 			case 2:
 				printf("\nPlease enter the width (amount of columns) you want to play with\n> ");
-				settings->boardX = validateOption(3, 12);
+				settings->boardX = validateOption(4, 12);
 				printf("\nPlease enter the height (amount of rows) you want to play with\n> ");
-				settings->boardY = validateOption(3, 12);
+				settings->boardY = validateOption(4, 12);
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				option = 0;
 				break;
