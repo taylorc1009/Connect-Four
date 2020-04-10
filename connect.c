@@ -24,9 +24,7 @@ void displayBoard(int x, int y, struct table* b);
 
 static inline void cleanStdin() {
 	char c = NUL;
-	while ((c = getchar()) != '\n' && c != EOF) {
-		// do nothing until input buffer is fully flushed 
-	}
+	while ((c = getchar()) != '\n' && c != EOF) { /* do nothing until input buffer is fully flushed */ }
 }
 
 void delay(int numOfSeconds) {
@@ -117,7 +115,7 @@ int validateOption(int min, int max) { // used to validate integers within a giv
 	return num;
 }
 
-void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding spaces from strings
+void removeExcessSpaces(char* str) { // used to remove preceding and exceding spaces from strings
 	int i, j;
 
 	for (i = j = 0; str[i]; ++i)
@@ -135,7 +133,7 @@ void removeExcessSpaces(char* str) { // used to remove preceeding and exceeding 
 	}
 }
 
-void getName(char** player) { // dynamically resizes the allocation of the player name char array based on the input
+void getName(char** player) { // gets a player name and dynamically resizes the allocation of the char array based on the input
 	char* buffer = (char*)malloc(sizeof(char) * NAME_MAX);
 	memset(buffer, NUL, NAME_MAX);
 
@@ -150,7 +148,7 @@ void getName(char** player) { // dynamically resizes the allocation of the playe
 			input = NULL;
 		} 
 		else if (buffer[bufLen - 1] != '\n') {
-			printf("\n! name too long (%d), please re-enter\n> ", bufLen);
+			printf("\n! name is too long (30 characters max), please re-enter\n> ");
 			cleanStdin();
 			input = NULL;
 		} else {
@@ -183,9 +181,6 @@ void setup(struct Settings* settings) {
 		printf("\nWelcome %s%s%s and %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
 	}
 
-	// this may not need to be resized as player names are not stored within the struct, only their pointers are, and pointers won't be resized
-	//*settings = (struct Settings*)realloc(*settings, sizeof(int) * 2 + sizeof(bool) + sizeof(char) * strlen(settings->player1) + sizeof(char) * strlen(settings->player2));
-	
 	delay(2);
 	play(settings);
 }
@@ -197,31 +192,38 @@ void play(struct Settings* settings) {
 	column = x;
 
 	bool p1ToPlay = true;
+	char* curPlayer;
+	char* col;
+	int p;
 
 	struct table* board = createTable(x, y);
 
 	do {
 		displayBoard(x, y, board);
 		printf("\n\n");
-		char* curPlayer;
-		char* token;
+
 		if (p1ToPlay) {
 			curPlayer = settings->player1;
-			token = P1COL;
+			p = 1;
+			col = P1COL;
 		}
 		else {
 			curPlayer = settings->player2;
-			token = P2COL;
+			p = 2;
+			col = P2COL;
 		}
+
 		/*if (!p1ToPlay && settings->solo)
 			printf("%s is making a move", settings->player2);
 			delay(2);
 			AIMakeMove();
 		else {*/
-		printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", token, curPlayer, PNRM);
+		printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 		bool full;
+
 		do {
 			column = validateOption(0, x);
+
 			if (column == 0) {
 				for (int i = 0; i < board->size; i++) {
 					for (int j = 0; j < board->list[i]->stack->size; j++) {
@@ -230,6 +232,7 @@ void play(struct Settings* settings) {
 					free(board->list[i]->stack);
 					free(board->list[i]);
 				}
+
 				free(board->list);
 				free(board);
 				printf("\n! game closed");
@@ -237,10 +240,8 @@ void play(struct Settings* settings) {
 				break;
 			}
 			else { // implement ctrl+Z and ctrl+Y as undo & redo?
+				full = push(hashGet(board, column - 1), p);
 
-				//TODO change the token back to R/Y or 1/2, this char* isn't practical for performing the checks and save/load
-
-				full = push(hashGet(board, column - 1), token);
 				if (full)
 					printf("\n! column full, please choose another\n> ");
 			}
@@ -261,11 +262,17 @@ void displayBoard(int x, int y, struct table* b) { // add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			char* col = stackGet(hashGet(b, j), (y - 1) - i);
-			if (col == NUL)
-				printf("   |");
-			else
+			int p = stackGet(hashGet(b, j), (y - 1) - i);
+			if (p) {
+				char* col;
+				if (p == 1)
+					col = P1COL;
+				else if (p == 2)
+					col = P2COL;
 				printf(" %sO%s |", col, PNRM);
+			}
+			else
+				printf("   |");
 		}
 		printf("\n");
 	}
