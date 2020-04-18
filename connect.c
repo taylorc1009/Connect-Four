@@ -1,3 +1,10 @@
+/* TODO
+*	Implement:
+*	- AI feature
+*	- Save and load
+*	- Undo and redo
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -157,7 +164,7 @@ void getName(char** player) { // gets a player name and dynamically resizes the 
 				input[bufLen - 1] = '\0';
 				bufLen--;
 			}
-			//removeExcessSpaces(input); // might be redundant due ro removeExcessSpaces above
+			//removeExcessSpaces(input); // might be redundant due to removeExcessSpaces above
 
 			if (bufLen > sizeof(*player))
 				*player = (char*)realloc(*player, sizeof(char) * bufLen);
@@ -368,7 +375,6 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 		else
 			count = 0;
 	}
-
 
 	return false;
 }
