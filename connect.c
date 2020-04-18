@@ -313,7 +313,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 
 	// horizontal check
 	int count = 0;
-	for (int i = 0; i < y; i++) {
+	for (int i = 0; i < x; i++) {
 		if (stackGet(hashGet(board, i), row) == p) {
 			count++;
 			if (count >= 4)
@@ -325,7 +325,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 
 	// vertical check
 	count = 0;
-	for (int i = 0; i < x; i++) {
+	for (int i = 0; i < y; i++) {
 		if (stackGet(hashGet(board, column), i) == p) {
 			count++;
 			if (count >= 4)
@@ -345,7 +345,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 		j--;
 	}
 
-	for (i, j; i < x && j < y; i++, j++) {
+	for (i, j; i < y && j < x; i++, j++) {
 		if (stackGet(hashGet(board, j), i) == p) {
 			count++;
 			if (count >= 4)
@@ -366,7 +366,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 		j++;
 	}
 
-	for (i, j; i < x && j > 0; i++, j--) {
+	for (i, j; i < y && j > 0; i++, j--) {
 		if (stackGet(hashGet(board, j), i) == p) {
 			count++;
 			if (count >= 4)
