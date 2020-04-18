@@ -9,13 +9,13 @@ struct node {
     struct stack* stack;
     struct node* next;
 };
-struct table {
+struct hashmap {
     int size;
     struct node** list;
 };
-void insertStackToNode(struct table* t, int key, int size);
-struct table* createTable(int x, int y) {
-    struct table* t = (struct table*)malloc(sizeof(struct table));
+void insertStackToNode(struct hashmap* t, int key, int size);
+struct hashmap* createTable(int x, int y) {
+    struct hashmap* t = (struct hashmap*)malloc(sizeof(struct hashmap));
     t->size = x;
     t->list = (struct node**)malloc(sizeof(struct node*) * x);
     //printf("\n\n! DEV:\n - nodes to build: %d\n - nodes built: ", x);
@@ -24,12 +24,12 @@ struct table* createTable(int x, int y) {
     }
     return t;
 }
-int hashCode(struct table* t, int key) {
+int hashCode(struct hashmap* t, int key) {
     if (key < 0)
         return -(key % t->size);
     return key % t->size;
 }
-void insertStackToNode(struct table* t, int key, int size) { // would it be better to recursively call this method on the next node? Rather than iterating it for the amount of stacks we expect
+void insertStackToNode(struct hashmap* t, int key, int size) { // would it be better to recursively call this method on the next node? Rather than iterating it for the amount of stacks we expect
     if (key >= t->size)
         return; // return boolean to determine success
     int pos = hashCode(t, key);
@@ -42,7 +42,7 @@ void insertStackToNode(struct table* t, int key, int size) { // would it be bett
         newNode->next = NULL;
     t->list[pos] = newNode;
 }
-struct stack* hashGet(struct table* t, int key) {
+struct stack* hashGet(struct hashmap* t, int key) {
     int pos = hashCode(t, key);
     struct node* list = t->list[pos];
     struct node* temp = list;

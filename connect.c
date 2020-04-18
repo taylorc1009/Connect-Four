@@ -20,7 +20,8 @@ struct Settings {
 
 void setup(struct Settings* settings);
 void play(struct Settings* settings);
-void displayBoard(int x, int y, struct table* b);
+void displayBoard(int x, int y, struct hashmap* b);
+void freeBoard(struct hashmap* board);
 
 static inline void cleanStdin() {
 	char c = NUL;
@@ -156,7 +157,7 @@ void getName(char** player) { // gets a player name and dynamically resizes the 
 				input[bufLen - 1] = '\0';
 				bufLen--;
 			}
-			removeExcessSpaces(input);
+			//removeExcessSpaces(input); // might be redundant due ro removeExcessSpaces above
 
 			if (bufLen > sizeof(*player))
 				*player = (char*)realloc(*player, sizeof(char) * bufLen);
@@ -192,66 +193,74 @@ void play(struct Settings* settings) {
 	column = x;
 
 	bool p1ToPlay = true;
-	char* curPlayer;
+	char* curPlayer = NUL;
 	char* col;
 	int p;
 
-	struct table* board = createTable(x, y);
+	struct hashmap* board = createTable(x, y);
+	bool full, win;
 
 	do {
 		displayBoard(x, y, board);
 		printf("\n\n");
 
-		if (p1ToPlay) {
-			curPlayer = settings->player1;
-			p = 1;
-			col = P1COL;
+		// used to skip checks before the first initial move, otherwise null issues occur
+		if (curPlayer != NUL)
+			win = checkWin(x, y, hashGet(board, column - 1)->top, column - 1, board, p);
+		else
+			win = false;
+
+		if (win) {
+			freeBoard(board);
+
+			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
+			delay(5);
+			column = 0;
+			break;
 		}
 		else {
-			curPlayer = settings->player2;
-			p = 2;
-			col = P2COL;
-		}
+			if (p1ToPlay) {
+				curPlayer = settings->player1;
+				p = 1;
+				col = P1COL;
+			}
+			else {
+				curPlayer = settings->player2;
+				p = 2;
+				col = P2COL;
+			}
 
-		/*if (!p1ToPlay && settings->solo)
-			printf("%s is making a move", settings->player2);
-			delay(2);
-			AIMakeMove();
-		else {*/
-		printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
-		bool full;
-
-		do {
-			column = validateOption(0, x);
-
-			if (column == 0) {
-				for (int i = 0; i < board->size; i++) {
-					for (int j = 0; j < board->list[i]->stack->size; j++) {
-						free(board->list[i]->stack->list[j]);
-					}
-					free(board->list[i]->stack);
-					free(board->list[i]);
-				}
-
-				free(board->list);
-				free(board);
-				printf("\n! game closed");
+			/*if (!p1ToPlay && settings->solo)
+				printf("%s is making a move", settings->player2);
 				delay(2);
-				break;
-			}
-			else { // implement ctrl+Z and ctrl+Y as undo & redo?
-				full = push(hashGet(board, column - 1), p);
+				AIMakeMove();
+			else {*/
+			printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
-				if (full)
-					printf("\n! column full, please choose another\n> ");
-			}
-		} while (full);
-		//}
-		p1ToPlay = !p1ToPlay;
+			do {
+				column = validateOption(0, x);
+
+				if (column == 0) {
+					freeBoard(board);
+
+					printf("\n! game closed");
+					delay(2);
+					break;
+				}
+				else { // implement ctrl+Z and ctrl+Y as undo & redo?
+					full = push(hashGet(board, column - 1), p);
+
+					if (full)
+						printf("\n! column full, please choose another\n> ");
+				}
+			} while (full);
+			//}
+			p1ToPlay = !p1ToPlay;
+		}
 	} while (column >= 1 && column <= x);
 }
 
-void displayBoard(int x, int y, struct table* b) { // add a move down animation?
+void displayBoard(int x, int y, struct hashmap* board) { // add a move down animation?
 	int i, j;
 	system("cls");
 
@@ -262,13 +271,15 @@ void displayBoard(int x, int y, struct table* b) { // add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			int p = stackGet(hashGet(b, j), (y - 1) - i);
+			int p = stackGet(hashGet(board, j), (y - 1) - i);
 			if (p) {
 				char* col;
 				if (p == 1)
 					col = P1COL;
 				else if (p == 2)
 					col = P2COL;
+				else
+					col = PNRM; // shouldn't happen, but will prevent a nullpointer in case it does
 				printf(" %sO%s |", col, PNRM);
 			}
 			else
@@ -288,4 +299,87 @@ void displayBoard(int x, int y, struct table* b) { // add a move down animation?
 		else
 			printf(" %d ", j);
 	printf("\n");
+}
+
+bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
+	// make the 4 connected tokens turn green?
+
+	// horizontal check
+	int count = 0;
+	for (int i = 0; i < y; i++) {
+		if (stackGet(hashGet(board, i), row) == p) {
+			count++;
+			if (count >= 4)
+				return true;
+		}
+		else
+			count = 0;
+	}
+
+	// vertical check
+	count = 0;
+	for (int i = 0; i < x; i++) {
+		if (stackGet(hashGet(board, column), i) == p) {
+			count++;
+			if (count >= 4)
+				return true;
+		}
+		else
+			count = 0;
+	}
+
+	// bottom-left to top-right diagonal check
+	count = 0;
+	int i = row, j = column;
+
+	// creates check point to start checking from diagonally
+	while (i != 0 && j != 0) {
+		i--;
+		j--;
+	}
+
+	for (i, j; i < x && j < y; i++, j++) {
+		if (stackGet(hashGet(board, j), i) == p) {
+			count++;
+			if (count >= 4)
+				return true;
+		}
+		else
+			count = 0;
+	}
+
+	//bottom-right to top-left diagonal check
+	count = 0;
+	i = row;
+	j = column;
+
+	// create check point to start checking from diagonally
+	while (i != 0 && j != y) {
+		i--;
+		j++;
+	}
+
+	for (i, j; i < x && j > 0; i++, j--) {
+		if (stackGet(hashGet(board, j), i) == p) {
+			count++;
+			if (count >= 4)
+				return true;
+		}
+		else
+			count = 0;
+	}
+
+
+	return false;
+}
+
+void freeBoard(struct hashmap* board) {
+	for (int i = 0; i < board->size; i++) {
+		for (int j = 0; j < board->list[i]->stack->size; j++)
+			free(board->list[i]->stack->list[j]);
+		free(board->list[i]->stack);
+		free(board->list[i]);
+	}
+	free(board->list);
+	free(board);
 }

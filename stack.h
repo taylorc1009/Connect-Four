@@ -54,3 +54,6 @@ int stackGet(struct stack* s, int index) {
 	else
 		return 0;
 }
+//int stackSize(struct stack* s) {
+//	return sizeof(s->list) / sizeof(s->list[0]);
+//}
