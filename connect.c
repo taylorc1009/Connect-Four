@@ -41,8 +41,8 @@ void delay(int numOfSeconds) {
 	while (clock() < startTime + milliSeconds);
 }
 
-void welcome(struct Settings* s) {
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", s->boardX, s->boardY);
+void welcome(int x, int y) {
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -54,13 +54,14 @@ int main(int argc, char** argv) {
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
 	settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 
-	welcome(settings);
+	welcome(settings->boardX, settings->boardY);
 	
 	int option = 0;
 	while (option == 0) {
 		settings->solo = false;
 		printf("\nWhat would you like to do?\n> ");
 		option = validateOption(1, 5);
+
 		switch (option) {
 			case 1:
 				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = O, player 2 = X) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", settings->boardX, settings->boardY);
@@ -80,7 +81,7 @@ int main(int argc, char** argv) {
 				setup(settings);
 				option = 0;
 				system("cls");
-				welcome(settings);
+				welcome(settings->boardX, settings->boardY);
 				break;
 
 			case 4:
@@ -88,12 +89,13 @@ int main(int argc, char** argv) {
 				setup(settings);
 				option = 0;
 				system("cls");
-				welcome(settings);
+				welcome(settings->boardX, settings->boardY);
 				break;
 
 			case 5:
-				free(settings->player1);
-				free(settings->player2);
+				// these crash the app, maybe they've already been freed?
+				//free(settings->player1);
+				//free(settings->player2);
 				free(settings);
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
@@ -109,7 +111,6 @@ int validateOption(int min, int max) { // used to validate integers within a giv
 
 	while (num == -1) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 		char term;
-		//num = -1;
 		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
 			printf("\n! invalid input: please re-enter an number between %d and %d\n> ", min, max);
 			char c = NUL;
@@ -218,8 +219,6 @@ void play(struct Settings* settings) {
 			win = false;
 
 		if (win) {
-			freeBoard(board);
-
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(5);
 			column = 0;
@@ -248,7 +247,7 @@ void play(struct Settings* settings) {
 				column = validateOption(0, x);
 
 				if (column == 0) {
-					freeBoard(board);
+					//freeBoard(board);
 
 					printf("\n! game closed");
 					delay(2);
@@ -265,6 +264,8 @@ void play(struct Settings* settings) {
 			p1ToPlay = !p1ToPlay;
 		}
 	} while (column >= 1 && column <= x);
+
+	freeBoard(board);
 }
 
 void displayBoard(int x, int y, struct hashmap* board) { // add a move down animation?
@@ -377,15 +378,12 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 		}
 		else
 			count = 0;
-		printf("%d", count);
 	}
-	printf("\n");
-	delay(2);
 
 	return false;
 }
 
-void freeBoard(struct hashmap* board) {
+void freeBoard(struct hashmap* board) { // used to clear the board data from memory
 	for (int i = 0; i < board->size; i++) {
 		for (int j = 0; j < board->list[i]->stack->size; j++)
 			free(board->list[i]->stack->list[j]);
