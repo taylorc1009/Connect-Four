@@ -278,7 +278,10 @@ void displayBoard(int x, int y, struct hashmap* board) { // add a move down anim
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
+			
+			// the board is actually stored upside down, "(y - 1) - i" fixes the display
 			int p = stackGet(hashGet(board, j), (y - 1) - i);
+
 			if (p) {
 				char* col;
 				if (p == 1)
@@ -286,7 +289,7 @@ void displayBoard(int x, int y, struct hashmap* board) { // add a move down anim
 				else if (p == 2)
 					col = P2COL;
 				else
-					col = PNRM; // shouldn't happen, but will prevent a nullpointer in case it does
+					col = PNRM; // shouldn't happen, but will prevent a null pointer in case it does
 				printf(" %sO%s |", col, PNRM);
 			}
 			else
@@ -355,18 +358,18 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 			count = 0;
 	}
 
-	//bottom-right to top-left diagonal check
+	// bottom-right to top-left diagonal check
 	count = 0;
 	i = row;
 	j = column;
 
-	// create check point to start checking from diagonally
+	// creates check point to start checking from diagonally
 	while (i != 0 && j != y) {
 		i--;
 		j++;
 	}
 
-	for (i, j; i < y && j > 0; i++, j--) {
+	for (i, j; i < y && j >= 0; i++, j--) {
 		if (stackGet(hashGet(board, j), i) == p) {
 			count++;
 			if (count >= 4)
@@ -374,7 +377,10 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 		}
 		else
 			count = 0;
+		printf("%d", count);
 	}
+	printf("\n");
+	delay(2);
 
 	return false;
 }
