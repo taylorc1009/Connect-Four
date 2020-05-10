@@ -19,9 +19,8 @@ struct hashmap* createTable(int x, int y) {
     t->size = x;
     t->list = (struct node**)malloc(sizeof(struct node*) * x);
     //printf("\n\n! DEV:\n - nodes to build: %d\n - nodes built: ", x);
-    for (int i = 0; i < x; i++) {
+    for (int i = 0; i < x; i++)
         insertStackToNode(t, i, y);
-    }
     return t;
 }
 int hashCode(struct hashmap* t, int key) {
@@ -52,4 +51,13 @@ struct stack* hashGet(struct hashmap* t, int key) {
         temp = temp->next;
     }
     return NULL;
+}
+int getY(struct hashmap* board) {
+    return hashGet(board, 0)->size;
+}
+bool addMove(struct hashmap* board, int column, int tok) {
+    return push(hashGet(board, column - 1), tok);
+}
+int getToken(struct hashmap* board, int x, int y) {
+    return stackGet(hashGet(board, x), y);
 }

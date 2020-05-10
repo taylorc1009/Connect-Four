@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "hashmap.h"
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
@@ -27,7 +28,7 @@ struct Settings {
 
 void setup(struct Settings* settings);
 void play(struct Settings* settings);
-void displayBoard(int x, int y, struct hashmap* b);
+void displayBoard(struct hashmap* b);
 void freeBoard(struct hashmap* board);
 
 static inline void cleanStdin() {
@@ -70,9 +71,9 @@ int main(int argc, char** argv) {
 
 			case 2:
 				printf("\nPlease enter the width (amount of columns) you want to play with\n> ");
-				settings->boardX = validateOption(4, 12);
+				settings->boardX = validateOption(6, 12);
 				printf("\nPlease enter the height (amount of rows) you want to play with\n> ");
-				settings->boardY = validateOption(4, 12);
+				settings->boardY = validateOption(6, 12);
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				option = 0;
 				break;
@@ -94,6 +95,7 @@ int main(int argc, char** argv) {
 
 			case 5:
 				// these crash the app, maybe they've already been freed?
+				// it looks like the pointers are wrong, but &(settings)-> doesn't work either
 				//free(settings->player1);
 				//free(settings->player2);
 				free(settings);
@@ -195,28 +197,28 @@ void setup(struct Settings* settings) {
 }
 
 void play(struct Settings* settings) {
-	int column, x, y;
-	x = settings->boardX;
-	y = settings->boardY;
-	column = x;
-
-	bool p1ToPlay = true;
+	int x = settings->boardX, y = settings->boardY, p, column = 1;
+	bool full, win = false, p1ToPlay = true;
 	char* curPlayer = NUL;
 	char* col;
-	int p;
 
+	/*The board structure is made of a list of stacks stored in a hashmap.
+	* This is due to the play style of connect 4; a player must only pick
+	* a column to drop a token in, this corresponds to the key of the
+	* hashmap, and they can only interact with the position on top of the
+	* columns, hence the stack implementation. So, ideally, all we would
+	* need to do is give the structure a column to play in and a token to
+	* push to that column.*/
 	struct hashmap* board = createTable(x, y);
-	bool full, win;
 
 	do {
-		displayBoard(x, y, board);
+		displayBoard(board);
 		printf("\n\n");
 
 		// used to skip checks before the first initial move, otherwise null issues occur
 		if (curPlayer != NUL)
-			win = checkWin(x, y, hashGet(board, column - 1)->top, column - 1, board, p);
-		else
-			win = false;
+			// make the 4 connected tokens turn green?
+			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 
 		if (win) {
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
@@ -236,30 +238,29 @@ void play(struct Settings* settings) {
 				col = P2COL;
 			}
 
-			/*if (!p1ToPlay && settings->solo)
+			/*if (!p1ToPlay && settings->solo) {
 				printf("%s is making a move", settings->player2);
 				delay(2);
-				AIMakeMove();
+				AIMakeMove(board);
+			}
 			else {*/
-			printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
+				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
-			do {
-				column = validateOption(0, x);
+				do {
+					column = validateOption(0, x);
 
-				if (column == 0) {
-					//freeBoard(board);
+					if (column == 0) {
+						printf("\n! game closed");
+						delay(2);
+						break;
+					}
+					else { // implement ctrl+Z and ctrl+Y as undo & redo?
+						full = addMove(board, column, p);
 
-					printf("\n! game closed");
-					delay(2);
-					break;
-				}
-				else { // implement ctrl+Z and ctrl+Y as undo & redo?
-					full = push(hashGet(board, column - 1), p);
-
-					if (full)
-						printf("\n! column full, please choose another\n> ");
-				}
-			} while (full);
+						if (full)
+							printf("\n! column full, please choose another\n> ");
+					}
+				} while (full);
 			//}
 			p1ToPlay = !p1ToPlay;
 		}
@@ -268,8 +269,8 @@ void play(struct Settings* settings) {
 	freeBoard(board);
 }
 
-void displayBoard(int x, int y, struct hashmap* board) { // add a move down animation?
-	int i, j;
+void displayBoard(struct hashmap* board) { // add a move down animation?
+	int x = board->size, y = getY(board), i, j;
 	system("cls");
 
 	for (i = 0; i < y; i++) {
@@ -281,7 +282,7 @@ void displayBoard(int x, int y, struct hashmap* board) { // add a move down anim
 		for (j = 0; j < x; j++) {
 			
 			// the board is actually stored upside down, "(y - 1) - i" fixes the display
-			int p = stackGet(hashGet(board, j), (y - 1) - i);
+			int p = getToken(board, j, (y - 1) - i);
 
 			if (p) {
 				char* col;
@@ -312,13 +313,13 @@ void displayBoard(int x, int y, struct hashmap* board) { // add a move down anim
 	printf("\n");
 }
 
-bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
-	// make the 4 connected tokens turn green?
+bool checkWin(int row, int column, struct hashmap* board, int p) {
+	int x = board->size, y = getY(board);
 
 	// horizontal check
 	int count = 0;
 	for (int i = 0; i < x; i++) {
-		if (stackGet(hashGet(board, i), row) == p) {
+		if (getToken(board, i, row) == p) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -330,7 +331,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 	// vertical check
 	count = 0;
 	for (int i = 0; i < y; i++) {
-		if (stackGet(hashGet(board, column), i) == p) {
+		if (getToken(board, column, i) == p) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -350,7 +351,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j < x; i++, j++) {
-		if (stackGet(hashGet(board, j), i) == p) {
+		if (getToken(board, j, i) == p) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -371,7 +372,7 @@ bool checkWin(int x, int y, int row, int column, struct hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j >= 0; i++, j--) {
-		if (stackGet(hashGet(board, j), i) == p) {
+		if (getToken(board, j, i) == p) {
 			count++;
 			if (count >= 4)
 				return true;
