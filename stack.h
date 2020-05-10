@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUL '\0' // used to "nullify" a char
-
 typedef enum { false, true } bool;
 
 struct stackNode {
@@ -25,10 +23,10 @@ struct stack* createStack(int size) {
 	return s;
 }
 bool push(struct stack* s, int player) {
-	if (s->top == s->size - 1)
+	if (stackIsFull(s)) // if the stack is full
 		return true;
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
-	if (s->top != -1)
+	if (s->top != -1) // if the stack is not empty
 		newNode->prev = s->list[s->top];
 	else
 		newNode->prev = NULL;
@@ -54,6 +52,6 @@ int stackGet(struct stack* s, int index) {
 	else
 		return 0;
 }
-//int stackSize(struct stack* s) {
-//	return sizeof(s->list) / sizeof(s->list[0]);
-//}
+bool stackIsFull(struct stack* s) {
+	return s->top == s->size - 1;
+}

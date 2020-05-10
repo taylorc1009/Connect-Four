@@ -10,6 +10,9 @@
 #include <time.h>
 #include <math.h>
 #include "hashmap.h"
+#include "AI.h"
+
+#define NUL '\0' // used to "nullify" a char
 
 #define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
 
@@ -109,7 +112,7 @@ int main(int argc, char** argv) {
 
 int validateOption(int min, int max) { // used to validate integers within a given range
 	bool valid = false;
-	int num = -1;
+	int num = -1; // use -1 as the minimum to allow 0 to be entered during the game
 
 	while (num == -1) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 		char term;
@@ -218,6 +221,7 @@ void play(struct Settings* settings) {
 		// used to skip checks before the first initial move, otherwise null issues occur
 		if (curPlayer != NUL)
 			// make the 4 connected tokens turn green?
+			// change the checks to only check tokens up to 3 before and 3 after
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 
 		if (win) {
@@ -229,21 +233,22 @@ void play(struct Settings* settings) {
 		else {
 			if (p1ToPlay) {
 				curPlayer = settings->player1;
-				p = 1;
+				p = PLAYER_1_TOKEN;
 				col = P1COL;
 			}
 			else {
 				curPlayer = settings->player2;
-				p = 2;
+				p = PLAYER_2_TOKEN;
 				col = P2COL;
 			}
 
-			/*if (!p1ToPlay && settings->solo) {
-				printf("%s is making a move", settings->player2);
+			if (!p1ToPlay && settings->solo) { // get the AI to make a move
+				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
+				AIMakeMove(board, column);
+				full = addMove(board, column, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
 				delay(2);
-				AIMakeMove(board);
 			}
-			else {*/
+			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
 				do {
@@ -255,13 +260,13 @@ void play(struct Settings* settings) {
 						break;
 					}
 					else { // implement ctrl+Z and ctrl+Y as undo & redo?
-						full = addMove(board, column, p);
+						full = addMove(board, column - 1, p);
 
 						if (full)
 							printf("\n! column full, please choose another\n> ");
 					}
 				} while (full);
-			//}
+			}
 			p1ToPlay = !p1ToPlay;
 		}
 	} while (column >= 1 && column <= x);
@@ -285,13 +290,11 @@ void displayBoard(struct hashmap* board) { // add a move down animation?
 			int p = getToken(board, j, (y - 1) - i);
 
 			if (p) {
-				char* col;
-				if (p == 1)
+				char* col = PNRM; // initialise as PNRM in case we somehow don't get a colour, will prevent crashing
+				if (p == PLAYER_1_TOKEN)
 					col = P1COL;
-				else if (p == 2)
+				else if (p == PLAYER_2_TOKEN)
 					col = P2COL;
-				else
-					col = PNRM; // shouldn't happen, but will prevent a null pointer in case it does
 				printf(" %sO%s |", col, PNRM);
 			}
 			else
@@ -382,15 +385,4 @@ bool checkWin(int row, int column, struct hashmap* board, int p) {
 	}
 
 	return false;
-}
-
-void freeBoard(struct hashmap* board) { // used to clear the board data from memory
-	for (int i = 0; i < board->size; i++) {
-		for (int j = 0; j < board->list[i]->stack->size; j++)
-			free(board->list[i]->stack->list[j]);
-		free(board->list[i]->stack);
-		free(board->list[i]);
-	}
-	free(board->list);
-	free(board);
 }
