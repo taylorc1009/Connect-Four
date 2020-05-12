@@ -9,7 +9,6 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
-#include "hashmap.h"
 #include "AI.h"
 
 #define NUL '\0' // used to "nullify" a char
@@ -39,11 +38,7 @@ static inline void cleanStdin() {
 	while ((c = getchar()) != '\n' && c != EOF) { /* do nothing until input buffer is fully flushed */ }
 }
 
-void delay(int numOfSeconds) {
-	int milliSeconds = 1000 * numOfSeconds;
-	clock_t startTime = clock();
-	while (clock() < startTime + milliSeconds);
-}
+// move delay back here
 
 void welcome(int x, int y) {
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
@@ -244,8 +239,9 @@ void play(struct Settings* settings) {
 
 			if (!p1ToPlay && settings->solo) { // get the AI to make a move
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
-				AIMakeMove(board, column);
-				full = addMove(board, column, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
+				AIMakeMove(board, &column);
+				// the game currently isn't checking if the AI has won, why?
+				full = addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
 				delay(2);
 			}
 			else {
@@ -275,7 +271,7 @@ void play(struct Settings* settings) {
 }
 
 void displayBoard(struct hashmap* board) { // add a move down animation?
-	int x = board->size, y = getY(board), i, j;
+	int x = getX(board), y = getY(board), i, j;
 	system("cls");
 
 	for (i = 0; i < y; i++) {
@@ -317,7 +313,7 @@ void displayBoard(struct hashmap* board) { // add a move down animation?
 }
 
 bool checkWin(int row, int column, struct hashmap* board, int p) {
-	int x = board->size, y = getY(board);
+	int x = getX(board), y = getY(board);
 
 	// horizontal check
 	int count = 0;

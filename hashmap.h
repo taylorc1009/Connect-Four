@@ -52,6 +52,9 @@ struct stack* hashGet(struct hashmap* t, int key) {
     }
     return NULL;
 }
+int getX(struct hashmap* board) {
+    return board->size;
+}
 int getY(struct hashmap* board) {
     return hashGet(board, 0)->size;
 }
