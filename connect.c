@@ -272,7 +272,8 @@ void play(struct Settings* settings) {
 
 void displayBoard(struct hashmap* board) { // add a move down animation?
 	int x = getX(board), y = getY(board), i, j;
-	system("cls");
+	//system("cls");
+	printf("\n");//
 
 	for (i = 0; i < y; i++) {
 		printf("+");
