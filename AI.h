@@ -16,20 +16,20 @@ void AIMakeMove(struct hashmap* board, int* column) {
 	int x = getX(board), y = getY(board);
 	pickBestMove(board, x, y, column);
 	printf("picked column: %d", *column);
-	delay(20);
+	delay(10);
 }
 
 void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
-	int* row = malloc(sizeof(int) * x);
 	
 	// horizontal check
-	for (int i = 0; i < x; i++) {
+	for (int i = 0; i < y; i++) {
+		int* row = malloc(sizeof(int) * x);
 		
 		printf("\n");
 		for (int j = 0; j < x; j++) {
 			row[j] = getToken(board, j, i);
-			printf("%d:%d, ", j, row[j]);
+			printf("%d, ", row[j]);
 		}
 
 		for (int j = 0; j < x - 3; j++) {
@@ -41,10 +41,10 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 			else if (count(window, PLAYER_2_TOKEN) == 3 && count(window, NULL) == 1)
 				score += 100;
 		}
-		
+		free(row);
 	}
 	printf("\n");
-	free(row);
+	
 	*finalScore = score;
 }
 
@@ -55,8 +55,8 @@ void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 		if (!stackIsFull(hashGet(board, i))) { // this currently is preventing the AI's move, why?
 			// this creates a temporary board which we will place a temporary move in for us to determine if it's a good move 
 			struct hashmap* temp = createTable(x, y);
-			for (int j = 0; j < y; j++) {
-				for (int k = 0; k < x; k++) {
+			for (int j = 0; j < x; j++) {
+				for (int k = 0; k < y; k++) {
 					int tok = getToken(board, j, k);
 					if (tok != 0)
 						addMove(temp, j, tok);
