@@ -22,6 +22,17 @@ void AIMakeMove(struct hashmap* board, int* column) {
 	//delay(30);
 }
 
+void evaluateWindow(int* window, int size, int* score) {
+	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
+		*score += 10;
+	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
+		*score += 100;
+	else if (count(window, size, PLAYER_2_TOKEN) == 4)
+		*score += 1000;
+
+	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
+}
+
 void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
 	
@@ -38,41 +49,72 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		for (int j = 0; j < x - 3; j++) {
 			int window[4] = { row[j], row[j + 1], row[j + 2], row[j + 3] };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
+			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
 				score += 10;
 			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
 				score += 100;
 			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;
+				score += 1000;*/
+			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 		//printf("score: %d", score);
 		
 		free(row);
 	}
+	//printf("\n");
 
 	// vertical score
 	for (int i = 0; i < x; i++) {
 		int* col = malloc(sizeof(int) * y);
 
-		for (int j = 0; j < y; j++) {
+		for (int j = 0; j < y; j++)
 			col[j] = getToken(board, i, j);
-		}
 
 		for (int j = 0; j < y - 3; j++) {
 			int window[4] = { col[j], col[j + 1], col[j + 2], col[j + 3] };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
+			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
 				score += 10;
 			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
 				score += 100;
 			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;
+				score += 1000;*/
+			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 
 		free(col);
 	}
-	//printf("\n");
 	
+	// bottom-right to top-left diagonal score
+	for (int i = 0; i < y - 3; i++) {
+		for (int j = 0; j < x - 3; j++) {
+			int window[4] = { getToken(board, j, i), getToken(board, j + 1, i + 1), getToken(board, j + 2, i + 2), getToken(board, j + 3, i + 3) };
+			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
+			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
+				score += 10;
+			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
+				score += 100;
+			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
+				score += 1000;*/
+			evaluateWindow(window, ARRAY_LENGTH(window), &score);
+		}
+	}
+
+	//bottom-left to top-right diagonal score
+	for (int i = 0; i < y - 3; i++) {
+		for (int j = 0; j < x - 3; j++) {
+			int window[4] = { getToken(board, j + 3, i), getToken(board, j + 2, i + 1), getToken(board, j + 1, i + 2), getToken(board, j, i + 3) };
+			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
+			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
+				score += 10;
+			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
+				score += 100;
+			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
+				score += 1000;*/
+			evaluateWindow(window, ARRAY_LENGTH(window), &score);
+		}
+	}
+
 	*finalScore = score;
 }
 
@@ -109,7 +151,7 @@ void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 // ideally we would calculate the array length here, but this isn't possible
 // as the compiler doesn't know what the pointer is pointing to, so it cannot
 // define the length of the array at compile time
-int count(int* list, int tok, int n) {
+int count(int* list, int n, int tok) {
 	int c = 0;
 	for (int i = 0; i < n; i++)
 		if (list[i] == tok)
