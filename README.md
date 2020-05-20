@@ -1,4 +1,4 @@
-#Connect Four
+# Connect Four
 Developed using C
 
 Consists of both single player (player versus AI) and player versus player.
