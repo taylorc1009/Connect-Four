@@ -1,3 +1,4 @@
+#include <math.h>
 #include "hashmap.h"
 
 #define PLAYER_1_TOKEN 1
@@ -18,23 +19,41 @@ void delay(int numOfSeconds) {
 void AIMakeMove(struct hashmap* board, int* column) {
 	int x = getX(board), y = getY(board);
 	pickBestMove(board, x, y, column);
-	//printf("picked column: %d", *column);
+	//printf("\npicked column: %d", *column);
 	//delay(30);
 }
 
 void evaluateWindow(int* window, int size, int* score) {
 	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
-		*score += 10;
+		*score += 5;
 	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
-		*score += 100;
+		*score += 10;
 	else if (count(window, size, PLAYER_2_TOKEN) == 4)
-		*score += 1000;
+		*score += 100;
+	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
+		*score -= 80;
 
 	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
 }
 
 void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
+
+	//printf("\n");
+
+	// centre score - gives the AI more moves
+	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
+	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining this?)
+	if (x % 2) {
+		// is odd
+		int centre = (int)round(x / 2.0f);
+
+	}
+	else {
+		// is even
+		int centres[2] = { x / 2, centres[0] + 1 };
+
+	}
 	
 	// horizontal score
 	for (int i = 0; i < y; i++) {
@@ -61,7 +80,6 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		
 		free(row);
 	}
-	//printf("\n");
 
 	// vertical score
 	for (int i = 0; i < x; i++) {
@@ -133,12 +151,14 @@ void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 				}
 			}
 
-			addMove(temp, i, PLAYER_2_TOKEN);
+			bool full = addMove(temp, i, PLAYER_2_TOKEN);
 
-			getScore(temp, x, y, &score);
-			if (score > bestScore) {
-				bestScore = score;
-				bestColumn = i;
+			if (!full) {
+				getScore(temp, x, y, &score);
+				if (score > bestScore) {
+					bestScore = score;
+					bestColumn = i;
+				}
 			}
 
 			freeBoard(temp);
@@ -159,10 +179,6 @@ int count(int* list, int n, int tok) {
 	return c;
 }
 
-int arrayLength(int* list) {
-	return (int)sizeof(*list) / sizeof(list[0]);
-}
-
 void freeBoard(struct hashmap* board) { // used to clear the board data from memory
 	for (int i = 0; i < board->size; i++) {
 		for (int j = 0; j < board->list[i]->stack->size; j++)
@@ -173,13 +189,3 @@ void freeBoard(struct hashmap* board) { // used to clear the board data from mem
 	free(board->list);
 	free(board);
 }
-
-//bool isPlayableThreeInARow(int* window, int startX, int startY) {
-//	int tCount = 0, eCount = 0;
-//	for (int i = 0; i < 4; i++) {
-//		if ((window[i] == PLAYER_2_TOKEN || window[i] == NULL) && tCount < 3 && eCount < 2)
-//			count++;
-//		else if (window[i] == PLAYER_1_TOKEN)
-//			return false;
-//	}
-//}

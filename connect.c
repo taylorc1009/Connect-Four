@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
 #include "AI.h"
 
 #define NUL '\0' // used to "nullify" a char
@@ -93,7 +92,7 @@ int main(int argc, char** argv) {
 
 			case 5:
 				// these crash the app, maybe they've already been freed?
-				// it looks like the pointers are wrong, but &(settings)-> doesn't work either
+				// it looks like the pointers may be wrong after realloc, but &(settings)-> doesn't work either
 				//free(settings->player1);
 				//free(settings->player2);
 				free(settings);
@@ -219,7 +218,7 @@ void play(struct Settings* settings) {
 			// change the checks to only check tokens up to 3 before and 3 after
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 
-		if (win) {
+		if (win) { // this check is up here and not at the end so we can se the winning move being made
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(5);
 			column = 0;
