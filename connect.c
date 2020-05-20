@@ -3,6 +3,8 @@
 *	- AI feature
 *	- Save and load
 *	- Undo and redo
+*	
+*	Update README.md upon completion
 */
 
 #include <stdio.h>

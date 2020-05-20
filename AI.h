@@ -44,7 +44,7 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 	// centre score - gives the AI more moves
 	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
 	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining this?)
-	if (x % 2) {
+	if (x % 2) { //there's no point working this out here as we will need to do it for every column here
 		// is odd
 		int centre = (int)round(x / 2.0f);
 
