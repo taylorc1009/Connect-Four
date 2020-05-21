@@ -36,12 +36,26 @@ void evaluateWindow(int* window, int size, int* score) {
 	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
 }
 
-void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
+void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
 
 	//printf("\n");
 
 	// centre score - moves made here gives the AI more options
+	for (int i = 0; i < 2; i++) {
+		if (centres[i] != 0) { // prevents the check of a second centre column if there is only 1
+			int* col = malloc(sizeof(int) * y);
+
+			for (int j = 0; j < y; j++)
+				col[j] = getToken(board, centres[i], j);
+
+			// here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
+			// it will only recognize a pointer, thus giving us the length of that instead
+			score += count(col, y, PLAYER_2_TOKEN) * 6;
+			
+			free(col);
+		}
+	}
 	
 	// horizontal score
 	for (int i = 0; i < y; i++) {
@@ -56,12 +70,6 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		for (int j = 0; j < x - 3; j++) {
 			int window[4] = { row[j], row[j + 1], row[j + 2], row[j + 3] };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
-				score += 10;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
-				score += 100;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;*/
 			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 		//printf("score: %d", score);
@@ -79,12 +87,6 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		for (int j = 0; j < y - 3; j++) {
 			int window[4] = { col[j], col[j + 1], col[j + 2], col[j + 3] };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
-				score += 10;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
-				score += 100;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;*/
 			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 
@@ -96,12 +98,6 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		for (int j = 0; j < x - 3; j++) {
 			int window[4] = { getToken(board, j, i), getToken(board, j + 1, i + 1), getToken(board, j + 2, i + 2), getToken(board, j + 3, i + 3) };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
-				score += 10;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
-				score += 100;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;*/
 			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 	}
@@ -111,12 +107,6 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 		for (int j = 0; j < x - 3; j++) {
 			int window[4] = { getToken(board, j + 3, i), getToken(board, j + 2, i + 1), getToken(board, j + 1, i + 2), getToken(board, j, i + 3) };
 			//printf("window %d = { %d, %d, %d, %d } >> P2 tokens: %d, ", j, row[j], row[j + 1], row[j + 2], row[j + 3], count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)));
-			/*if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 2 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 2)
-				score += 10;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 3 && count(window, EMPTY_SLOT, ARRAY_LENGTH(window)) == 1)
-				score += 100;
-			else if (count(window, PLAYER_2_TOKEN, ARRAY_LENGTH(window)) == 4)
-				score += 1000;*/
 			evaluateWindow(window, ARRAY_LENGTH(window), &score);
 		}
 	}
@@ -127,19 +117,21 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 	int score = 0, bestColumn = 0, bestScore = 0;
 
-	int centres[2];
+	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
 	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
 	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
 	if (x % 2) {
 		// is odd
-		centres[0] = (int)round(x / 2.0f);
+		centres[0] = (int)round(x / 2.0f) - 1;
 		centres[1] = 0; // we will use this to skip the double centre columns check
 	}
 	else {
 		// is even
-		centres[0] = x / 2;
+		centres[0] = (x / 2) - 1;
 		centres[1] = centres[0] + 1;
 	}
+	/*printf("\n%d, %d", centres[0], centres[1]);
+	delay(3);*/
 	
 	for (int i = 0; i < x; i++) {
 		//if (!stackIsFull(hashGet(board, i))) { // this currently is preventing the AI's move, why?
@@ -158,7 +150,7 @@ void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 		bool full = addMove(temp, i, PLAYER_2_TOKEN);
 
 		if (!full) {
-			getScore(temp, x, y, &score);
+			getScore(temp, centres, x, y, &score);
 			if (score > bestScore) {
 				bestScore = score;
 				bestColumn = i;
