@@ -64,3 +64,9 @@ bool addMove(struct hashmap* board, int column, int tok) {
 int getToken(struct hashmap* board, int x, int y) {
     return stackGet(hashGet(board, x), y);
 }
+bool isBoardFull(struct hashmap* board, int x) {
+    for(int i = 0; i < x; i++)
+        if(!stackIsFull(hashGet(board, i)))
+            return false;
+    return true;
+}

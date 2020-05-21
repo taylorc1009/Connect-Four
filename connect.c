@@ -182,7 +182,7 @@ void setup(struct Settings* settings) {
 	getName(&(settings)->player1);
 
 	if (settings->solo) {
-		settings->player2 = "Bot";
+		settings->player2 = "Bot"; //realloc this size to 3 chars
 		printf("\nWelcome %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM);
 	}
 	else {
@@ -200,6 +200,21 @@ void play(struct Settings* settings) {
 	bool full, win = false, p1ToPlay = true;
 	char* curPlayer = NUL;
 	char* col;
+	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
+	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
+	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
+	if (settings->solo) {
+		if (x % 2) {
+			// is odd
+			centres[0] = (int)round(x / 2.0f) - 1;
+			centres[1] = 0; // we will use this to skip the double centre columns check
+		}
+		else {
+			// is even
+			centres[0] = (x / 2) - 1;
+			centres[1] = centres[0] + 1;
+		}
+	}
 
 	/*The board structure is made of a list of stacks stored in a hashmap.
 	* This is due to the play style of connect 4; a player must only pick
@@ -240,7 +255,7 @@ void play(struct Settings* settings) {
 
 			if (!p1ToPlay && settings->solo) { // get the AI to make a move
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
-				AIMakeMove(board, &column);
+				AIMakeMove(board, &column, centres);
 				// the game currently isn't checking if the AI has won, why?
 				full = addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
 				delay(2);
