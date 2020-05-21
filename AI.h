@@ -41,19 +41,7 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 
 	//printf("\n");
 
-	// centre score - gives the AI more moves
-	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
-	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining this?)
-	if (x % 2) { //there's no point working this out here as we will need to do it for every column here
-		// is odd
-		int centre = (int)round(x / 2.0f);
-
-	}
-	else {
-		// is even
-		int centres[2] = { x / 2, centres[0] + 1 };
-
-	}
+	// centre score - moves made here gives the AI more options
 	
 	// horizontal score
 	for (int i = 0; i < y; i++) {
@@ -138,33 +126,50 @@ void getScore(struct hashmap* board, int x, int y, int* finalScore) { // determi
 
 void pickBestMove(struct hashmap* board, int x, int y, int* column) {
 	int score = 0, bestColumn = 0, bestScore = 0;
+
+	int centres[2];
+	// we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
+	// if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
+	if (x % 2) {
+		// is odd
+		centres[0] = (int)round(x / 2.0f);
+		centres[1] = 0; // we will use this to skip the double centre columns check
+	}
+	else {
+		// is even
+		centres[0] = x / 2;
+		centres[1] = centres[0] + 1;
+	}
 	
 	for (int i = 0; i < x; i++) {
-		if (!stackIsFull(hashGet(board, i))) { // this currently is preventing the AI's move, why?
-			// this creates a temporary board which we will place a temporary move in for us to determine if it's a good move 
-			struct hashmap* temp = createTable(x, y);
-			for (int j = 0; j < x; j++) {
-				for (int k = 0; k < y; k++) {
-					int tok = getToken(board, j, k);
-					if (tok != 0)
-						addMove(temp, j, tok);
-				}
+		//if (!stackIsFull(hashGet(board, i))) { // this currently is preventing the AI's move, why?
+		//maybe try if(!addMove(board, i, EMPTY_SLOT)) instead
+
+		// this creates a temporary board which we will place a temporary move in for us to determine if it's a good move 
+		struct hashmap* temp = createTable(x, y);
+		for (int j = 0; j < x; j++) {
+			for (int k = 0; k < y; k++) {
+				int tok = getToken(board, j, k);
+				if (tok != 0)
+					addMove(temp, j, tok);
 			}
-
-			bool full = addMove(temp, i, PLAYER_2_TOKEN);
-
-			if (!full) {
-				getScore(temp, x, y, &score);
-				if (score > bestScore) {
-					bestScore = score;
-					bestColumn = i;
-				}
-			}
-
-			freeBoard(temp);
 		}
+
+		bool full = addMove(temp, i, PLAYER_2_TOKEN);
+
+		if (!full) {
+			getScore(temp, x, y, &score);
+			if (score > bestScore) {
+				bestScore = score;
+				bestColumn = i;
+			}
+		}
+
+		freeBoard(temp);
+		//}
 	}
 
+	// + 1 here because we never want it to equal 0, otherwise it will close the game
 	*column = bestColumn + 1;
 }
 
