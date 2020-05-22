@@ -29,7 +29,7 @@ void AIMakeMove(struct hashmap* board, int* column, int* centres) {
 }
 
 bool isGameOver(struct hashmap* board, int row, int column, int p) {
-	//printf("\ncheckWin = %s, isBoardFull = %s >> row: %d, column: %d, tok: %d\n", checkWin(row, column, board, p) ? "true" : "false", isBoardFull(board, getX(board)) ? "true" : "false", row, column, p);
+	//printf("\ncheckWin = %s >> row: %d, column: %d, tok: %d\n", checkWin(row, column, board, p) ? "true" : "false", row, column, p);
 	return checkWin(row, column, board, p) || isBoardFull(board, getX(board));
 }
 

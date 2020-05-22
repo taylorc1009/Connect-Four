@@ -243,7 +243,7 @@ void play(struct Settings* settings) {
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(5);
 			column = 0;
-			//break
+			//break;
 		}
 		else {
 			if (p1ToPlay) {
@@ -260,24 +260,23 @@ void play(struct Settings* settings) {
 			if (!p1ToPlay && settings->solo) { // get the AI to make a move
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
-				// the game currently isn't checking if the AI has won, why?
-				full = addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
+				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
 				delay(1);
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
 				do {
+					full = false;
 					column = validateOption(0, x);
 
 					if (column == 0) {
 						printf("\n! game closed");
 						delay(2);
-						break;
+						//break;
 					}
 					else { // implement ctrl+Z and ctrl+Y as undo & redo?
 						full = addMove(board, column - 1, p);
-
 						if (full)
 							printf("\n! column full, please choose another\n> ");
 					}
