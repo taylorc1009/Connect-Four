@@ -16,7 +16,7 @@ struct Move {
 
 void pickBestMove(struct hashmap* board, int x, int y, int* column);
 void freeBoard(struct hashmap* board);
-void minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, struct Move* move);
+struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth);
 void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore);
 
 void delay(int numOfSeconds) {
@@ -28,25 +28,24 @@ void delay(int numOfSeconds) {
 void AIMakeMove(struct hashmap* board, int* column, int* centres) {
 	int x = getX(board), y = getY(board);
 	//pickBestMove(board, x, y, column);
-	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
-	move->score = 0;
-	move->column = 0;
-	printf("\nhere\n");
-	minimax(board, x, y, -1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH, move);
-	*column = move->column;
-	printf("\npicked column: %d", move->column);
+	//struct Move* move = (struct Move*)malloc(sizeof(struct Move));
+	struct Move* move = minimax(board, x, y, -1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH);
+	*column = move->column + 1;
+	printf("\nfinal score & column = %d, %d", move->score, move->column);
 	free(move);
 	//printf("\npicked column: %d", *column);
-	delay(30);
+	//delay(3);
 }
 
 bool isGameOver(struct hashmap* board, int row, int column, int p) {
-	printf("\ncheckWin = %s, isBoardFull = %s", checkWin(row, column, board, p) ? "true" : "false", isBoardFull(board, getX(board)) ? "true" : "false");
+	//printf("\ncheckWin = %s, isBoardFull = %s >> row: %d, column: %d, tok: %d\n", checkWin(row, column, board, p) ? "true" : "false", isBoardFull(board, getX(board)) ? "true" : "false", row, column, p);
 	return checkWin(row, column, board, p) || isBoardFull(board, getX(board));
 }
 
-void minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, struct Move* move) {
-	printf("\n(%d, %d), col: %d, centres = { %d, %d }, tok: %d, depth: %d >> Move: score->%d column->%d", x, y, column, centres[0], centres[1], player, depth, move->score, move->column);
+struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth) {
+	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
+	move->column = 0;
+	//printf("\n%d. (%d, %d), col: %d, tok: %d", depth, x, y, column, player);
 	if (column != -1) {
 		int row = hashGet(board, column)->top + 1;
 		bool gameOver = isGameOver(board, row, column, player);
@@ -55,25 +54,20 @@ void minimax(struct hashmap* board, int x, int y, int column, int* centres, int 
 		if (depth == 0 || gameOver) {
 			if (gameOver) {
 				if (checkWin(row, column, board, PLAYER_2_TOKEN))
-					//return 100;
-					move->score = 10000;
+					move->score = 10000; // bot wins in this instance
 				else if (checkWin(row, column, board, PLAYER_1_TOKEN))
-					//return -100;
-					move->score = -10000;
+					move->score = -10000; // player wins in this instance
 				else
-					//return 0;
-					move->score = 0;
+					move->score = 0; // board is full
 			}
 			else
 				//return getScore(board, centres, row, column, score);
-				getScore(board, centres, row, column, &(move)->score);
-			return;
+				getScore(board, centres, x, y, &(move)->score);
+			return move;
 		}
 	}
 	if (player == PLAYER_2_TOKEN) { // maximizing player
-		struct Move* newMove = (struct Move*)malloc(sizeof(struct Move));
-		newMove->score = -2147483648;
-		newMove->column = 0;
+		move->score = -2147483648;
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct hashmap* temp = createTable(x, y);
@@ -85,20 +79,22 @@ void minimax(struct hashmap* board, int x, int y, int column, int* centres, int 
 					}
 				}
 				addMove(temp, i, PLAYER_2_TOKEN);
-				minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, newMove);
-				freeBoard(temp);
+				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1);
+				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score > move->score) {
 					move->score = newMove->score;
 					move->column = i;
+					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
+				freeBoard(temp);
+				free(newMove);
 			}
 		}
-		free(newMove);
+		//printf("\n");
+		return move;
 	}
 	else { // minimizing player
-		struct Move* newMove = (struct Move*)malloc(sizeof(struct Move));
-		newMove->score = 2147483647;
-		newMove->column = 0;
+		move->score = 2147483647;
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct hashmap* temp = createTable(x, y);
@@ -110,18 +106,102 @@ void minimax(struct hashmap* board, int x, int y, int column, int* centres, int 
 					}
 				}
 				addMove(temp, i, PLAYER_1_TOKEN);
-				minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, newMove);
-				freeBoard(temp);
+				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1);
+				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score < move->score) {
 					move->score = newMove->score;
 					move->column = i;
+					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
+				freeBoard(temp);
+				free(newMove);
 			}
 		}
-		free(newMove);
+		//printf("\n");
+		return move;
 	}
-	printf("\n");
 }
+
+//void minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, struct Move* move) {
+//	printf("\n%d. (%d, %d), col: %d, tok: %d >> Move: score->%d column->%d", depth, x, y, column, player, move->score, move->column);
+//	if (column != -1) {
+//		int row = hashGet(board, column)->top + 1;
+//		bool gameOver = isGameOver(board, row, column, player);
+//		//printf(" >> gameOver? %s", gameOver ? "true" : "false");
+//
+//		if (depth == 0 || gameOver) {
+//			if (gameOver) {
+//				if (checkWin(row, column, board, PLAYER_2_TOKEN))
+//					//return 100;
+//					move->score = 10000;
+//				else if (checkWin(row, column, board, PLAYER_1_TOKEN))
+//					//return -100;
+//					move->score = -10000;
+//				else
+//					//return 0;
+//					move->score = 0;
+//			}
+//			else
+//				//return getScore(board, centres, row, column, score);
+//				getScore(board, centres, row, column, &(move)->score);
+//			return;
+//		}
+//	}
+//	if (player == PLAYER_2_TOKEN) { // maximizing player
+//		struct Move* newMove = (struct Move*)malloc(sizeof(struct Move));
+//		newMove->score = -2147483648;
+//		newMove->column = 0;
+//		for (int i = 0; i < x; i++) {
+//			if (!stackIsFull(hashGet(board, i))) {
+//				struct hashmap* temp = createTable(x, y);
+//				for (int j = 0; j < x; j++) {
+//					for (int k = 0; k < y; k++) {
+//						int tok = getToken(board, j, k);
+//						if (tok != 0)
+//							addMove(temp, j, tok);
+//					}
+//				}
+//				addMove(temp, i, PLAYER_2_TOKEN);
+//				minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, newMove);
+//				freeBoard(temp);
+//				printf("\nnewMove = %d, move = %d", newMove->score, move->score);
+//				if (newMove->score > move->score) {
+//					move->score = newMove->score;
+//					printf("\nmove->score changed = %d", move->score);
+//					move->column = i;
+//				}
+//			}
+//		}
+//		free(newMove);
+//	}
+//	else { // minimizing player
+//		struct Move* newMove = (struct Move*)malloc(sizeof(struct Move));
+//		newMove->score = 2147483647;
+//		newMove->column = 0;
+//		for (int i = 0; i < x; i++) {
+//			if (!stackIsFull(hashGet(board, i))) {
+//				struct hashmap* temp = createTable(x, y);
+//				for (int j = 0; j < x; j++) {
+//					for (int k = 0; k < y; k++) {
+//						int tok = getToken(board, j, k);
+//						if (tok != 0)
+//							addMove(temp, j, tok);
+//					}
+//				}
+//				addMove(temp, i, PLAYER_1_TOKEN);
+//				minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, newMove);
+//				freeBoard(temp);
+//				if (newMove->score < move->score) {
+//					move->score = newMove->score;
+//					printf("\nmove->score changed = %d", move->score);
+//					move->column = i;
+//				}
+//			}
+//		}
+//		free(newMove);
+//	}
+//	printf("\n");
+//}
 
 void evaluateWindow(int* window, int size, int* score) {
 	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
