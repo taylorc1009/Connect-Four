@@ -31,7 +31,7 @@ void AIMakeMove(struct hashmap* board, int* column, int* centres) {
 	//struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 	struct Move* move = minimax(board, x, y, -1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH);
 	*column = move->column + 1;
-	printf("\nfinal score & column = %d, %d", move->score, move->column);
+	//printf("\nfinal score & column = %d, %d", move->score, move->column);
 	free(move);
 	//printf("\npicked column: %d", *column);
 	//delay(3);
@@ -49,7 +49,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 	if (column != -1) {
 		int row = hashGet(board, column)->top + 1;
 		bool gameOver = isGameOver(board, row, column, player);
-		printf(" >> gameOver? %s", gameOver ? "true" : "false");
+		//printf(" >> gameOver? %s", gameOver ? "true" : "false");
 
 		if (depth == 0 || gameOver) {
 			if (gameOver) {
