@@ -39,7 +39,11 @@ static inline void cleanStdin() {
 	while ((c = getchar()) != '\n' && c != EOF) { /* do nothing until input buffer is fully flushed */ }
 }
 
-// move delay back here
+void delay(int numOfSeconds) {
+	int milliSeconds = 1000 * numOfSeconds;
+	clock_t startTime = clock();
+	while (clock() < startTime + milliSeconds);
+}
 
 void welcome(int x, int y) {
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
@@ -239,7 +243,7 @@ void play(struct Settings* settings) {
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(5);
 			column = 0;
-			break;
+			//break
 		}
 		else {
 			if (p1ToPlay) {
@@ -258,7 +262,7 @@ void play(struct Settings* settings) {
 				AIMakeMove(board, &column, centres);
 				// the game currently isn't checking if the AI has won, why?
 				full = addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't be full as we determine this in the AI
-				delay(2);
+				delay(1);
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
