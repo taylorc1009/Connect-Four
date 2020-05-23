@@ -101,6 +101,12 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				}
 				freeBoard(temp);
 				free(newMove);
+
+				// this return (and the one below) forces the AI to prevent/make a game winning move,
+				// but this prevents checking of any consequences of this move or a possible better
+				// move, so we need a better solution
+				// - update: the issue now seems to be fixed after returning the column correctly
+				//	 from the gameOver state, needs further testing
 				/*if (move->gameOver)
 					return move;*/
 			}
