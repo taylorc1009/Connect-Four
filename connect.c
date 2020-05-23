@@ -3,6 +3,7 @@
 *	- AI feature
 *	- Save and load
 *	- Undo and redo
+*	- Full board detection
 *	
 *	Update README.md upon completion
 */
@@ -46,7 +47,7 @@ void delay(int numOfSeconds) {
 }
 
 void welcome(int x, int y) {
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney - 40398643\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -68,7 +69,7 @@ int main(int argc, char** argv) {
 
 		switch (option) {
 			case 1:
-				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = O, player 2 = X) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", settings->boardX, settings->boardY);
+				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", P1COL, PNRM, P2COL, PNRM);
 				option = 0;
 				break;
 
@@ -97,10 +98,10 @@ int main(int argc, char** argv) {
 				break;
 
 			case 5:
-				// these crash the app, maybe they've already been freed?
-				// it looks like the pointers may be wrong after realloc, but &(settings)-> doesn't work either
-				//free(settings->player1);
-				//free(settings->player2);
+				//these crash the app, maybe they've already been freed?
+				//it looks like the pointers may be wrong after realloc, but &(settings)-> doesn't work either
+				free(settings->player1);
+				free(settings->player2);
 				free(settings);
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
