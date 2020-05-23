@@ -1,9 +1,10 @@
 /* TODO
 *	Implement:
-*	- AI feature
+*	- Change AI difficulty feature
+*	- Add minimax alpha pruning
 *	- Save and load
 *	- Undo and redo
-*	- Full board detection
+*	- Full board (no empty columns) detection
 *	
 *	Update README.md upon completion
 */
@@ -40,11 +41,11 @@ static inline void cleanStdin() {
 	while ((c = getchar()) != '\n' && c != EOF) { /* do nothing until input buffer is fully flushed */ }
 }
 
-//void delay(int numOfSeconds) {
-//	int milliSeconds = 1000 * numOfSeconds;
-//	clock_t startTime = clock();
-//	while (clock() < startTime + milliSeconds);
-//}
+void delay(int numOfSeconds) {
+	int milliSeconds = 1000 * numOfSeconds;
+	clock_t startTime = clock();
+	while (clock() < startTime + milliSeconds);
+}
 
 void welcome(int x, int y) {
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
