@@ -1,3 +1,5 @@
+// credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
+
 #include <math.h>
 #include "hashmap.h"
 
@@ -5,9 +7,9 @@
 #define PLAYER_2_TOKEN 2
 #define EMPTY_SLOT 0
 
-#define MINIMAX_DEPTH 3
+#define MINIMAX_DEPTH 5 // higher = better but slower AI (more checks are made)
 
-#define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0]))
+#define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) // remember, we cannot calculate the size of a dynamic array, the compiler will never know its size
 
 struct Move {
 	int column;

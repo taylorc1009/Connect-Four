@@ -16,9 +16,9 @@
 
 #define NUL '\0' // used to "nullify" a char
 
-#define NAME_MAX 32 // 2 extra bytes to accomodate '\0' and '\n', so remember to subtract 2 during char* length checks
+#define NAME_MAX 32 // 2 extra bytes to accomodate '\n' and '\0', so remember to subtract 2 during char* length checks
 
-// C console colours (source = https://stackoverflow.com/a/3586005/11136104)
+// C console colours (source - https://stackoverflow.com/a/3586005/11136104)
 #define P1COL "\x1B[31m" // red
 #define P2COL "\x1B[33m" // yellow
 #define PNRM "\x1B[0m" // default console text color
@@ -48,7 +48,7 @@ void delay(int numOfSeconds) {
 }
 
 void welcome(int x, int y) {
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo begin, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -57,8 +57,6 @@ int main(int argc, char** argv) {
 	struct Settings* settings = (struct Settings*) malloc(sizeof(struct Settings));
 	settings->boardX = 7;
 	settings->boardY = 6;
-	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
-	settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 
 	welcome(settings->boardX, settings->boardY);
 	
@@ -100,9 +98,13 @@ int main(int argc, char** argv) {
 
 			case 5:
 				//these crash the app, maybe they've already been freed?
-				//it looks like the pointers may be wrong after realloc, but &(settings)-> doesn't work either
-				free(settings->player1);
-				free(settings->player2);
+				//it looks like the pointers may be wrong after realloc (&(settings)-> doesn't work either)
+				//printf("%d", (int)(sizeof(settings->player2) / sizeof(char)));
+				/*if(settings->player1)
+					free(settings->player1);
+				if(settings->player2)
+					free(settings->player2);*/
+
 				free(settings);
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
@@ -185,20 +187,27 @@ void getName(char** player) { // gets a player name and dynamically resizes the 
 
 void setup(struct Settings* settings) {
 	printf("\n%sPlayer 1%s, please enter your name\n> ", P1COL, PNRM);
+	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
 	getName(&(settings)->player1);
 
 	if (settings->solo) {
-		settings->player2 = "Bot"; //realloc this size to 3 chars
+		//(char*)realloc(settings->player2, sizeof(char) * 4);
+		settings->player2 = "Bot";
 		printf("\nWelcome %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM);
 	}
 	else {
 		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
+		settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 		getName(&(settings)->player2);
 		printf("\nWelcome %s%s%s and %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
 	}
 
 	delay(2);
 	play(settings);
+
+	free(settings->player1);
+	if (!settings->solo)
+		free(settings->player2);
 }
 
 void play(struct Settings* settings) {
@@ -263,7 +272,7 @@ void play(struct Settings* settings) {
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				delay(1);
+				//delay(1);
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
