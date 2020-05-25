@@ -38,10 +38,8 @@ bool push(struct stack* s, int player) {
 }
 struct stackNode** pop(struct stack* s) {
 	struct stackNode** data;
-	if (s->top == -1) {
-		printf(" Stack is empty \n");
+	if (s->top == -1)
 		return NULL; // use this value during the undo to check for unsuccessful pops
-	}
 	data = &s->list[s->top];
 	s->top--;
 	return data;

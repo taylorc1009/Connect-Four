@@ -1,4 +1,4 @@
-// credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
+// source - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
 
 #include <math.h>
 #include "hashmap.h"
@@ -10,6 +10,14 @@
 #define MINIMAX_DEPTH 7 // higher = better but slower AI (more checks are made)
 
 #define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) // remember, we cannot calculate the size of a dynamic array, the compiler will never know its size
+
+/*  There is still an issue here; if the AI detects a win for itself in a later move, it will
+*	capitalise on that rather than blocking the player, even if they can win on their next move.
+*	
+*	It will also do this over blocking their later moves.
+*	
+*	I also noticed it does not make a move on getting 3 in a row with 2 free empty slots on 
+*	each end*/
 
 struct Move {
 	int column;
@@ -101,7 +109,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
-					move->gameOver = newMove->gameOver; //may no longer be needed
+					move->gameOver = newMove->gameOver;
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
@@ -112,14 +120,6 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 					//printf(" >> broken!");
 					break;
 				}
-
-				// this return (and the one below) forces the AI to prevent/make a game winning move,
-				// but this prevents checking of any consequences of this move or a possible better
-				// move, so we need a better solution
-				// - update: the issue now seems to be fixed after returning the column correctly
-				//	 from the gameOver state, needs further testing
-				/*if (move->gameOver)
-					return move;*/
 			}
 			/*else
 				printf("\n! full stack detected");*/
@@ -151,7 +151,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
-					move->gameOver = newMove->gameOver; //may no longer be needed
+					move->gameOver = newMove->gameOver;
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
