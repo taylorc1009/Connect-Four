@@ -27,7 +27,7 @@ void AIMakeMove(struct hashmap* board, int* column, int* centres) {
 	int x = getX(board), y = getY(board);// , alpha = INT_MIN, beta = INT_MAX;
 	struct Move* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH, INT_MIN, INT_MAX);
 	*column = move->column + 1;
-	printf("\nfinal score & column = %d, %d", move->score, move->column + 1);
+	//printf("\nfinal score & column = %d, %d", move->score, move->column + 1);
 	free(move);
 }
 
