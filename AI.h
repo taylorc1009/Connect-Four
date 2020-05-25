@@ -7,7 +7,7 @@
 #define PLAYER_2_TOKEN 2
 #define EMPTY_SLOT 0
 
-#define MINIMAX_DEPTH 5 // higher = better but slower AI (more checks are made)
+#define MINIMAX_DEPTH 7 // higher = better but slower AI (more checks are made)
 
 #define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) // remember, we cannot calculate the size of a dynamic array, the compiler will never know its size
 
@@ -15,19 +15,20 @@ struct Move {
 	int column;
 	int score;
 	bool gameOver;
+	/*bool botWins;
+	bool playerWins;*/
 };
 
 void freeBoard(struct hashmap* board);
-struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth);
+struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, int alpha, int beta);
 void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore);
 
 void AIMakeMove(struct hashmap* board, int* column, int* centres) {
-	int x = getX(board), y = getY(board);
-	struct Move* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH);
+	int x = getX(board), y = getY(board);// , alpha = INT_MIN, beta = INT_MAX;
+	struct Move* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH, INT_MIN, INT_MAX);
 	*column = move->column + 1;
-	//printf("\nfinal score & column = %d, %d", move->score, move->column + 1);
+	printf("\nfinal score & column = %d, %d", move->score, move->column + 1);
 	free(move);
-	//delay(3);
 }
 
 struct hashmap* copyBoard(struct hashmap* board, int x, int y) {
@@ -47,9 +48,11 @@ bool isGameOver(struct hashmap* board, int row, int column) {
 	return checkWin(row, column, board, PLAYER_1_TOKEN) || checkWin(row, column, board, PLAYER_2_TOKEN) || isBoardFull(board, getX(board));
 }
 
-struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth) {
+struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, int alpha, int beta) {
 	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 	move->column = column;
+	/*move->botWins = false;
+	move->playerWins = false;*/
 	//printf("\n%d. (%d, %d), col: %d, tok: %d", depth, x, y, column, player);
 	int row = hashGet(board, column)->top;
 	move->gameOver = isGameOver(board, row, column);
@@ -57,10 +60,14 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 
 	if (depth == 0 || move->gameOver) {
 		if (move->gameOver) {
-			if (checkWin(row, column, board, PLAYER_2_TOKEN))
+			if (checkWin(row, column, board, PLAYER_2_TOKEN)) {
 				move->score = 10000; // bot has won in this instance
-			else if (checkWin(row, column, board, PLAYER_1_TOKEN))
+				//move->botWins = true;
+			}
+			else if (checkWin(row, column, board, PLAYER_1_TOKEN)) {
 				move->score = -10000; // player has won in this instance
+				//move->playerWins = true;
+			}
 			else
 				move->score = 0; // board is full
 			//printf("\n>> gameOver, column = %d, row = %d, score = %d, tok = %d", column, row, move->score, player);
@@ -71,7 +78,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 		return move;
 	}
 	if (player == PLAYER_2_TOKEN) { // maximizing player
-		move->score = -2147483648;
+		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct hashmap* temp = copyBoard(board, x, y);
@@ -86,17 +93,25 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				//}
 				//printf("d:%d", depth);
 
-				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1);
+				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, alpha, beta);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = i;//newMove->gameOver ? newMove->column : i; preventing game over moves now works without using the returned game over column
+					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
+					/*move->playerWins = newMove->playerWins;
+					move->botWins = newMove->botWins;*/
 					move->gameOver = newMove->gameOver; //may no longer be needed
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
 				free(newMove);
+				alpha = max(alpha, move->score);
+				//printf("\n%d >= %d? max(%d, %d)", alpha, beta, alpha, move->score);
+				if (alpha >= beta) {
+					//printf(" >> broken!");
+					break;
+				}
 
 				// this return (and the one below) forces the AI to prevent/make a game winning move,
 				// but this prevents checking of any consequences of this move or a possible better
@@ -113,7 +128,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 		return move;
 	}
 	else { // minimizing player
-		move->score = 2147483647;
+		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct hashmap* temp = copyBoard(board, x, y);
@@ -128,17 +143,26 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				//}
 				//printf("d:%d", depth);
 
-				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1);
+				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, alpha, beta);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = i;//newMove->gameOver ? newMove->column : i; preventing game over moves now works without using the returned game over column
+					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
+					/*move->botWins = newMove->botWins;
+					move->column = newMove->playerWins;*/
 					move->gameOver = newMove->gameOver; //may no longer be needed
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
 				free(newMove);
+				beta = min(beta, move->score);
+				//printf("\n%d >= %d? min(%d, %d)", alpha, beta, beta, move->score);
+				if (alpha >= beta) {
+					//printf(" >> broken!");
+					break;
+				}
+
 				/*if (move->gameOver)
 					return move;*/
 			}
@@ -158,8 +182,8 @@ void evaluateWindow(int* window, int size, int* score) {
 		*score += 5;
 	else if (count(window, size, PLAYER_2_TOKEN) == 4)
 		*score += 100; // if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (might use this for a difficulty modifier)
-	else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
-		*score -= 1;
+	/*else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
+		*score -= 1;*/
 	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
 		*score -= 4;
 	else if (count(window, size, PLAYER_1_TOKEN) == 4)
@@ -181,7 +205,8 @@ void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore
 
 			// here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
 			// it will only recognize a pointer, thus giving us the length of that instead
-			score += count(col, y, PLAYER_2_TOKEN); // * 3;
+			int c = count(col, y, PLAYER_2_TOKEN);
+			score += c == 0 ? 1 : c; // * 3;
 			
 			free(col);
 		}
