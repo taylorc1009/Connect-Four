@@ -256,6 +256,7 @@ void play(struct Settings* settings) {
 			column = 0;
 			//break;
 		}
+		//else if (board is not full)
 		else {
 			if (p1ToPlay) {
 				curPlayer = settings->player1;
@@ -272,7 +273,7 @@ void play(struct Settings* settings) {
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				//delay(1);
+				delay(1); // change this during debugging
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);

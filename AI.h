@@ -56,7 +56,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 	//printf(" >> gameOver? %s", move->gameOver ? "true" : "false");
 
 	if (depth == 0 || move->gameOver) {
-		if (move->gameOver) { //this still doesn't detect a win/loss sometimes, why?
+		if (move->gameOver) {
 			if (checkWin(row, column, board, PLAYER_2_TOKEN))
 				move->score = 10000; // bot has won in this instance
 			else if (checkWin(row, column, board, PLAYER_1_TOKEN))
@@ -77,22 +77,22 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				struct hashmap* temp = copyBoard(board, x, y);
 				addMove(temp, i, PLAYER_2_TOKEN);
 
-				/*for (int k = 0; k < y; k++) {
-					printf("\n|");
-					for (int j = 0; j < x; j++) {
-						int p = getToken(temp, j, (y - 1) - k);
-						printf("%d|", p);
-					}
-				}
-				printf("d:%d", depth);*/
+				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+				//	printf("\n|");
+				//	for (int k = 0; k < x; k++) {
+				//		int p = getToken(temp, k, (y - 1) - j);
+				//		printf("%d|", p);
+				//	}
+				//}
+				//printf("d:%d", depth);
 
 				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;
-					move->gameOver = newMove->gameOver;
+					move->column = i;//newMove->gameOver ? newMove->column : i; preventing game over moves now works without using the returned game over column
+					move->gameOver = newMove->gameOver; //may no longer be needed
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
@@ -119,22 +119,22 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				struct hashmap* temp = copyBoard(board, x, y);
 				addMove(temp, i, PLAYER_1_TOKEN);
 
-				/*for (int k = 0; k < y; k++) {
-					printf("\n|");
-					for (int j = 0; j < x; j++) {
-						int p = getToken(temp, j, (y - 1) - k);
-						printf("%d|", p);
-					}
-				}
-				printf("d:%d", depth);*/
+				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+				//	printf("\n|");
+				//	for (int k = 0; k < x; k++) {
+				//		int p = getToken(temp, k, (y - 1) - j);
+				//		printf("%d|", p);
+				//	}
+				//}
+				//printf("d:%d", depth);
 
 				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;
-					move->gameOver = newMove->gameOver;
+					move->column = i;//newMove->gameOver ? newMove->column : i; preventing game over moves now works without using the returned game over column
+					move->gameOver = newMove->gameOver; //may no longer be needed
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
@@ -151,14 +151,19 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 }
 
 void evaluateWindow(int* window, int size, int* score) {
+	//would there be less operations if we prevented this from running on empty and 1token:3empty windows?
 	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
 		*score += 2;
 	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
 		*score += 5;
 	else if (count(window, size, PLAYER_2_TOKEN) == 4)
 		*score += 100; // if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (might use this for a difficulty modifier)
+	else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
+		*score -= 1;
 	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
 		*score -= 4;
+	else if (count(window, size, PLAYER_1_TOKEN) == 4)
+		*score -= 100; // same rendundancy as the AI token detection above
 
 	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
 }
@@ -166,7 +171,7 @@ void evaluateWindow(int* window, int size, int* score) {
 void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore) { // determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
 
-	// centre score - moves made here give the AI more options
+	// centre score - exists because moves made here give the AI more options
 	for (int i = 0; i < 2; i++) {
 		if (centres[i] != 0) { // prevents the check of a second centre column if there is only 1
 			int* col = malloc(sizeof(int) * y);
@@ -176,7 +181,7 @@ void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore
 
 			// here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
 			// it will only recognize a pointer, thus giving us the length of that instead
-			score += count(col, y, PLAYER_2_TOKEN) * 2;
+			score += count(col, y, PLAYER_2_TOKEN); // * 3;
 			
 			free(col);
 		}
