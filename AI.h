@@ -105,8 +105,8 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
-					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column
+					move->score = newMove->gameOver && depth == MINIMAX_DEPTH ? 10000 : newMove->score;//might be a fix for the algorithm skipping the opponents winning move on the next turn
+					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column, seems to no longer be the case?
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
 					move->gameOver = newMove->gameOver;
@@ -148,7 +148,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column
+					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column, seems to no longer be the case?
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
 					move->gameOver = newMove->gameOver;
