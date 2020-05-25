@@ -106,7 +106,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
+					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
 					move->gameOver = newMove->gameOver;
@@ -148,7 +148,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;// preventing game over moves now works without using the returned game over column
+					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
 					move->gameOver = newMove->gameOver;
@@ -206,7 +206,7 @@ void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore
 			// here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
 			// it will only recognize a pointer, thus giving us the length of that instead
 			int c = count(col, y, PLAYER_2_TOKEN);
-			score += c == 0 ? 1 : c; // * 3;
+			score += c == 0 ? 1 : c; //maybe change to count of empty slots?
 			
 			free(col);
 		}
