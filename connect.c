@@ -1,7 +1,6 @@
 /* TODO
 *	Implement:
 *	- Change AI difficulty feature
-*	- Add minimax alpha pruning
 *	- Save and load
 *	- Undo and redo
 *	- Full board (no empty columns) detection
@@ -97,14 +96,6 @@ int main(int argc, char** argv) {
 				break;
 
 			case 5:
-				//these crash the app, maybe they've already been freed?
-				//it looks like the pointers may be wrong after realloc (&(settings)-> doesn't work either)
-				//printf("%d", (int)(sizeof(settings->player2) / sizeof(char)));
-				/*if(settings->player1)
-					free(settings->player1);
-				if(settings->player2)
-					free(settings->player2);*/
-
 				free(settings);
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
@@ -118,7 +109,7 @@ int validateOption(int min, int max) { // used to validate integers within a giv
 	bool valid = false;
 	int num = -1; // use -1 as the minimum to allow 0 to be entered during the game
 
-	while (num == -1) { // if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
+	while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 		char term;
 		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
 			printf("\n! invalid input: please re-enter an number between %d and %d\n> ", min, max);
@@ -191,8 +182,7 @@ void setup(struct Settings* settings) {
 	getName(&(settings)->player1);
 
 	if (settings->solo) {
-		//(char*)realloc(settings->player2, sizeof(char) * 4);
-		settings->player2 = "Bot";
+		settings->player2 = "Bot"; // this makes the char* static so no point dynamically allocating before
 		printf("\nWelcome %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM);
 	}
 	else {
@@ -246,11 +236,11 @@ void play(struct Settings* settings) {
 
 		// used to skip checks before the first initial move, otherwise null issues occur
 		if (curPlayer != NUL)
-			// make the 4 connected tokens turn green?
-			// change the checks to only check tokens up to 3 before and 3 after
+			//make the 4 connected tokens turn green?
+			//change the checks to only check tokens up to 3 before and 3 after
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 
-		if (win) { // this check is up here and not at the end so we can se the winning move being made
+		if (win) { // this check is up here and not at the end so we can see the winning move being made
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(5);
 			column = 0;
@@ -273,7 +263,7 @@ void play(struct Settings* settings) {
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				delay(1); // change this during debugging
+				//delay(3); //change this during debugging
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
@@ -287,7 +277,7 @@ void play(struct Settings* settings) {
 						delay(2);
 						//break;
 					}
-					else { // implement ctrl+Z and ctrl+Y as undo & redo?
+					else { //implement ctrl+Z and ctrl+Y as undo & redo?
 						full = addMove(board, column - 1, p);
 						if (full)
 							printf("\n! column full, please choose another\n> ");
@@ -301,7 +291,7 @@ void play(struct Settings* settings) {
 	freeBoard(board);
 }
 
-void displayBoard(struct hashmap* board) { // add a move down animation?
+void displayBoard(struct hashmap* board) { //add a move down animation?
 	int x = getX(board), y = getY(board), i, j;
 	system("cls");
 
