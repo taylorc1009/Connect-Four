@@ -11,13 +11,14 @@
 
 #define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) // remember, we cannot calculate the size of a dynamic array, the compiler will never know its size
 
-/*  There is still an issue here; if the AI detects a win for itself in a later move, it will
-*	capitalise on that rather than blocking the player, even if they can win on their next move.
-*	
-*	It will also do this over blocking their later moves.
-*	
-*	I also noticed it does not make a move on getting 3 in a row with 2 free empty slots on 
-*	each end*/
+/*There is still an issue here; if the AI detects a win for itself in a later move, it will
+*capitalise on that rather than blocking the player, even if they can win on their next move.
+*
+*It also appears to do this over blocking their later moves?
+*(I imagine it wouldnt as it will return a low score for states that haven't blocked those)
+*
+*I also noticed it does not make a move on getting 3 in a row with 2 free empty slots on 
+*each end*/
 
 struct Move {
 	int column;
@@ -32,7 +33,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 void getScore(struct hashmap* board, int* centres, int x, int y, int* finalScore);
 
 void AIMakeMove(struct hashmap* board, int* column, int* centres) {
-	int x = getX(board), y = getY(board);// , alpha = INT_MIN, beta = INT_MAX;
+	int x = getX(board), y = getY(board);
 	struct Move* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, MINIMAX_DEPTH, INT_MIN, INT_MAX);
 	*column = move->column + 1;
 	//printf("\nfinal score & column = %d, %d", move->score, move->column + 1);
