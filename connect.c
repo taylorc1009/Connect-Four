@@ -263,7 +263,7 @@ void play(struct Settings* settings) {
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				//delay(3); //change this during debugging
+				//delay(1); //change this during debugging
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);

@@ -70,11 +70,17 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 	if (depth == 0 || move->gameOver) {
 		if (move->gameOver) {
 			if (checkWin(row, column, board, PLAYER_2_TOKEN)) {
-				move->score = 10000; // bot has won in this instance
+				//move->score = 10000; // bot has won in this instance
+
+				/*the idea of this calculation is to give wins closer to the boards current state
+				*a higher priority, as we would prefer the AI to move on those instead*/
+				move->score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
+
 				//move->botWins = true;
 			}
 			else if (checkWin(row, column, board, PLAYER_1_TOKEN)) {
-				move->score = -10000; // player has won in this instance
+				//move->score = -10000; // player has won in this instance
+				move->score = (int)round(-1000 / (float)(MINIMAX_DEPTH - depth));
 				//move->playerWins = true;
 			}
 			else
@@ -100,14 +106,17 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				//		printf("%d|", p);
 				//	}
 				//}
-				//printf("d:%d", depth);
+				//printf("d:%d i:%d", depth, i);
 
 				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, alpha, beta);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
+				
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
-					move->score = newMove->gameOver && depth == MINIMAX_DEPTH ? 10000 : newMove->score;//might be a fix for the algorithm skipping the opponents winning move on the next turn
-					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column, seems to no longer be the case?
+					bool check = depth == MINIMAX_DEPTH && newMove->gameOver ? !addMove(temp, newMove->column, PLAYER_1_TOKEN) : false;
+					bool win = check ? hashGet(temp, newMove->column)->top > 0 ? !checkWin(hashGet(temp, newMove->column)->top - 1, newMove->column, temp, PLAYER_2_TOKEN) : false && checkWin(hashGet(temp, newMove->column)->top, newMove->column, temp, PLAYER_1_TOKEN) : false;
+					move->score = win ? -10000 : newMove->score;
+					move->column = win ? newMove->column : i;//preventing player appears to work even if win is false, why? and is this causing issues in other scenarios?
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
 					move->gameOver = newMove->gameOver;
@@ -142,14 +151,14 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				//		printf("%d|", p);
 				//	}
 				//}
-				//printf("d:%d", depth);
+				//printf("d:%d i:%d", depth, i);
 
 				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, alpha, beta);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;//preventing game over moves now works without using the returned game over column, seems to no longer be the case?
+					move->column = newMove->gameOver ? newMove->column : i;
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
 					move->gameOver = newMove->gameOver;
