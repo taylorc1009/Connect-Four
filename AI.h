@@ -71,7 +71,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 		if (move->gameOver) {
 			if (checkWin(row, column, board, PLAYER_2_TOKEN)) { // bot has won in this instance
 				//move->score = 10000;
-				if (depth == MINIMAX_DEPTH - 1 && addMove(board, move->column, PLAYER_1_TOKEN)) {
+				if (depth == MINIMAX_DEPTH - 1 && addMove(board, move->column, PLAYER_1_TOKEN)) { // this is used to detect if the move to be made will give the player a win when we can't get one
 					row++;
 					bool pWin = /*(row > 0 ?
 						!checkWin(row - 1, move->column, board, PLAYER_2_TOKEN) : false) 
@@ -85,8 +85,8 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 
 				//move->botWins = true;
 			}
-			else if (checkWin(row, column, board, PLAYER_1_TOKEN)) {
-				//move->score = -10000; // player has won in this instance
+			else if (checkWin(row, column, board, PLAYER_1_TOKEN)) { // player has won in this instance
+				//move->score = -10000;
 				move->score = (int)round(-1000 / (float)(MINIMAX_DEPTH - depth));
 				//move->playerWins = true;
 			}
@@ -122,7 +122,7 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
 					move->gameOver = newMove->gameOver;
-					move->column = newMove->gameOver && move->score < -1000 ? newMove->column : i;//preventing player appears to work even if win is false, why? and is this causing issues in other scenarios?
+					move->column = move->gameOver && move->score < -1000 ? newMove->column : i;
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
@@ -167,7 +167,6 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 					move->column = move->gameOver ? newMove->column : i;
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
-					
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
