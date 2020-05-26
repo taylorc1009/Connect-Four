@@ -69,12 +69,19 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 
 	if (depth == 0 || move->gameOver) {
 		if (move->gameOver) {
-			if (checkWin(row, column, board, PLAYER_2_TOKEN)) {
-				//move->score = 10000; // bot has won in this instance
-
-				/*the idea of this calculation is to give wins closer to the boards current state
-				*a higher priority, as we would prefer the AI to move on those instead*/
-				move->score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
+			if (checkWin(row, column, board, PLAYER_2_TOKEN)) { // bot has won in this instance
+				//move->score = 10000;
+				if (depth == MINIMAX_DEPTH - 1 && addMove(board, move->column, PLAYER_1_TOKEN)) {
+					row++;
+					bool pWin = /*(row > 0 ?
+						!checkWin(row - 1, move->column, board, PLAYER_2_TOKEN) : false) 
+						&&*/ checkWin(row, move->column, board, PLAYER_1_TOKEN);
+					move->score = pWin ? -10000 : 1000;
+				}
+				else
+					/*the idea of this calculation is to give wins closer to the boards current state
+					*a higher priority, as we would prefer the AI to move on those instead*/
+					move->score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
 
 				//move->botWins = true;
 			}
@@ -110,16 +117,14 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 
 				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, alpha, beta);
 				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
-				
+
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
-					bool check = depth == MINIMAX_DEPTH && newMove->gameOver ? !addMove(temp, newMove->column, PLAYER_1_TOKEN) : false;
-					bool win = check ? hashGet(temp, newMove->column)->top > 0 ? !checkWin(hashGet(temp, newMove->column)->top - 1, newMove->column, temp, PLAYER_2_TOKEN) : false && checkWin(hashGet(temp, newMove->column)->top, newMove->column, temp, PLAYER_1_TOKEN) : false;
-					move->score = win ? -10000 : newMove->score;
-					move->column = win ? newMove->column : i;//preventing player appears to work even if win is false, why? and is this causing issues in other scenarios?
+					move->score = newMove->score;
+					move->gameOver = newMove->gameOver;
+					move->column = newMove->gameOver && move->score < -1000 ? newMove->column : i;//preventing player appears to work even if win is false, why? and is this causing issues in other scenarios?
 					/*move->playerWins = newMove->playerWins;
 					move->botWins = newMove->botWins;*/
-					move->gameOver = newMove->gameOver;
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
@@ -158,10 +163,11 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 					move->score = newMove->score;
-					move->column = newMove->gameOver ? newMove->column : i;
+					move->gameOver = newMove->gameOver;
+					move->column = move->gameOver ? newMove->column : i;
 					/*move->botWins = newMove->botWins;
 					move->column = newMove->playerWins;*/
-					move->gameOver = newMove->gameOver;
+					
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
 				freeBoard(temp);
@@ -183,6 +189,133 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 		return move;
 	}
 }
+
+//struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, int alpha, int beta) {
+//	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
+//	move->column = column;
+//	/*move->botWins = false;
+//	move->playerWins = false;*/
+//	//printf("\n%d. (%d, %d), col: %d, tok: %d", depth, x, y, column, player);
+//	int row = hashGet(board, column)->top;
+//	move->gameOver = isGameOver(board, row, column);
+//	//printf(" >> gameOver? %s", move->gameOver ? "true" : "false");
+//
+//	if (depth == 0 || move->gameOver) {
+//		if (move->gameOver) {
+//			if (checkWin(row, column, board, PLAYER_2_TOKEN)) {
+//				//move->score = 10000; // bot has won in this instance
+//
+//				/*the idea of this calculation is to give wins closer to the boards current state
+//				*a higher priority, as we would prefer the AI to move on those instead*/
+//				move->score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
+//
+//				//move->botWins = true;
+//			}
+//			else if (checkWin(row, column, board, PLAYER_1_TOKEN)) {
+//				//move->score = -10000; // player has won in this instance
+//				move->score = (int)round(-1000 / (float)(MINIMAX_DEPTH - depth));
+//				//move->playerWins = true;
+//			}
+//			else
+//				move->score = 0; // board is full
+//			//printf("\n>> gameOver, column = %d, row = %d, score = %d, tok = %d", column, row, move->score, player);
+//		}
+//		else
+//			getScore(board, centres, x, y, &(move)->score); // evaluate the state of the final instance
+//		//printf(" >> score%d = %d", column, move->score);
+//		return move;
+//	}
+//	if (player == PLAYER_2_TOKEN) { // maximizing player
+//		move->score = INT_MIN;
+//		for (int i = 0; i < x; i++) {
+//			if (!stackIsFull(hashGet(board, i))) {
+//				struct hashmap* temp = copyBoard(board, x, y);
+//				addMove(temp, i, PLAYER_2_TOKEN);
+//
+//				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+//				//	printf("\n|");
+//				//	for (int k = 0; k < x; k++) {
+//				//		int p = getToken(temp, k, (y - 1) - j);
+//				//		printf("%d|", p);
+//				//	}
+//				//}
+//				//printf("d:%d i:%d", depth, i);
+//
+//				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, alpha, beta);
+//				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
+//				
+//				if (newMove->score > move->score) {
+//					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+//					bool check = depth == MINIMAX_DEPTH && newMove->gameOver ? !addMove(temp, newMove->column, PLAYER_1_TOKEN) : false;
+//					bool win = check ? hashGet(temp, newMove->column)->top > 0 ? !checkWin(hashGet(temp, newMove->column)->top - 1, newMove->column, temp, PLAYER_2_TOKEN) : false && checkWin(hashGet(temp, newMove->column)->top, newMove->column, temp, PLAYER_1_TOKEN) : false;
+//					move->score = win ? -10000 : newMove->score;
+//					move->column = win ? newMove->column : i;//preventing player appears to work even if win is false, why? and is this causing issues in other scenarios?
+//					/*move->playerWins = newMove->playerWins;
+//					move->botWins = newMove->botWins;*/
+//					move->gameOver = newMove->gameOver;
+//					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
+//				}
+//				freeBoard(temp);
+//				free(newMove);
+//				alpha = max(alpha, move->score);
+//				//printf("\n%d >= %d? max(%d, %d)", alpha, beta, alpha, move->score);
+//				if (alpha >= beta) {
+//					//printf(" >> broken!");
+//					break;
+//				}
+//			}
+//			/*else
+//				printf("\n! full stack detected");*/
+//		}
+//		//printf("\nstep up");
+//		return move;
+//	}
+//	else { // minimizing player
+//		move->score = INT_MAX;
+//		for (int i = 0; i < x; i++) {
+//			if (!stackIsFull(hashGet(board, i))) {
+//				struct hashmap* temp = copyBoard(board, x, y);
+//				addMove(temp, i, PLAYER_1_TOKEN);
+//
+//				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+//				//	printf("\n|");
+//				//	for (int k = 0; k < x; k++) {
+//				//		int p = getToken(temp, k, (y - 1) - j);
+//				//		printf("%d|", p);
+//				//	}
+//				//}
+//				//printf("d:%d i:%d", depth, i);
+//
+//				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, alpha, beta);
+//				//printf("\nmove = { %d, %d }, newMove = { %d, %d }", move->score, move->column, newMove->score, newMove->column);
+//				if (newMove->score < move->score) {
+//					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+//					move->score = newMove->score;
+//					move->column = newMove->gameOver ? newMove->column : i;
+//					/*move->botWins = newMove->botWins;
+//					move->column = newMove->playerWins;*/
+//					move->gameOver = newMove->gameOver;
+//					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
+//				}
+//				freeBoard(temp);
+//				free(newMove);
+//				beta = min(beta, move->score);
+//				//printf("\n%d >= %d? min(%d, %d)", alpha, beta, beta, move->score);
+//				if (alpha >= beta) {
+//					//printf(" >> broken!");
+//					break;
+//				}
+//
+//				/*if (move->gameOver)
+//					return move;*/
+//			}
+//			/*else
+//				printf("\n! full stack detected");*/
+//		}
+//		//printf("\nstep up");
+//		return move;
+//	}
+//}
 
 void evaluateWindow(int* window, int size, int* score) {
 	//would there be less operations if we prevented this from running on empty and 1token:3empty windows?
