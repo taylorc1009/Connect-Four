@@ -1,6 +1,7 @@
 /* TODO
 *	Implement:
-*	- Change AI difficulty feature
+*	- Randomize (or allow selection) of bor or AI start
+*	- system("cls"); after board dimensions change
 *	- Save and load
 *	- Undo and redo
 *	- Full board (no empty columns) detection
@@ -28,6 +29,7 @@ struct Settings {
 	char* player1;
 	char* player2;
 	bool solo;
+	int depth;
 };
 
 void setup(struct Settings* settings);
@@ -62,6 +64,7 @@ int main(int argc, char** argv) {
 	int option = 0;
 	while (option == 0) {
 		settings->solo = false;
+		settings->depth = 0;
 		printf("\nWhat would you like to do?\n> ");
 		option = validateOption(1, 5);
 
@@ -183,15 +186,31 @@ void setup(struct Settings* settings) {
 
 	if (settings->solo) {
 		settings->player2 = "Bot"; // this makes the char* static so no point dynamically allocating before
-		printf("\nWelcome %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM);
+		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", P1COL, settings->player1, PNRM);
+		switch (validateOption(1, 4)) {
+			case 1:
+				settings->depth = 1;
+				break;
+			case 2:
+				settings->depth = 3;
+				break;
+			case 3:
+				settings->depth = 5;
+				break;
+			case 4:
+				settings->depth = 7;
+				break;
+		}
 	}
 	else {
 		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
 		settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
 		getName(&(settings)->player2);
-		printf("\nWelcome %s%s%s and %s%s%s!\n> Starting...", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
+		printf("\nWelcome %s%s%s and %s%s%s!", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
+		delay(1);
 	}
 
+	printf("\nStarting...");
 	delay(2);
 	play(settings);
 
@@ -243,7 +262,7 @@ void play(struct Settings* settings) {
 		if (win) { // this check is up here and not at the end so we can see the winning move being made
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
 			delay(2);
-			printf("\n\nReturning to main menu...");
+			printf("\nReturning to main menu...");
 			delay(3);
 			column = 0;
 			//break;
@@ -263,9 +282,9 @@ void play(struct Settings* settings) {
 
 			if (!p1ToPlay && settings->solo) { // get the AI to make a move
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
-				AIMakeMove(board, &column, centres);
+				AIMakeMove(board, &column, centres, settings->depth);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				//delay(1); //use this during debugging
+				//delay(3); //use this during debugging
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
