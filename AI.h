@@ -68,17 +68,16 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 		if (move->gameOver) {
 			if (checkWin(row, column, board, PLAYER_2_TOKEN)) { // bot has won in this instance
 				//move->score = 10000;
-				if (depth == MINIMAX_DEPTH - 1 && addMove(board, move->column, PLAYER_1_TOKEN)) { // this is used to detect if the move to be made will give the player a win when we can't get one
+				int score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
+				if (depth < MINIMAX_DEPTH - 1) { // this is used to detect if the move to be made will give the player a win when we can't get one
 					row++;
-					bool pWin = /*(row > 0 ?
-						!checkWin(row - 1, move->column, board, PLAYER_2_TOKEN) : false) 
-						&&*/ checkWin(row, move->column, board, PLAYER_1_TOKEN);
-					move->score = pWin ? -10000 : 1000;
+					bool pWin = !addMove(board, move->column, PLAYER_1_TOKEN) && checkWin(row, move->column, board, PLAYER_1_TOKEN);
+					move->score = pWin ? -1000 : score;
 				}
 				else
 					/*the idea of this calculation is to give wins closer to the boards current state
 					*a higher priority, as we would prefer the AI to move on those instead*/
-					move->score = (int)round(1000 / (float)(MINIMAX_DEPTH - depth));
+					move->score = score;
 
 				//move->botWins = true;
 			}

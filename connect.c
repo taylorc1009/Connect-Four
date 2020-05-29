@@ -242,7 +242,9 @@ void play(struct Settings* settings) {
 
 		if (win) { // this check is up here and not at the end so we can see the winning move being made
 			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
-			delay(5);
+			delay(2);
+			printf("\n\nReturning to main menu...");
+			delay(3);
 			column = 0;
 			//break;
 		}
@@ -263,7 +265,7 @@ void play(struct Settings* settings) {
 				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 				AIMakeMove(board, &column, centres);
 				addMove(board, column - 1, PLAYER_2_TOKEN); // shouldn't return a full column as we determine this in the AI
-				//delay(1); //change this during debugging
+				//delay(1); //use this during debugging
 			}
 			else {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
