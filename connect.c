@@ -1,7 +1,7 @@
 /* TODO
 *	Implement:
 *	- Randomize (or allow selection) of bor or AI start
-*	- system("cls"); after board dimensions change
+*	- system("cls"); after board dimensions change?
 *	- Save and load
 *	- Undo and redo
 *	- Full board (no empty columns) detection
@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
 
 	welcome(settings->boardX, settings->boardY);
 	
-	int option = 0;
-	while (option == 0) {
+	int option;// = 0;
+	do {
 		settings->solo = false;
 		settings->depth = 0;
 		printf("\nWhat would you like to do?\n> ");
@@ -70,22 +70,23 @@ int main(int argc, char** argv) {
 
 		switch (option) {
 			case 1:
-				printf("\nConnect 4 is a rather simple game. Both users take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", P1COL, PNRM, P2COL, PNRM);
-				option = 0;
+				printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", P1COL, PNRM, P2COL, PNRM);
+				//option = 0;
 				break;
 
 			case 2:
-				printf("\nPlease enter the width (amount of columns) you want to play with\n> ");
+				printf("\nPlease enter the width (amount of columns) you want to play with (6-12)\n> ");
 				settings->boardX = validateOption(6, 12);
-				printf("\nPlease enter the height (amount of rows) you want to play with\n> ");
+				printf("\nPlease enter the height (amount of rows) you want to play with (6-12)\n> ");
 				settings->boardY = validateOption(6, 12);
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
-				option = 0;
+				delay(2);
+				//option = 0;
 				break;
 
 			case 3:
 				setup(settings);
-				option = 0;
+				//option = 0;
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 				break;
@@ -93,7 +94,7 @@ int main(int argc, char** argv) {
 			case 4:
 				settings->solo = true;
 				setup(settings);
-				option = 0;
+				//option = 0;
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 				break;
@@ -104,7 +105,7 @@ int main(int argc, char** argv) {
 				printf("Connect 4 closed, goodbye!\n");
 				break;
 		}
-	}
+	} while (option != 5);
 	return 0;
 }
 
