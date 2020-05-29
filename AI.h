@@ -11,14 +11,11 @@
 
 #define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) // remember, we cannot calculate the size of a dynamic array, the compiler will never know its size
 
-/*There is still an issue here; if the AI detects a win for itself in a later move, it will
-*capitalise on that rather than blocking the player, even if they can win on their next move.
+/*There may still be issues here. I've yet to find more.
 *
-*It also appears to do this over blocking their later moves?
-*(I imagine it wouldnt as it will return a low score for states that haven't blocked those)
-*
-*I also noticed it does not make a move on getting 3 in a row with 2 free empty slots on 
-*each end*/
+*I noticed it sometimes does not make a move on getting 3 in a row with 2 free empty slots on 
+*one/each end, it will go for a win instead (when this happened, it seemed to be fine as the
+*AI win was near)*/
 
 struct Move {
 	int column;
@@ -189,6 +186,8 @@ struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centr
 	}
 }
 
+// Old minimax - used before adding/forcing results in a/some scenario(s)
+//
 //struct Move* minimax(struct hashmap* board, int x, int y, int column, int* centres, int player, int depth, int alpha, int beta) {
 //	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 //	move->column = column;
