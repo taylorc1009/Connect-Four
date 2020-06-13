@@ -4,9 +4,8 @@
 *	- system("cls"); after board dimensions change?
 *	- Save and load
 *	- Undo and redo
-*	- Full board (no empty columns) detection
 *	
-*	Update README.md upon completion
+*	Update README.md upon completion (if required)
 */
 
 #include <stdio.h>
