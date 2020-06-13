@@ -222,7 +222,7 @@ void setup(struct Settings* settings) {
 
 void play(struct Settings* settings) {
 	int x = settings->boardX, y = settings->boardY, p, column = 1;
-	bool full, win = false, p1ToPlay = true;
+	bool columnFull, boardFull = false , win = false, p1ToPlay = true;
 	char* curPlayer = NUL;
 	char* col;
 	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
@@ -255,20 +255,21 @@ void play(struct Settings* settings) {
 		printf("\n\n");
 
 		// used to skip checks before the first initial move, otherwise null issues occur
-		if (curPlayer != NUL)
+		if (curPlayer != NUL) {
 			//make the 4 connected tokens turn green?
 			//change the checks to only check tokens up to 3 before and 3 after
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
+			boardFull = isBoardFull(board, x);
+		}
 
-		if (win) { // this check is up here and not at the end so we can see the winning move being made
-			printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM);
+		if (win || boardFull) { // this check is up here and not at the end so we can see the winning move being made
+			win ? printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM) : printf("The board is full... Game over!");
 			delay(2);
 			printf("\nReturning to main menu...");
 			delay(3);
 			column = 0;
 			//break;
 		}
-		//else if (board is not full)
 		else {
 			if (p1ToPlay) {
 				curPlayer = settings->player1;
@@ -291,7 +292,7 @@ void play(struct Settings* settings) {
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
 				do {
-					full = false;
+					columnFull = false;
 					column = validateOption(0, x);
 
 					if (column == 0) {
@@ -300,11 +301,11 @@ void play(struct Settings* settings) {
 						//break;
 					}
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
-						full = addMove(board, column - 1, p);
-						if (full)
+						columnFull = addMove(board, column - 1, p);
+						if (columnFull)
 							printf("\n! column full, please choose another\n> ");
 					}
-				} while (full);
+				} while (columnFull);
 			}
 			p1ToPlay = !p1ToPlay;
 		}
