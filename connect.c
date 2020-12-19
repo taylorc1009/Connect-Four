@@ -271,7 +271,7 @@ void play(struct Settings* settings) {
 	* push to that column.*/
 	struct Hashmap* board = createTable(x, y);
 
-	//struct Hashmap* history = (2, 1);
+	struct Hashmap* history = createTable(2, 1);
 
 	do {
 		displayBoard(board);
@@ -309,12 +309,13 @@ void play(struct Settings* settings) {
 					printf("(!) AI move held - the move made after this was previously undone, do you wish to continue undoing?\n(0 to cancel this undo, other controls are the regular undo controls)\n\n> ");
 					int cont = validateOption(0, 0, true);
 					if (cont == 0)
-						undoing == false;
+						undoing = false;
 				}
 				if (!undoing) {
 					printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 					AIMakeMove(board, &column, centres, settings->depth);
-					addMove(board, column - 1, PLAYER_2_TOKEN); //shouldn't return a full column as we determine this in the AI
+					int tok = PLAYER_2_TOKEN;
+					addMove(board, column - 1, &tok); //shouldn't return a full column as we determine this in the AI
 					//delay(3); //use this during debugging
 				}
 			}
@@ -333,7 +334,7 @@ void play(struct Settings* settings) {
 						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
 					}
 					else if (toChar == 'u') {
-						undo(&board, &undoStack);
+						//undo(&board, &undoStack);
 						undoing = true;
 					}
 					else if (toChar == 'r') {
@@ -343,7 +344,8 @@ void play(struct Settings* settings) {
 
 					}
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
-						columnFull = addMove(board, column - 1, p);
+						int tok = p;
+						columnFull = addMove(board, column - 1, &tok);
 						if (columnFull)
 							printf("\n(!) column full, please choose another\n> ");
 					}
@@ -367,9 +369,10 @@ void displayBoard(struct Hashmap* board) { //add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			
+
 			//'(y - 1) - i' fixes the display, otherwise it would come out upside down
-			int p = getToken(board, j, (y - 1) - i);
+			int* tok = (int*)getToken(board, j, (y - 1) - i);
+			int p = tok == NULL ? 0 : *tok;
 
 			if (p) {
 				char* col = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
@@ -404,7 +407,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	//horizontal check
 	int count = 0;
 	for (int i = 0; i < x; i++) {
-		if (getToken(board, i, row) == p) {
+		if (*((int*)getToken(board, i, row)) == p) { // <------------------------------------- TODO - LOOK HERE - this pointer crashes, as well as everywhere else, because we're not checking if it's null (displayBoard is working, look at how that works)
 			count++;
 			if (count >= 4)
 				return true;
@@ -416,7 +419,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	//vertical check
 	count = 0;
 	for (int i = 0; i < y; i++) {
-		if (getToken(board, column, i) == p) {
+		if (*((int*)getToken(board, column, i)) == p) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -436,7 +439,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j < x; i++, j++) {
-		if (getToken(board, j, i) == p) {
+		if (*((int*)getToken(board, j, i)) == p) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -457,7 +460,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j >= 0; i++, j--) {
-		if (getToken(board, j, i) == p) {
+		if (*((int*)getToken(board, j, i)) == p) {
 			count++;
 			if (count >= 4)
 				return true;

@@ -4,7 +4,7 @@
 typedef enum { false, true } bool; //we use a typedef instead of '#include<stdbool.h>' as "bool" is not a key-word to the compiler, so including it would give errors
 
 struct stackNode {
-	int player;
+	void* val;
 	struct stackNode* prev;
 	struct stackNode* next;
 };
@@ -28,7 +28,7 @@ struct Stack* createStack(int size) {
 	return s;
 }
 
-bool push(struct Stack* s, int player) {
+bool push(struct Stack* s, void** player) {
 	if (stackIsFull(s)) //if the stack is full
 		return true;
 
@@ -40,7 +40,7 @@ bool push(struct Stack* s, int player) {
 		newNode->prev = NULL;
 	s->top++;
 
-	newNode->player = player;
+	newNode->val = *player;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
 
@@ -59,11 +59,11 @@ struct stackNode** pop(struct Stack* s) {
 	return data;
 }
 
-int stackGet(struct Stack* s, int index) {
+void* stackGet(struct Stack* s, int index) {
 	if (index < s->size && s->list[index] != NULL)
-		return s->list[index]->player;
+		return s->list[index]->val;
 	else
-		return 0;
+		return NULL;
 }
 
 bool stackIsFull(struct Stack* s) {
