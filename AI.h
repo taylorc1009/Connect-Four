@@ -300,7 +300,7 @@ void evaluateWindow(int* window, int size, int* score) {
 	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
 		*score += 5;
 	else if (count(window, size, PLAYER_2_TOKEN) == 4)
-		*score += 100; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (might use this for a difficulty modifier)
+		*score += 100; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
 	/*else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
 		*score -= 1;*/
 	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
@@ -324,7 +324,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 
 			//here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
 			//it will only recognize a pointer, thus giving us the length of that instead
-			score += count(col, y, PLAYER_2_TOKEN); //maybe change to count of empty slots?
+			score += count(col, y, PLAYER_2_TOKEN); //maybe change to count of empty slots? As this would help prioritise the centre only if it had a decent amount of free spaces
 			
 			free(col);
 		}

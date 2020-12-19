@@ -38,7 +38,7 @@ void freeBoard(struct Hashmap* board);
 
 static inline void cleanStdin() {
 	char c = NUL;
-	while ((c = getchar()) != '\n' && c != EOF) { /* do nothing until input buffer is fully flushed */ }
+	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
 }
 
 void delay(int numOfSeconds) {
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 		settings->solo = false;
 		settings->depth = 0;
 		printf("\nWhat would you like to do?\n> ");
-		option = validateOption(1, 5);
+		option = validateOption(1, 5, false);
 
 		switch (option) {
 			case 1:
@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
 
 			case 2:
 				printf("\nPlease enter the width (amount of columns) you want to play with (6-12)\n> ");
-				settings->boardX = validateOption(6, 12);
+				settings->boardX = validateOption(6, 12, false);
 				printf("\nPlease enter the height (amount of rows) you want to play with (6-12)\n> ");
-				settings->boardY = validateOption(6, 12);
+				settings->boardY = validateOption(6, 12, false);
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				delay(2);
 				break;
@@ -105,23 +105,44 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-int validateOption(int min, int max) { //used to validate integers within a given range
-	bool valid = false;
-	int num = -1; //use -1 as the minimum to allow 0 to be entered during the game
+int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range
+	bool valid;
+	int num;
+	char buffer[3]; //3 to hold the input, '\n' and '\0'
 
-	while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
-		char term;
-		if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
+	//while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
+	//	char term;
+	//	if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
+	//		printf("%d", num);
+	//		if (inPlay && (num == 'r' || num == 'u'))
+	//			continue;
+
+	//		printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
+	//		/*char c = NUL;
+	//		do {
+	//			c = getchar();
+	//		} while (!isdigit(c));
+	//		ungetc(c, stdin);*/
+	//		cleanStdin();
+	//		num = -1;
+	//	}
+	//}
+
+	do {
+		fgets(buffer, sizeof buffer, stdin);
+
+		num = (int)buffer[0];
+		bool juncture = buffer[1] == '\n';
+
+		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u'))) && juncture);
+		if (!valid) {
+			if (!juncture)
+				cleanStdin();
 			printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
-			char c = NUL;
-			do {
-				c = getchar();
-			} while (!isdigit(c));
-			ungetc(c, stdin);
-			num = -1;
 		}
-	}
-	return num;
+	} while (!valid);
+
+	return num - '0';
 }
 
 void removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
@@ -184,7 +205,7 @@ void setup(struct Settings* settings) {
 	if (settings->solo) {
 		settings->player2 = "AI"; //this makes the char* static so no point dynamically allocating before
 		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", P1COL, settings->player1, PNRM);
-		switch (validateOption(1, 4)) {
+		switch (validateOption(1, 4, false)) {
 			case 1:
 				settings->depth = 1;
 				break;
@@ -263,8 +284,7 @@ void play(struct Settings* settings) {
 			delay(2);
 			printf("\nReturning to the main menu...");
 			delay(3);
-			column = 0;
-			//break;
+			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway
 		}
 		else {
 			if (p1ToPlay) {
@@ -289,12 +309,11 @@ void play(struct Settings* settings) {
 
 				do {
 					columnFull = false;
-					column = validateOption(0, x);
+					column = validateOption(0, x, true);
 
 					if (column == 0) {
 						printf("\n(!) game closed");
-						delay(2);
-						//break;
+						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
 					}
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
 						columnFull = addMove(board, column - 1, p);
