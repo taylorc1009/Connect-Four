@@ -134,7 +134,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		num = (int)buffer[0];
 		bool juncture = buffer[1] == '\n';
 
-		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u'))) && juncture);
+		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
 		if (!valid) {
 			if (!juncture)
 				cleanStdin();
@@ -237,9 +237,13 @@ void setup(struct Settings* settings) {
 		free(settings->player2);
 }
 
+void undo(struct Hashmap** board, struct Stack** undoStack) {
+
+}
+
 void play(struct Settings* settings) {
 	int x = settings->boardX, y = settings->boardY, p, column = 1;
-	bool columnFull, boardFull = false , win = false, p1ToPlay = true;
+	bool columnFull, boardFull = false , win = false, p1ToPlay = true, undoing = false;
 	char* curPlayer = NUL;
 	char* col;
 	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
@@ -267,6 +271,8 @@ void play(struct Settings* settings) {
 	* push to that column.*/
 	struct Hashmap* board = createTable(x, y);
 
+	//struct Hashmap* history = (2, 1);
+
 	do {
 		displayBoard(board);
 		printf("\n\n");
@@ -280,9 +286,9 @@ void play(struct Settings* settings) {
 		}
 
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
-			win ? printf("Congratulations %s%s%s, you win!", col, curPlayer, PNRM) : printf("The board is full... Game over!");
+			win ? printf("Congratulations %s%s%s, you win!\n", col, curPlayer, PNRM) : printf("The board is full... Game over!\n");
 			delay(2);
-			printf("\nReturning to the main menu...");
+			printf("Returning to the main menu...");
 			delay(3);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway
 		}
@@ -299,21 +305,42 @@ void play(struct Settings* settings) {
 			}
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
-				printf("%s%s%s is making a move...", col, settings->player2, PNRM);
-				AIMakeMove(board, &column, centres, settings->depth);
-				addMove(board, column - 1, PLAYER_2_TOKEN); //shouldn't return a full column as we determine this in the AI
-				//delay(3); //use this during debugging
+				if (undoing) {
+					printf("(!) AI move held - the move made after this was previously undone, do you wish to continue undoing?\n(0 to cancel this undo, other controls are the regular undo controls)\n\n> ");
+					int cont = validateOption(0, 0, true);
+					if (cont == 0)
+						undoing == false;
+				}
+				if (!undoing) {
+					printf("%s%s%s is making a move...", col, settings->player2, PNRM);
+					AIMakeMove(board, &column, centres, settings->depth);
+					addMove(board, column - 1, PLAYER_2_TOKEN); //shouldn't return a full column as we determine this in the AI
+					//delay(3); //use this during debugging
+				}
 			}
 			else {
+				undoing = false;
+
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
 				do {
 					columnFull = false;
 					column = validateOption(0, x, true);
+					int toChar = column + '0';
 
 					if (column == 0) {
 						printf("\n(!) game closed");
 						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
+					}
+					else if (toChar == 'u') {
+						undo(&board, &undoStack);
+						undoing = true;
+					}
+					else if (toChar == 'r') {
+
+					}
+					else if (toChar == 's') {
+
 					}
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
 						columnFull = addMove(board, column - 1, p);
