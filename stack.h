@@ -1,55 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum { false, true } bool;
+typedef enum { false, true } bool; //we use a typedef instead of '#include<stdbool.h>' as "bool" is not a key-word to the compiler, so including it would give errors
 
 struct stackNode {
 	int player;
 	struct stackNode* prev;
 	struct stackNode* next;
 };
-struct stack {
+
+struct Stack {
 	struct stackNode** list;
 	int top;
 	int size;
 };
-struct stack* createStack(int size) {
-	struct stack* s = (struct stack*)malloc(sizeof(struct stack));
+
+struct Stack* createStack(int size) {
+	struct Stack* s = (struct Stack*)malloc(sizeof(struct Stack));
+
 	s->top = -1;
 	s->size = size;
 	s->list = (struct stackNode**)malloc(sizeof(struct stackNode*) * size);
+
 	for (int i = 0; i < size; i++)
 		s->list[i] = NULL;
+
 	return s;
 }
-bool push(struct stack* s, int player) {
-	if (stackIsFull(s)) // if the stack is full
+
+bool push(struct Stack* s, int player) {
+	if (stackIsFull(s)) //if the stack is full
 		return true;
+
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
-	if (s->top != -1) // if the stack is not empty
+
+	if (s->top != -1) //if the stack is not empty
 		newNode->prev = s->list[s->top];
 	else
 		newNode->prev = NULL;
 	s->top++;
+
 	newNode->player = player;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
+
 	return false;
 }
-struct stackNode** pop(struct stack* s) {
+
+struct stackNode** pop(struct Stack* s) {
 	struct stackNode** data;
+
 	if (s->top == -1)
-		return NULL; // use this value during the undo to check for unsuccessful pops
+		return NULL; //use this value during the undo to check for unsuccessful pops
+
 	data = &s->list[s->top];
 	s->top--;
+
 	return data;
 }
-int stackGet(struct stack* s, int index) {
+
+int stackGet(struct Stack* s, int index) {
 	if (index < s->size && s->list[index] != NULL)
 		return s->list[index]->player;
 	else
 		return 0;
 }
-bool stackIsFull(struct stack* s) {
+
+bool stackIsFull(struct Stack* s) {
 	return s->top == s->size - 1;
 }
