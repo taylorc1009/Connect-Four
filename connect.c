@@ -3,7 +3,7 @@
 *	- Randomize (or allow selection) of player or AI turn on first move
 *	- system("cls"); after board dimensions change?
 *	- Save and load
-*	- Move and redo
+*	- Test undo and redo more
 *	
 *	Update README.md upon completion (if required)
 */
@@ -52,7 +52,7 @@ void delay(int numOfSeconds) {
 }
 
 void welcome(int x, int y) {
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how it works\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 
 		switch (option) {
 			case 1:
-				printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally.\n", P1COL, PNRM, P2COL, PNRM);
+				printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", P1COL, PNRM, P2COL, PNRM);
 				break;
 
 			case 2:
