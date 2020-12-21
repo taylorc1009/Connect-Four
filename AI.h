@@ -26,7 +26,6 @@ struct AIMove {
 	bool gameOver;
 };
 
-//void freeBoard(struct Hashmap* board);
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta);
 void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore);
 
@@ -178,8 +177,8 @@ void evaluateWindow(int* window, int size, int* score) {
 		*score += 5;
 	else if (count(window, size, PLAYER_2_TOKEN) == 4)
 		*score += 100; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
-	/*else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
-		*score -= 1;*/
+	else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
+		*score -= 1; //was previously commented out (does the AI have a better play style without this?)
 	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
 		*score -= 5; //was previously at 4 (appeared to work better in some instances)
 	else if (count(window, size, PLAYER_1_TOKEN) == 4)
@@ -199,7 +198,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 			for (int j = 0; j < y; j++)
 				col[j] = *((int*)getToken(board, centres[i], j));
 
-			score += count(col, ARRAY_LENGTH(col), EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (used to prioritise it if the AI had more tokens there)
+			score += count(col, ARRAY_LENGTH(col), EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there, also 'y' used to by used instead of 'ARRAY_LENGTH')
 			
 			free(col);
 		}
@@ -262,17 +261,3 @@ int count(int* list, int n, int tok) {
 			c++;
 	return c;
 }
-
-//void freeBoard(struct Hashmap* board) { //used to clear the board data from memory
-//	for (int i = 0; i < board->size; i++) {
-//		for (int j = 0; j < board->list[i]->stack->size; j++) {
-//			if (j <= board->list[i]->stack->top)// && board->list[i]->stack->list[j]->val)
-//				free(board->list[i]->stack->list[j]->val);
-//			free(board->list[i]->stack->list[j]);
-//		}
-//		free(board->list[i]->stack);
-//		free(board->list[i]);
-//	}
-//	free(board->list);
-//	free(board);
-//}

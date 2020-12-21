@@ -95,7 +95,7 @@ bool isBoardFull(struct Hashmap* board, int x) {
     return true;
 }
 
-void freeHashmap(struct Hashmap* h) {
+void freeHashmap(struct Hashmap* h) { //use this to clear the entire board data from memory
     for (int i = 0; i < h->size; i++) {
         freeStack(h->list[i]->stack);
         free(h->list[i]->stack);

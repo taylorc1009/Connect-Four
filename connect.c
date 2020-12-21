@@ -4,6 +4,7 @@
 *	- system("cls"); after board dimensions change?
 *	- Save and load
 *	- Test undo and redo more
+*	- Test how the 'evaluateWindow' 2player:2empty -=1 affects AI quality
 *	
 *	Update README.md upon completion (if required)
 */
