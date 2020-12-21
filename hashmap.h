@@ -27,6 +27,7 @@ struct Hashmap* createTable(int x, int y) {
 
     return t;
 }
+
 int hashCode(struct Hashmap* t, int key) {
     if (key < 0)
         return -(key % t->size);
@@ -50,6 +51,7 @@ void insertStackToNode(struct Hashmap* t, int key, int size) { //would it be bet
 
     t->list[pos] = newNode;
 }
+
 struct Stack* hashGet(struct Hashmap* t, int key) {
     int pos = hashCode(t, key);
 
@@ -91,4 +93,14 @@ bool isBoardFull(struct Hashmap* board, int x) {
         if(!stackIsFull(hashGet(board, i)))
             return false;
     return true;
+}
+
+void freeHashmap(struct Hashmap* h) {
+    for (int i = 0; i < h->size; i++) {
+        freeStack(h->list[i]->stack);
+        free(h->list[i]->stack);
+        free(h->list[i]);
+    }
+    free(h->list);
+    free(h);
 }

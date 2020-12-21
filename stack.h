@@ -28,7 +28,7 @@ struct Stack* createStack(int size) {
 	return s;
 }
 
-bool push(struct Stack* s, void** player) {
+bool push(struct Stack* s, void** val) {
 	if (stackIsFull(s)) //if the stack is full
 		return true;
 
@@ -40,7 +40,7 @@ bool push(struct Stack* s, void** player) {
 		newNode->prev = NULL;
 	s->top++;
 
-	newNode->val = *player;
+	newNode->val = *val;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
 
@@ -68,4 +68,17 @@ void* stackGet(struct Stack* s, int index) {
 
 bool stackIsFull(struct Stack* s) {
 	return s->top == s->size - 1;
+}
+
+void resizeStack(struct Stack* s, size_t size) {
+	s->list = (struct stackNode**)realloc(s->list, sizeof(s->list) + size);
+	s->size++;
+}
+
+void freeStack(struct Stack* s) {
+	for (int i = 0; i < s->size; i++) {
+		if (i <= s->top)// && board->list[i]->stack->list[i]->val)
+			free(s->list[i]->val);
+		free(s->list[i]);
+	}
 }

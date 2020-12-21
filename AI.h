@@ -20,19 +20,19 @@
 *evaluateWindow score for player 3 in a row used to be different, appeared to work better in
 *some cases (check the comment in the method for a little more info)*/
 
-struct Move {
+struct AIMove {
 	int column;
 	int score;
 	bool gameOver;
 };
 
-void freeBoard(struct Hashmap* board);
-struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta);
+//void freeBoard(struct Hashmap* board);
+struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta);
 void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore);
 
 void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth) {
 	int x = getX(board), y = getY(board);
-	struct Move* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
+	struct AIMove* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
 	*column = move->column + 1;
 	//printf("\ndepth %d: final score & column = %d, %d", settings->depth, move->score, move->column + 1);
 	free(move);
@@ -56,8 +56,8 @@ bool isGameOver(struct Hashmap* board, int row, int column) {
 	return checkWin(row, column, board, PLAYER_1_TOKEN) || checkWin(row, column, board, PLAYER_2_TOKEN) || isBoardFull(board, getX(board));
 }
 
-struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta) {
-	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
+struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta) {
+	struct AIMove* move = (struct AIMove*)malloc(sizeof(struct AIMove));
 	move->column = column;
 	//printf("\n%d. (%d, %d), col: %d, tok: %d", depth, x, y, column, player);
 	int row = hashGet(board, column)->top;
@@ -113,7 +113,7 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 				//}
 				//printf("d:%d i:%d", depth, i);
 
-				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
+				struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 
 				if (newMove->score > move->score) {
 					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
@@ -122,7 +122,7 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 					move->column = move->gameOver && move->score < -1000 ? newMove->column : i;
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
-				freeBoard(temp);
+				freeHashmap(temp);
 				free(newMove);
 				alpha = max(alpha, move->score);
 				if (alpha >= beta)
@@ -150,7 +150,7 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 				//}
 				//printf("d:%d i:%d", depth, i);
 
-				struct Move* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
+				struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 
 				if (newMove->score < move->score) {
 					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
@@ -159,7 +159,7 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 					move->column = move->gameOver ? newMove->column : i;
 					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 				}
-				freeBoard(temp);
+				freeHashmap(temp);
 				free(newMove);
 				beta = min(beta, move->score);
 				if (alpha >= beta)
@@ -263,16 +263,16 @@ int count(int* list, int n, int tok) {
 	return c;
 }
 
-void freeBoard(struct Hashmap* board) { //used to clear the board data from memory
-	for (int i = 0; i < board->size; i++) {
-		for (int j = 0; j < board->list[i]->stack->size; j++) {
-			if (j <= board->list[i]->stack->top && board->list[i]->stack->list[j]->val)
-				free(board->list[i]->stack->list[j]->val);
-			free(board->list[i]->stack->list[j]);
-		}
-		free(board->list[i]->stack);
-		free(board->list[i]);
-	}
-	free(board->list);
-	free(board);
-}
+//void freeBoard(struct Hashmap* board) { //used to clear the board data from memory
+//	for (int i = 0; i < board->size; i++) {
+//		for (int j = 0; j < board->list[i]->stack->size; j++) {
+//			if (j <= board->list[i]->stack->top)// && board->list[i]->stack->list[j]->val)
+//				free(board->list[i]->stack->list[j]->val);
+//			free(board->list[i]->stack->list[j]);
+//		}
+//		free(board->list[i]->stack);
+//		free(board->list[i]);
+//	}
+//	free(board->list);
+//	free(board);
+//}

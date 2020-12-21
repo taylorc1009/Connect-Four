@@ -3,7 +3,7 @@
 *	- Randomize (or allow selection) of player or AI turn on first move
 *	- system("cls"); after board dimensions change?
 *	- Save and load
-*	- Undo and redo
+*	- Move and redo
 *	
 *	Update README.md upon completion (if required)
 */
@@ -31,10 +31,14 @@ struct Settings {
 	int depth;
 };
 
+struct Move {
+	int column;
+	int token;
+};
+
 void setup(struct Settings* settings);
 void play(struct Settings* settings);
 void displayBoard(struct Hashmap* b);
-void freeBoard(struct Hashmap* board);
 
 static inline void cleanStdin() {
 	char c = NUL;
@@ -130,10 +134,10 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 	do {
 		fgets(buffer, sizeof buffer, stdin);
 
-		num = (int)(buffer[0] - '0');
+		num = (int)buffer[0];
 		bool juncture = buffer[1] == '\n';
 
-		valid = (((num >= min && num <= max) || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
+		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
 		if (!valid) {
 			if (!juncture)
 				cleanStdin();
@@ -141,7 +145,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		}
 	} while (!valid);
 
-	return num;
+	return num - '0';
 }
 
 void removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
@@ -236,8 +240,47 @@ void setup(struct Settings* settings) {
 		free(settings->player2);
 }
 
-void undo(struct Hashmap** board, struct Stack** undoStack) {
+void undo(struct Hashmap** board, struct Hashmap** history) {
+	struct Stack* moveStack = hashGet(*history, 0);
+	struct Stack* undoStack = hashGet(*history, 1);
+	struct Move* undoMove = (struct Move*)moveStack->list[moveStack->top]->val;
 
+	if (!pop(moveStack))
+		return;
+
+	free(moveStack->list[moveStack->top + 1]);
+	resizeStack(moveStack, -(sizeof(struct stackNode)));
+
+	resizeStack(undoStack, sizeof(struct stackNode));
+
+	push(undoStack, &undoMove);
+	pop(hashGet(*board, undoMove->column)); //<-------------------------------------------------- for some reason this isn't popping values from the stack, maybe because hashGet isn't returning the stack by reference? although it works everywhere else
+
+	for (int i = hashGet(*board, undoMove->column)->size; i > -1; i--)
+		printf("%d, %d, %d\n", *((int*)getToken(*board, undoMove->column, i)), hashGet(*board, undoMove->column)->size, undoMove->column);
+	for (int i = 0; i < undoStack->size; i++)
+		printf("> %d, %d", (*((struct Move*)stackGet(undoStack, i))).column, (*((struct Move*)stackGet(undoStack, i))).token);
+	delay(3);
+}
+
+void redo(struct Hashmap** board, struct Hashmap** history) {
+
+}
+
+void updateHistory(struct Hashmap** history, int column, int p) {
+	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
+	move->column = column;
+	move->token = p;
+
+	resizeStack(hashGet(*history, 0), sizeof(struct stackNode));
+	push(hashGet(*history, 0), &move);
+
+	struct Stack* undoStack = hashGet(*history, 1);
+	if (undoStack->size) {
+		freeStack(undoStack);
+		undoStack->size = 0;
+		undoStack->top = -1;
+	}
 }
 
 void play(struct Settings* settings) {
@@ -270,7 +313,7 @@ void play(struct Settings* settings) {
 	* push to that column.*/
 	struct Hashmap* board = createTable(x, y);
 
-	struct Hashmap* history = createTable(2, 1);
+	struct Hashmap* history = createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
 
 	do {
 		displayBoard(board);
@@ -289,7 +332,7 @@ void play(struct Settings* settings) {
 			delay(2);
 			printf("Returning to the main menu...");
 			delay(3);
-			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway
+			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
 			if (p1ToPlay) {
@@ -334,7 +377,7 @@ void play(struct Settings* settings) {
 						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
 					}
 					else if (toChar == 'u') {
-						//undo(&board, &undoStack);
+						undo(&board, &history);
 						undoing = true;
 					}
 					else if (toChar == 'r') {
@@ -349,15 +392,16 @@ void play(struct Settings* settings) {
 						columnFull = addMove(board, column - 1, tok);
 						if (columnFull)
 							printf("\n(!) column full, please choose another\n> ");
+						else
+							updateHistory(&history, column - 1, p);
 					}
 				} while (columnFull);
 			}
 			p1ToPlay = !p1ToPlay;
 		}
-	} while (column >= 1 && column <= x);
+	} while ((column >= 1 && column <= x) || undoing);
 
-	freeBoard(board);
-	freeBoard(history);
+	freeHashmap(board);
 }
 
 void displayBoard(struct Hashmap* board) { //add a move down animation?
