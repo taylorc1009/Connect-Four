@@ -4,7 +4,7 @@
 typedef enum { false, true } bool; //we use a typedef instead of '#include<stdbool.h>' as "bool" is not a key-word to the compiler, so including it would give errors
 
 struct stackNode {
-	void* val;
+	void* val; //a pointer with an unspecified type - allows us to point to any kind of value
 	struct stackNode* prev;
 	struct stackNode* next;
 };
@@ -49,7 +49,7 @@ bool push(struct Stack* s, void** val) {
 
 bool pop(struct Stack* s) {
 	if (s->top == -1)
-		return false; //use this value during the undo to check for unsuccessful pops
+		return false;
 
 	free(s->list[s->top]->val);
 	free(s->list[s->top]);
@@ -70,14 +70,14 @@ bool stackIsFull(struct Stack* s) {
 	return s->top == s->size - 1;
 }
 
-void resizeStack(struct Stack* s, size_t size) {
-	s->list = (struct stackNode**)realloc(s->list, sizeof(s->list) + size);
-	s->size++;
+void resizeStack(struct Stack* s, int n) {
+	s->list = (struct stackNode**)realloc(s->list, (sizeof(struct stackNode) * (s->size + n)));
+	n > 0 ? s->size++ : s->size--;
 }
 
 void freeStack(struct Stack* s) {
 	for (int i = 0; i < s->size; i++) {
-		if (i <= s->top)// && board->list[i]->stack->list[i]->val)
+		if (i <= s->top)
 			free(s->list[i]->val);
 		free(s->list[i]);
 	}

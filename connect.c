@@ -240,25 +240,44 @@ void setup(struct Settings* settings) {
 		free(settings->player2);
 }
 
-void undo(struct Hashmap** board, struct Hashmap** history) {
+bool undo(struct Hashmap** board, struct Hashmap** history) {
 	struct Stack* moveStack = hashGet(*history, 0);
 	struct Stack* undoStack = hashGet(*history, 1);
 	struct Move* undoMove = (struct Move*)malloc(sizeof(struct Move));
 	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
 	if (!pop(moveStack))
-		return;
+		return true;
 
-	resizeStack(moveStack, -(sizeof(struct stackNode)));
+	resizeStack(moveStack, -1);
 
-	resizeStack(undoStack, sizeof(struct stackNode));
+	resizeStack(undoStack, 1);
 	push(undoStack, &undoMove);
 
-	pop(hashGet(*board, undoMove->column));
+	return !pop(hashGet(*board, undoMove->column));
 }
 
-void redo(struct Hashmap** board, struct Hashmap** history) {
+bool redo(struct Hashmap** board, struct Hashmap** history) {
+	struct Stack* moveStack = hashGet(*history, 0);
+	struct Stack* undoStack = hashGet(*history, 1);
 
+	if (!undoStack->size)
+		return true;
+
+	struct Move* redoMove = (struct Move*)malloc(sizeof(struct Move));
+	memcpy(redoMove, (struct Move*)stackGet(undoStack, undoStack->top), sizeof(struct Move));
+
+	if (!pop(undoStack))
+		return true;
+
+	resizeStack(undoStack, -1);
+
+	resizeStack(moveStack, 1);
+	push(moveStack, &redoMove);
+
+	int* tok = malloc(sizeof(int));
+	*tok = redoMove->token;
+	return addMove(*board, redoMove->column, tok);
 }
 
 void updateHistory(struct Hashmap** history, int column, int p) {
@@ -279,7 +298,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 
 void play(struct Settings* settings) {
 	int x = settings->boardX, y = settings->boardY, p, column = 1;
-	bool columnFull, boardFull = false , win = false, p1ToPlay = true, undoing = false;
+	bool failedOperation, boardFull = false , win = false, p1ToPlay = true, traversing = false;
 	char* curPlayer = NUL;
 	char* col;
 	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
@@ -313,7 +332,7 @@ void play(struct Settings* settings) {
 		displayBoard(board);
 		printf("\n\n");
 
-		if (curPlayer != NUL && !undoing) { //used to skip checks before the first initial move, otherwise null issues occur
+		if (curPlayer != NUL && !traversing) { //used to skip checks before the first initial move, otherwise null issues occur
 			//make the 4 connected tokens turn green?
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 			boardFull = isBoardFull(board, x);
@@ -339,13 +358,13 @@ void play(struct Settings* settings) {
 			}
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
-				if (undoing) {
-					printf("(!) AI move held - the move made after this was previously undone, do you wish to continue undoing?\n(0 to cancel this undo, other controls are the regular undo controls)\n\n> ");
+				if (traversing) {
+					printf("(!) AI move held - your previous move was to undo/redo, do you wish to continue doing so?\n(0 to cancel this undo, other controls are the regular undo controls)\n\n> ");
 					int cont = validateOption(0, 0, true);
 					if (cont == 0)
-						undoing = false;
+						traversing = false;
 				}
-				if (!undoing) {
+				if (!traversing) {
 					printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 					AIMakeMove(board, &column, centres, settings->depth);
 					int* tok = malloc(sizeof(int));
@@ -355,12 +374,12 @@ void play(struct Settings* settings) {
 				}
 			}
 			else {
-				undoing = false;
+				traversing = false;
 
 				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
 
 				do {
-					columnFull = false;
+					failedOperation = false;
 					column = validateOption(0, x, true);
 					int toChar = column + '0';
 
@@ -369,11 +388,18 @@ void play(struct Settings* settings) {
 						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
 					}
 					else if (toChar == 'u') {
-						undo(&board, &history);
-						undoing = true;
+						failedOperation = undo(&board, &history);
+						if (failedOperation)
+							printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
+						else
+							traversing = true;
 					}
 					else if (toChar == 'r') {
-
+						failedOperation = redo(&board, &history);
+						if (failedOperation)
+							printf("\n(!) there are no moves to redo, please try something else\n> ");
+						else
+							traversing = true;
 					}
 					else if (toChar == 's') {
 
@@ -381,19 +407,20 @@ void play(struct Settings* settings) {
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
 						int* tok = malloc(sizeof(int));
 						*tok = p;
-						columnFull = addMove(board, column - 1, tok);
-						if (columnFull)
+						failedOperation = addMove(board, column - 1, tok);
+						if (failedOperation)
 							printf("\n(!) column full, please choose another\n> ");
 						else
 							updateHistory(&history, column - 1, p);
 					}
-				} while (columnFull);
+				} while (failedOperation);
 			}
 			p1ToPlay = !p1ToPlay;
 		}
-	} while ((column >= 1 && column <= x) || undoing);
+	} while ((column >= 1 && column <= x) || traversing);
 
 	freeHashmap(board);
+	freeHashmap(history);
 }
 
 void displayBoard(struct Hashmap* board) { //add a move down animation?
