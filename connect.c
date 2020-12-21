@@ -313,10 +313,8 @@ void play(struct Settings* settings) {
 		displayBoard(board);
 		printf("\n\n");
 
-		//used to skip checks before the first initial move, otherwise null issues occur
-		if (curPlayer != NUL) {
+		if (curPlayer != NUL && !undoing) { //used to skip checks before the first initial move, otherwise null issues occur
 			//make the 4 connected tokens turn green?
-			//change the checks to only check tokens up to 3 before and 3 after
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
 			boardFull = isBoardFull(board, x);
 		}
