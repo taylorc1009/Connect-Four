@@ -172,7 +172,6 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 }
 
 void evaluateWindow(int* window, int size, int* score) {
-	//would there be less operations if we prevented this from running on empty and 1token:3empty windows?
 	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
 		*score += 2;
 	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
@@ -267,7 +266,7 @@ int count(int* list, int n, int tok) {
 void freeBoard(struct Hashmap* board) { //used to clear the board data from memory
 	for (int i = 0; i < board->size; i++) {
 		for (int j = 0; j < board->list[i]->stack->size; j++) {
-			if (j <= board->list[i]->stack->top && board->list[i]->stack->list[j]->val != NULL)
+			if (j <= board->list[i]->stack->top && board->list[i]->stack->list[j]->val)
 				free(board->list[i]->stack->list[j]->val);
 			free(board->list[i]->stack->list[j]);
 		}

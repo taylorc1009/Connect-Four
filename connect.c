@@ -313,8 +313,9 @@ void play(struct Settings* settings) {
 				if (!undoing) {
 					printf("%s%s%s is making a move...", col, settings->player2, PNRM);
 					AIMakeMove(board, &column, centres, settings->depth);
-					int tok = PLAYER_2_TOKEN;
-					addMove(board, column - 1, &tok); //shouldn't return a full column as we determine this in the AI
+					int* tok = malloc(sizeof(int));
+					*tok = PLAYER_2_TOKEN;
+					addMove(board, column - 1, tok); //shouldn't return a full column as we determine this in the AI
 					//delay(3); //use this during debugging
 				}
 			}
