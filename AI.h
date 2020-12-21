@@ -200,9 +200,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 			for (int j = 0; j < y; j++)
 				col[j] = *((int*)getToken(board, centres[i], j));
 
-			//here we would ideally pass the ARRAY_LENGTH instead of y, but we cannot do this as the compiler won't know the array length after malloc,
-			//it will only recognize a pointer, thus giving us the length of that instead
-			score += count(col, y, PLAYER_2_TOKEN); //maybe change to count of empty slots? As this would help prioritise the centre only if it had a decent amount of free spaces
+			score += count(col, ARRAY_LENGTH(col), EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (used to prioritise it if the AI had more tokens there)
 			
 			free(col);
 		}

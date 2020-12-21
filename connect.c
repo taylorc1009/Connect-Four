@@ -356,6 +356,7 @@ void play(struct Settings* settings) {
 	} while (column >= 1 && column <= x);
 
 	freeBoard(board);
+	freeBoard(history);
 }
 
 void displayBoard(struct Hashmap* board) { //add a move down animation?
@@ -401,7 +402,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	
 	//horizontal check
 	int count = 0;
-	for (int i = 0; i < x; i++) {
+	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
 		if (*((int*)getToken(board, i, row)) == p) {
 			count++;
 			if (count >= 4)
@@ -413,7 +414,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 
 	//vertical check
 	count = 0;
-	for (int i = 0; i < y; i++) {
+	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
 		if (*((int*)getToken(board, column, i)) == p) {
 			count++;
 			if (count >= 4)
@@ -428,12 +429,12 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	int i = row, j = column;
 
 	//creates check point to start checking from diagonally
-	while (i != 0 && j != 0) {
+	while (i != 0 && j != 0 && i > row - 3 && j > column - 3) {
 		i--;
 		j--;
 	}
 
-	for (i, j; i < y && j < x; i++, j++) {
+	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
 		if (*((int*)getToken(board, j, i)) == p) {
 			count++;
 			if (count >= 4)
@@ -449,12 +450,12 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	j = column;
 
 	//creates check point to start checking from diagonally
-	while (i != 0 && j != y) {
+	while (i != 0 && j != y && i > row - 3 && j < column + 3) {
 		i--;
 		j++;
 	}
 
-	for (i, j; i < y && j >= 0; i++, j--) {
+	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
 		if (*((int*)getToken(board, j, i)) == p) {
 			count++;
 			if (count >= 4)
