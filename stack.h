@@ -47,16 +47,16 @@ bool push(struct Stack* s, void** val) {
 	return false;
 }
 
-struct stackNode** pop(struct Stack* s) {
-	struct stackNode** data;
-
+bool pop(struct Stack* s) {
 	if (s->top == -1)
-		return NULL; //use this value during the undo to check for unsuccessful pops
+		return false; //use this value during the undo to check for unsuccessful pops
 
-	data = &s->list[s->top];
+	free(s->list[s->top]->val);
+	free(s->list[s->top]);
+	s->list[s->top] = NULL;
 	s->top--;
 
-	return data;
+	return true;
 }
 
 void* stackGet(struct Stack* s, int index) {

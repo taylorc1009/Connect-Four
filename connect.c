@@ -243,24 +243,18 @@ void setup(struct Settings* settings) {
 void undo(struct Hashmap** board, struct Hashmap** history) {
 	struct Stack* moveStack = hashGet(*history, 0);
 	struct Stack* undoStack = hashGet(*history, 1);
-	struct Move* undoMove = (struct Move*)moveStack->list[moveStack->top]->val;
+	struct Move* undoMove = (struct Move*)malloc(sizeof(struct Move));
+	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
 	if (!pop(moveStack))
 		return;
 
-	free(moveStack->list[moveStack->top + 1]);
 	resizeStack(moveStack, -(sizeof(struct stackNode)));
 
 	resizeStack(undoStack, sizeof(struct stackNode));
-
 	push(undoStack, &undoMove);
-	pop(hashGet(*board, undoMove->column)); //<-------------------------------------------------- for some reason this isn't popping values from the stack, maybe because hashGet isn't returning the stack by reference? although it works everywhere else
 
-	for (int i = hashGet(*board, undoMove->column)->size; i > -1; i--)
-		printf("%d, %d, %d\n", *((int*)getToken(*board, undoMove->column, i)), hashGet(*board, undoMove->column)->size, undoMove->column);
-	for (int i = 0; i < undoStack->size; i++)
-		printf("> %d, %d", (*((struct Move*)stackGet(undoStack, i))).column, (*((struct Move*)stackGet(undoStack, i))).token);
-	delay(3);
+	pop(hashGet(*board, undoMove->column));
 }
 
 void redo(struct Hashmap** board, struct Hashmap** history) {
