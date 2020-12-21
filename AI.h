@@ -42,9 +42,10 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
 	for (int j = 0; j < x; j++) {
 		for (int k = 0; k < y; k++) {
-			int tok = *((int*)getToken(board, j, k));
-			if (tok != EMPTY_SLOT)
-				addMove(copy, j, &tok);
+			int* tok = malloc(sizeof(int));
+			*tok = *((int*)getToken(board, j, k));
+			if (*tok != EMPTY_SLOT)
+				addMove(copy, j, tok);
 		}
 	}
 	return copy;
@@ -74,8 +75,9 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 				if (maxDepth > 3 && depth < maxDepth - 1) { //this is used to detect if the move to be made will give the player a win when we can't get one
 					row++;
 					bool pWin = false;
-					int tok = PLAYER_1_TOKEN;
-					if(!addMove(board, move->column, &tok))
+					int* tok = malloc(sizeof(int));
+					*tok = PLAYER_1_TOKEN;
+					if(!addMove(board, move->column, tok))
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN);
 					move->score = pWin ? (int)round(-150 * maxDepth / (float)(maxDepth - depth)) : score;
 				}
@@ -98,8 +100,9 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct Hashmap* temp = copyBoard(board, x, y);
-				int tok = PLAYER_2_TOKEN;
-				addMove(temp, i, &tok);
+				int* tok = malloc(sizeof(int));
+				*tok = PLAYER_2_TOKEN;
+				addMove(temp, i, tok);
 
 				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 				//	printf("\n|");
@@ -134,8 +137,9 @@ struct Move* minimax(struct Hashmap* board, int x, int y, int column, int* centr
 		for (int i = 0; i < x; i++) {
 			if (!stackIsFull(hashGet(board, i))) {
 				struct Hashmap* temp = copyBoard(board, x, y);
-				int tok = PLAYER_1_TOKEN;
-				addMove(temp, i, &tok);
+				int* tok = malloc(sizeof(int));
+				*tok = PLAYER_1_TOKEN;
+				addMove(temp, i, tok);
 
 				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 				//	printf("\n|");
@@ -264,8 +268,11 @@ int count(int* list, int n, int tok) {
 
 void freeBoard(struct Hashmap* board) { //used to clear the board data from memory
 	for (int i = 0; i < board->size; i++) {
-		for (int j = 0; j < board->list[i]->stack->size; j++)
+		for (int j = 0; j < board->list[i]->stack->size; j++) {
+			if (j <= board->list[i]->stack->top && board->list[i]->stack->list[j]->val != NULL)
+				free(board->list[i]->stack->list[j]->val);
 			free(board->list[i]->stack->list[j]);
+		}
 		free(board->list[i]->stack);
 		free(board->list[i]);
 	}

@@ -78,7 +78,12 @@ bool addMove(struct Hashmap* board, int column, int* tok) {
 }
 
 void** getToken(struct Hashmap* board, int x, int y) {
-    return stackGet(hashGet(board, x), y);
+    void** val = stackGet(hashGet(board, x), y);
+    if (val == NULL) {
+        static void* nul = 0;
+        return (&nul);
+    }
+    return val;
 }
 
 bool isBoardFull(struct Hashmap* board, int x) {

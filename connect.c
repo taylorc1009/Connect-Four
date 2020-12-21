@@ -73,17 +73,16 @@ int main(int argc, char** argv) {
 				break;
 
 			case 2:
-				printf("\nPlease enter the width (amount of columns) you want to play with (6-12)\n> ");
-				settings->boardX = validateOption(6, 12, false);
-				printf("\nPlease enter the height (amount of rows) you want to play with (6-12)\n> ");
-				settings->boardY = validateOption(6, 12, false);
+				printf("\nPlease enter the width (amount of columns) you want to play with (5-9)\n> ");
+				settings->boardX = validateOption(5, 9, false);
+				printf("\nPlease enter the height (amount of rows) you want to play with (5-9)\n> ");
+				settings->boardY = validateOption(5, 9, false);
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				delay(2);
 				break;
 
 			case 3:
 				setup(settings);
-				//option = 0;
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 				break;
@@ -108,7 +107,7 @@ int main(int argc, char** argv) {
 int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range
 	bool valid;
 	int num;
-	char buffer[3]; //3 to hold the input, '\n' and '\0'
+	char buffer[3];
 
 	//while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
 	//	char term;
@@ -131,10 +130,10 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 	do {
 		fgets(buffer, sizeof buffer, stdin);
 
-		num = (int)buffer[0];
+		num = (int)(buffer[0] - '0');
 		bool juncture = buffer[1] == '\n';
 
-		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
+		valid = (((num >= min && num <= max) || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
 		if (!valid) {
 			if (!juncture)
 				cleanStdin();
@@ -142,7 +141,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		}
 	} while (!valid);
 
-	return num - '0';
+	return num;
 }
 
 void removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
@@ -344,8 +343,9 @@ void play(struct Settings* settings) {
 
 					}
 					else { //implement ctrl+Z and ctrl+Y as undo & redo?
-						int tok = p;
-						columnFull = addMove(board, column - 1, &tok);
+						int* tok = malloc(sizeof(int));
+						*tok = p;
+						columnFull = addMove(board, column - 1, tok);
 						if (columnFull)
 							printf("\n(!) column full, please choose another\n> ");
 					}
@@ -369,10 +369,7 @@ void displayBoard(struct Hashmap* board) { //add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-
-			//'(y - 1) - i' fixes the display, otherwise it would come out upside down
-			int* tok = (int*)getToken(board, j, (y - 1) - i);
-			int p = tok == NULL ? 0 : *tok;
+			int p = *((int*)getToken(board, j, (y - 1) - i)); //'(y - 1) - i' fixes the display, otherwise it would come out upside down
 
 			if (p) {
 				char* col = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
@@ -389,25 +386,23 @@ void displayBoard(struct Hashmap* board) { //add a move down animation?
 	}
 
 	printf("+");
-	for (j = 0; j < x; j++)
+	for (i = 0; i < x; i++)
 		printf("---+");
 	printf("\n");
 
-	for (j = 1; j < x + 1; j++)
-		if(j < 10)
-			printf("  %d ", j);
-		else
-			printf(" %d ", j);
+	for (i = 1; i < x + 1; i++)
+		printf("  %d ", i);
 	printf("\n");
 }
 
 bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	int x = getX(board), y = getY(board);
-
+	int* tok;
+	
 	//horizontal check
 	int count = 0;
 	for (int i = 0; i < x; i++) {
-		if (*((int*)getToken(board, i, row)) == p) { // <------------------------------------- TODO - LOOK HERE - this pointer crashes, as well as everywhere else, because we're not checking if it's null (displayBoard is working, look at how that works)
+		if (*((int*)getToken(board, i, row)) == p) {
 			count++;
 			if (count >= 4)
 				return true;
