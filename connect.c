@@ -69,9 +69,9 @@ int main(int argc, char** argv) {
 	do {
 		settings->solo = false;
 		settings->depth = 0;
+
 		printf("\nWhat would you like to do?\n> ");
 		option = validateOption(1, 5, false);
-
 		switch (option) {
 			case 1:
 				printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", P1COL, PNRM, P2COL, PNRM);
@@ -80,14 +80,17 @@ int main(int argc, char** argv) {
 			case 2:
 				printf("\nPlease enter the width (amount of columns) you want to play with (5-9)\n> ");
 				settings->boardX = validateOption(5, 9, false);
+
 				printf("\nPlease enter the height (amount of rows) you want to play with (5-9)\n> ");
 				settings->boardY = validateOption(5, 9, false);
+
 				printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 				delay(2);
 				break;
 
 			case 3:
 				setup(settings);
+
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 				break;
@@ -95,21 +98,24 @@ int main(int argc, char** argv) {
 			case 4:
 				settings->solo = true;
 				setup(settings);
+
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 				break;
 
 			case 5:
 				free(settings);
+
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
 				break;
 		}
 	} while (option != 5);
+
 	return 0;
 }
 
-int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range
+int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
 	bool valid;
 	int num;
 	char buffer[3];
@@ -305,7 +311,43 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 	}
 }
 
-bool doOperation(struct Hashmap** board, struct Hashmap** history, int* column, int p, bool* traversing, int AIOperator) {
+bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings) {
+	FILE* file;
+	if (file = fopen("save.bin", "w")) {
+		int temp;// , size = (sizeof(struct Hashmap) * 2) + (sizeof(struct Stack) * getX(*board)) + (sizeof(int) * getY(*board)) + (sizeof(struct Move) * (hashGet(*history, 0)->size + hashGet(*history, 1)->size)) + sizeof(settings);
+		//char* output = malloc(size);
+
+		fprintf(file, "%c", settings->boardX + '0');
+		fprintf(file, "\n");
+
+		fprintf(file, "%c", settings->boardY + '0');
+		fprintf(file, "\n");
+
+		for(int i = 0; i < strlen(settings->player1); i++)
+			fprintf(file, "%c", settings->player1[i]);
+		fprintf(file, "\n");
+
+		for(int i = 0; i < strlen(settings->player2); i++)
+			fprintf(file, "%c", settings->player2[i]);
+		fprintf(file, "\n");
+
+		fprintf(file, "%c", ((int)settings->solo) + '0');
+		fprintf(file, "\n");
+
+		fprintf(file, "%c", settings->depth + '0');
+		fprintf(file, "\n");
+
+		fclose(file);
+	}
+	else {
+		printf("(!) file to save to was not found: 'save.bin'");
+		return false;
+	}
+
+	return true;
+}
+
+bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int p, bool* traversing, int AIOperator) {
 	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
 	bool failedOperation = false;
 
@@ -332,7 +374,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, int* column, 
 			*traversing = true;
 	}
 	else if (toChar == 's') {
-
+		saveGame(board, history, settings);
 	}
 	else {
 		*traversing = false;
@@ -349,13 +391,14 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, int* column, 
 }
 
 void play(struct Settings* settings) {
-	int x = settings->boardX, y = settings->boardY, p, column = 1;
+	int x = settings->boardX, y = settings->boardY, token, column = 1;
 	bool failedOperation, boardFull = false , win = false, p1ToPlay = true, traversing = false;
-	char* curPlayer = NUL;
-	char* col;
-	int centres[2]; //you could maybe move this to the play method instead, to save processing time as these will be constants during the game
-	//we need to determine if there is a literal center column, based on the board dimensions (x will be odd if there is)
-	//if there isn't then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
+	char* player = NUL;
+	char* colour;
+	int centres[2];
+
+	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
+	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
 	if (settings->solo) {
 		if (x % 2) {
 			//is odd
@@ -384,14 +427,14 @@ void play(struct Settings* settings) {
 		displayBoard(board);
 		printf("\n\n");
 
-		if (curPlayer != NUL && !traversing) { //used to skip checks before the first initial move, otherwise null issues occur
+		if (player != NUL && !traversing) { //used to skip checks before the first initial move, otherwise null issues occur
 			//make the 4 connected tokens turn green?
-			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, p);
+			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
 			boardFull = isBoardFull(board, x);
 		}
 
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
-			win ? printf("Congratulations %s%s%s, you win!\n", col, curPlayer, PNRM) : printf("The board is full... Game over!\n");
+			win ? printf("Congratulations %s%s%s, you win!\n", colour, player, PNRM) : printf("The board is full... Game over!\n");
 			delay(2);
 			printf("Returning to the main menu...");
 			delay(3);
@@ -399,46 +442,46 @@ void play(struct Settings* settings) {
 		}
 		else {
 			if (p1ToPlay) {
-				curPlayer = settings->player1;
-				p = PLAYER_1_TOKEN;
-				col = P1COL;
+				player = settings->player1;
+				token = PLAYER_1_TOKEN;
+				colour = P1COL;
 			}
 			else {
-				curPlayer = settings->player2;
-				p = PLAYER_2_TOKEN;
-				col = P2COL;
+				player = settings->player2;
+				token = PLAYER_2_TOKEN;
+				colour = P2COL;
 			}
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
-					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", col, settings->player2, PNRM);
-					int op = validateOption(0, 0, true);
+					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, PNRM);
+					int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
 
-					failedOperation = doOperation(&board, &history, &column, p, &traversing, op);
+					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, operation);
 
 					if (!traversing)
 						printf("\n");
 				}
 				if (!traversing) {
-					printf("%s%s%s is making a move...", col, settings->player2, PNRM);
+					printf("%s%s%s is making a move...", colour, settings->player2, PNRM);
 					AIMakeMove(board, &column, centres, settings->depth);
 
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_2_TOKEN;
 					addMove(board, column - 1, tok); //shouldn't return a full column as we determine this in the AI
 
-					updateHistory(&history, column - 1, p);
+					updateHistory(&history, column - 1, token);
 					//delay(3); //use this during debugging
 				}
 			}
 			else {
-				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", col, curPlayer, PNRM);
+				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", colour, player, PNRM);
 
 				do {
 					failedOperation = false;
 					column = validateOption(0, x, true);
 
-					failedOperation = doOperation(&board, &history, &column, p, &traversing, -1);
+					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, -1);
 				} while (failedOperation);
 			}
 			p1ToPlay = !p1ToPlay;
@@ -460,15 +503,15 @@ void displayBoard(struct Hashmap* board) { //add a move down animation?
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			int p = *((int*)getToken(board, j, (y - 1) - i)); //'(y - 1) - i' fixes the display, otherwise it would come out upside down
+			int token = *((int*)getToken(board, j, (y - 1) - i)); //'(y - 1) - i' fixes the display, otherwise it would come out upside down
 
-			if (p) {
-				char* col = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
-				if (p == PLAYER_1_TOKEN)
-					col = P1COL;
-				else if (p == PLAYER_2_TOKEN)
-					col = P2COL;
-				printf(" %sO%s |", col, PNRM);
+			if (token) {
+				char* colour = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
+				if (token == PLAYER_1_TOKEN)
+					colour = P1COL;
+				else if (token == PLAYER_2_TOKEN)
+					colour = P2COL;
+				printf(" %sO%s |", colour, PNRM);
 			}
 			else
 				printf("   |");
@@ -486,14 +529,14 @@ void displayBoard(struct Hashmap* board) { //add a move down animation?
 	printf("\n");
 }
 
-bool checkWin(int row, int column, struct Hashmap* board, int p) {
+bool checkWin(int row, int column, struct Hashmap* board, int token) {
 	int x = getX(board), y = getY(board);
 	int* tok;
 	
 	//horizontal check
 	int count = 0;
 	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
-		if (*((int*)getToken(board, i, row)) == p) {
+		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -505,7 +548,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	//vertical check
 	count = 0;
 	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
-		if (*((int*)getToken(board, column, i)) == p) {
+		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -525,7 +568,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
-		if (*((int*)getToken(board, j, i)) == p) {
+		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4)
 				return true;
@@ -546,7 +589,7 @@ bool checkWin(int row, int column, struct Hashmap* board, int p) {
 	}
 
 	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
-		if (*((int*)getToken(board, j, i)) == p) {
+		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4)
 				return true;
