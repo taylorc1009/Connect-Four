@@ -313,13 +313,9 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 
 bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings) {
 	FILE* file;
+
 	if (file = fopen("save.bin", "w")) {
-		int temp;// , size = (sizeof(struct Hashmap) * 2) + (sizeof(struct Stack) * getX(*board)) + (sizeof(int) * getY(*board)) + (sizeof(struct Move) * (hashGet(*history, 0)->size + hashGet(*history, 1)->size)) + sizeof(settings);
-		//char* output = malloc(size);
-
 		fprintf(file, "%c", settings->boardX + '0');
-		fprintf(file, "\n");
-
 		fprintf(file, "%c", settings->boardY + '0');
 		fprintf(file, "\n");
 
@@ -337,6 +333,25 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 		fprintf(file, "%c", settings->depth + '0');
 		fprintf(file, "\n");
 
+		for (int i = 0; i < getX(*board); i++) {
+			for (int j = 0; j < getY(*board); j++) 
+				fprintf(file, "%c", *((int*)getToken(*board, i, j)) + '0');
+			fprintf(file, "\n");
+		}
+
+		for (int i = 0; i < 2; i++) {
+			fprintf(file, "%c", hashGet(*history, i)->size + '0');
+			fprintf(file, "\n");
+
+			for (int j = 0; j < hashGet(*history, i)->size; j++) {
+				struct Move* move = (struct Move*)getToken(*history, i, j);
+
+				fprintf(file, "%c", move->column + '0');
+				fprintf(file, "%c", move->token + '0');
+				fprintf(file, "\n");
+			}
+		}
+		
 		fclose(file);
 	}
 	else {
@@ -347,14 +362,13 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 	return true;
 }
 
-bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int p, bool* traversing, int AIOperator) {
+bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int token, bool* traversing, bool* saving, int AIOperator) {
 	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
 	bool failedOperation = false;
 
 	if ((*column == 0) || (*traversing && AIOperator == 0)) {
-		if (*traversing && AIOperator == 0)
-			*traversing = false;
-		else {
+		*traversing = false;
+		if (AIOperator != 0) {
 			printf("\n(!) game closed");
 			delay(2);
 		}
@@ -374,17 +388,24 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 			*traversing = true;
 	}
 	else if (toChar == 's') {
-		saveGame(board, history, settings);
+		if (saveGame(board, history, settings)) {
+			printf("\nGame saved!");
+			delay(1);
+		}
+		else
+			delay(2);
+
+		*saving = true;
 	}
 	else {
 		*traversing = false;
 		int* tok = malloc(sizeof(int));
-		*tok = p;
+		*tok = token;
 		failedOperation = addMove((*board), *column - 1, tok);
 		if (failedOperation)
 			printf("\n(!) column full, please choose another\n> ");
 		else
-			updateHistory(history, *column - 1, p);
+			updateHistory(history, *column - 1, token);
 	}
 
 	return failedOperation;
@@ -392,7 +413,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 
 void play(struct Settings* settings) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool failedOperation, boardFull = false , win = false, p1ToPlay = true, traversing = false;
+	bool failedOperation, boardFull = false , win = false, p1ToPlay = true, traversing = false, saving = false;
 	char* player = NUL;
 	char* colour;
 	int centres[2];
@@ -427,7 +448,7 @@ void play(struct Settings* settings) {
 		displayBoard(board);
 		printf("\n\n");
 
-		if (player != NUL && !traversing) { //used to skip checks before the first initial move, otherwise null issues occur
+		if (player != NUL && !traversing && !saving) { //used to skip checks before the first initial move, otherwise null issues occur
 			//make the 4 connected tokens turn green?
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
 			boardFull = isBoardFull(board, x);
@@ -441,23 +462,27 @@ void play(struct Settings* settings) {
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
-			if (p1ToPlay) {
-				player = settings->player1;
-				token = PLAYER_1_TOKEN;
-				colour = P1COL;
+			if (!saving) {
+				if (p1ToPlay) {
+					player = settings->player1;
+					token = PLAYER_1_TOKEN;
+					colour = P1COL;
+				}
+				else {
+					player = settings->player2;
+					token = PLAYER_2_TOKEN;
+					colour = P2COL;
+				}
 			}
-			else {
-				player = settings->player2;
-				token = PLAYER_2_TOKEN;
-				colour = P2COL;
-			}
+			else
+				saving = false;
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
 					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, PNRM);
 					int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
 
-					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, operation);
+					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, operation);
 
 					if (!traversing)
 						printf("\n");
@@ -481,12 +506,13 @@ void play(struct Settings* settings) {
 					failedOperation = false;
 					column = validateOption(0, x, true);
 
-					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, -1);
+					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, -1);
 				} while (failedOperation);
 			}
-			p1ToPlay = !p1ToPlay;
+			if (!saving)
+				p1ToPlay = !p1ToPlay;
 		}
-	} while ((column >= 1 && column <= x) || traversing);
+	} while ((column >= 1 && column <= x) || traversing || saving);
 
 	freeHashmap(board);
 	freeHashmap(history);
