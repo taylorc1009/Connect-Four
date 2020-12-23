@@ -245,11 +245,13 @@ bool undo(struct Hashmap** board, struct Hashmap** history) {
 	struct Stack* moveStack = hashGet(*history, 0);
 	struct Stack* undoStack = hashGet(*history, 1);
 	struct Move* undoMove = (struct Move*)malloc(sizeof(struct Move));
-	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
-	if (!pop(moveStack))
+	if (!moveStack->size)
 		return true;
 
+	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
+
+	pop(moveStack);
 	resizeStack(moveStack, -1);
 
 	resizeStack(undoStack, 1);
@@ -295,6 +297,44 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 		undoStack->size = 0;
 		undoStack->top = -1;
 	}
+}
+
+bool doOperation(struct Hashmap** board, struct Hashmap** history, int column, int p, bool* traversing) {
+	int toChar = column + '0';
+	bool failedOperation = false;
+
+	if (column == 0) {
+		printf("\n(!) game closed");
+		delay(2); //again, after this, we're at the end of the loop again so there's no need to break
+	}
+	else if (toChar == 'u') {
+		failedOperation = undo(board, history);
+		if (failedOperation)
+			printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
+		else
+			*traversing = true;
+	}
+	else if (toChar == 'r') {
+		failedOperation = redo(board, history);
+		if (failedOperation)
+			printf("\n(!) there are no moves to redo, please try something else\n> ");
+		else
+			*traversing = true;
+	}
+	else if (toChar == 's') {
+
+	}
+	else {
+		int* tok = malloc(sizeof(int));
+		*tok = p;
+		failedOperation = addMove((*board), column - 1, tok);
+		if (failedOperation)
+			printf("\n(!) column full, please choose another\n> ");
+		else
+			updateHistory(history, column - 1, p);
+	}
+
+	return failedOperation;
 }
 
 void play(struct Settings* settings) {
@@ -371,6 +411,7 @@ void play(struct Settings* settings) {
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_2_TOKEN;
 					addMove(board, column - 1, tok); //shouldn't return a full column as we determine this in the AI
+					updateHistory(&history, column - 1, p);
 					//delay(3); //use this during debugging
 				}
 			}
@@ -382,38 +423,8 @@ void play(struct Settings* settings) {
 				do {
 					failedOperation = false;
 					column = validateOption(0, x, true);
-					int toChar = column + '0';
 
-					if (column == 0) {
-						printf("\n(!) game closed");
-						delay(2); //again, after this, we're at the end of the loop again so there's no need to break
-					}
-					else if (toChar == 'u') {
-						failedOperation = undo(&board, &history);
-						if (failedOperation)
-							printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
-						else
-							traversing = true;
-					}
-					else if (toChar == 'r') {
-						failedOperation = redo(&board, &history);
-						if (failedOperation)
-							printf("\n(!) there are no moves to redo, please try something else\n> ");
-						else
-							traversing = true;
-					}
-					else if (toChar == 's') {
-
-					}
-					else { //implement ctrl+Z and ctrl+Y as undo & redo?
-						int* tok = malloc(sizeof(int));
-						*tok = p;
-						failedOperation = addMove(board, column - 1, tok);
-						if (failedOperation)
-							printf("\n(!) column full, please choose another\n> ");
-						else
-							updateHistory(&history, column - 1, p);
-					}
+					failedOperation = doOperation(&board, &history, column, p, &traversing);
 				} while (failedOperation);
 			}
 			p1ToPlay = !p1ToPlay;
