@@ -11,6 +11,8 @@
 *	Update README.md upon completion (if required)
 */
 
+//the Windows command to use to use the Makefile is: nmake [command]
+
 #include <string.h>
 #include <time.h>
 #include <math.h>
