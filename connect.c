@@ -38,7 +38,7 @@ struct Move {
 };
 
 void setup(struct Settings* settings);
-void play(struct Settings* settings);
+void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings);
 void displayBoard(struct Hashmap* b);
 
 static inline void cleanStdin() {
@@ -53,7 +53,7 @@ void delay(int numOfSeconds) {
 }
 
 void welcome(int x, int y) {
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - quit\n", x, y);
+	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 		settings->depth = 0;
 
 		printf("\nWhat would you like to do?\n> ");
-		option = validateOption(1, 5, false);
+		option = validateOption(1, 6, false);
 		switch (option) {
 			case 1:
 				printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", P1COL, PNRM, P2COL, PNRM);
@@ -104,13 +104,29 @@ int main(int argc, char** argv) {
 				break;
 
 			case 5:
+				struct Hashmap* board;
+				struct Hashmap* history;
+
+				loadGame(&board, &history, settings);
+				printf("\nGame loaded!");
+				delay(1);
+				printf("\nStarting...");
+				delay(2);
+
+				play(&board, &history, settings);
+
+				system("cls");
+				welcome(settings->boardX, settings->boardY);
+				break;
+
+			case 6:
 				free(settings);
 
 				system("cls");
 				printf("Connect 4 closed, goodbye!\n");
 				break;
 		}
-	} while (option != 5);
+	} while (option != 6);
 
 	return 0;
 }
@@ -240,7 +256,7 @@ void setup(struct Settings* settings) {
 
 	printf("\nStarting...");
 	delay(2);
-	play(settings);
+	play(NULL, NULL, settings);
 
 	free(settings->player1);
 	if (!settings->solo)
@@ -314,41 +330,41 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings) {
 	FILE* file;
 
-	if (file = fopen("save.bin", "w")) {
+	if (file = fopen("save.txt", "w")) {
 		fprintf(file, "%c", settings->boardX + '0');
 		fprintf(file, "%c", settings->boardY + '0');
-		fprintf(file, "\n");
+		fprintf(file, ";");
 
 		for(int i = 0; i < strlen(settings->player1); i++)
 			fprintf(file, "%c", settings->player1[i]);
-		fprintf(file, "\n");
+		fprintf(file, ";");
 
 		for(int i = 0; i < strlen(settings->player2); i++)
 			fprintf(file, "%c", settings->player2[i]);
-		fprintf(file, "\n");
+		fprintf(file, ";");
 
 		fprintf(file, "%c", ((int)settings->solo) + '0');
-		fprintf(file, "\n");
+		fprintf(file, ";");
 
 		fprintf(file, "%c", settings->depth + '0');
-		fprintf(file, "\n");
+		fprintf(file, ";");
 
 		for (int i = 0; i < getX(*board); i++) {
 			for (int j = 0; j < getY(*board); j++) 
 				fprintf(file, "%c", *((int*)getToken(*board, i, j)) + '0');
-			fprintf(file, "\n");
+			fprintf(file, ";");
 		}
 
 		for (int i = 0; i < 2; i++) {
 			fprintf(file, "%c", hashGet(*history, i)->size + '0');
-			fprintf(file, "\n");
+			fprintf(file, ";");
 
 			for (int j = 0; j < hashGet(*history, i)->size; j++) {
 				struct Move* move = (struct Move*)getToken(*history, i, j);
 
 				fprintf(file, "%c", move->column + '0');
 				fprintf(file, "%c", move->token + '0');
-				fprintf(file, "\n");
+				fprintf(file, ";");
 			}
 		}
 		
@@ -359,6 +375,97 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 		return false;
 	}
 
+	return true;
+}
+
+bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings) {
+	FILE* file;
+	int i = 0, x = 0, y = 0, bufferSize = 300;
+	bool isSecond = false; //we will use this to determine if the current value we're reading is the second of 2 digits, for example, X and Y
+	char* buffer = malloc(sizeof(char) * bufferSize);
+	struct Move* move;
+
+	if (file = fopen("save.txt", "r")) {
+		while (fgets(buffer, bufferSize, file) != NULL) {
+			for (int j = 0; j < bufferSize; j++) {
+				printf("%d: %d(%c) | i = %d\n", j, buffer[j], buffer[j], i);
+				if (buffer[j] == ';') {
+					if (i == 5 && x != settings->boardX - 1) {
+						x++;
+						y = 0;
+					}
+					else if (i == 7 && y == hashGet(*history, 0)->size) {
+						i = 6;
+						x++;
+					}
+					else
+						i++;
+				}
+				else {
+					if (i == 0) {
+						if (j == 0) {
+							settings->player1 = malloc(sizeof(char));
+							settings->player2 = malloc(sizeof(char));
+
+							*history = createTable(2, 0);
+						}
+
+						if (!isSecond)
+							settings->boardX = (int)buffer[j] - '0';
+						else
+							settings->boardY = (int)buffer[j] - '0';
+
+						isSecond = !isSecond;
+					}
+					else if (i == 1) {
+						if (!*board)
+							*board = createTable(settings->boardX, settings->boardY);
+
+						settings->player1 = realloc(settings->player1, sizeof(char) * strlen(settings->player1));
+						settings->player1[strlen(settings->player1)] = buffer[j];
+					}
+					else if (i == 2) {
+						settings->player2 = realloc(settings->player2, sizeof(char) * strlen(settings->player1));
+						settings->player2[strlen(settings->player2)] = buffer[j];
+					}
+					else if (i == 3)
+						settings->solo = (bool)(buffer[j] - '0');
+					else if (i == 4)
+						settings->depth = (int)buffer[j] - '0';
+					else if (i == 5) {
+						if (y < settings->boardY && ((int)buffer[j] - '0') != 0) {
+							int* tok = malloc(sizeof(int));
+							*tok = (int)buffer[j] - '0';
+							addMove(*board, x, tok);
+						}
+					}
+					else if (i == 6) {
+						resizeStack(hashGet(*history, 0), (int)buffer[j] - '0');
+						x = y = 0;
+					}
+					else if (i == 7) {
+						if (!isSecond) {
+							move = (struct Move*)malloc(sizeof(struct Move));
+							move->column = (int)buffer[j] - '0';
+						}
+						else
+							move->token = (int)buffer[j] - '0';
+
+						push(hashGet(*history, 0), &move);
+						y++;
+						isSecond = !isSecond;
+					}
+				}
+			}
+		}
+	}
+	else {
+		printf("(!) file to save to was not found: 'save.bin'");
+		free(buffer);
+		return false;
+	}
+
+	free(buffer);
 	return true;
 }
 
@@ -411,12 +518,14 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 	return failedOperation;
 }
 
-void play(struct Settings* settings) {
+void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
 	bool failedOperation, boardFull = false , win = false, p1ToPlay = true, traversing = false, saving = false;
 	char* player = NUL;
 	char* colour;
 	int centres[2];
+	struct Hashmap* board;
+	struct Hashmap* history;
 
 	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
 	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
@@ -440,9 +549,14 @@ void play(struct Settings* settings) {
 	* columns - hence the stack implementation. So, ideally, all we would
 	* need to do is give the structure a column to play in and a token to
 	* push to that column.*/
-	struct Hashmap* board = createTable(x, y);
-
-	struct Hashmap* history = createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
+	if (loadedBoard == NULL && loadedHistory == NULL) {
+		board = createTable(x, y);
+		history = createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
+	}
+	else {
+		board = *loadedBoard;
+		history = *loadedHistory;
+	}
 
 	do {
 		displayBoard(board);
