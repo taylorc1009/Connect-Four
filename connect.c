@@ -682,7 +682,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				}
 			}
 			else {
-				printf("Make your move %s%s%s, select a column number (0 to save and exit)\n> ", colour, player, PNRM);
+				printf("Make your move %s%s%s, what would you like to do?\n> ", colour, player, PNRM);
 
 				do {
 					failedOperation = false;
