@@ -42,7 +42,7 @@ struct Move {
 };
 
 void setup(struct Settings* settings);
-void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool turn);
+void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing);
 void displayBoard(struct Hashmap* board);
 
 static inline void cleanStdin() {
@@ -110,15 +110,15 @@ int main(int argc, char** argv) {
 			case 5:
 				struct Hashmap* board = NULL;
 				struct Hashmap* history = NULL;
-				bool turn;
+				bool turn, traversing;
 
-				if (loadGame(&board, &history, settings, &turn)) {
+				if (loadGame(&board, &history, settings, &turn, &traversing)) {
 					printf("\nGame loaded!");
 					delay(1);
 					printf("\nStarting...");
 					delay(2);
 
-					play(&board, &history, settings, turn);
+					play(&board, &history, settings, turn, traversing);
 				}
 
 				system("cls");
@@ -273,7 +273,7 @@ void setup(struct Settings* settings) {
 
 	printf("\nStarting...");
 	delay(2);
-	play(NULL, NULL, settings, true);
+	play(NULL, NULL, settings, true, false);
 
 	free(settings->player1);
 	if (!settings->solo)
@@ -344,7 +344,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 	}
 }
 
-bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn) {
+bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn, bool traversing) {
 	FILE* file;
 
 	if (file = fopen("save.bin", "w")) {
@@ -353,6 +353,9 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 		fprintf(file, ";");
 
 		fprintf(file, "%c", ((int)turn) + '0');
+		fprintf(file, ";");
+
+		fprintf(file, "%c", ((int)traversing) + '0');
 		fprintf(file, ";");
 
 		for(int i = 0; i < strlen(settings->player1); i++)
@@ -398,7 +401,7 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 	return true;
 }
 
-bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool* turn) {
+bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool* turn, bool* traversing) {
 	FILE* file;
 	int step = 0, x = 0, y = 0, bufferSize = 300;
 	bool isSecond = false; //we will use this to determine if the current value we're reading is the second of 2 digits, for example, X and Y
@@ -415,22 +418,22 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 				if (buffer[i] != -1 && buffer[i] != 0) {
 					//printf("%d: %d(%c) | step = %d, x = %d, y = %d\n", i, buffer[i], buffer[i], step, x, y);
 					if (buffer[i] == ';') {
-						if (step == 6 && x != settings->boardX - 1) {
+						if (step == 7 && x != settings->boardX - 1) {
 							x++;
 							y = 0;
 						}
-						else if (step == 8 && y == hashGet(*history, x)->size) {
+						else if (step == 9 && y == hashGet(*history, x)->size) {
 							if (x == 1)
 								return true; //disables further reading of the input buffer after completion
 							else {
-								step = 7;
+								step = 8;
 								x++;
 								y = 0;
 							}
 						}
-						else if (step < 8) {
+						else if (step < 9) {
 							step++;
-							if (step < 7 || (step == 7 && x != 1))
+							if (step < 8 || (step == 8 && x != 1))
 								x = 0;
 						}
 					}
@@ -457,33 +460,35 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 						}
 						else if (step == 1)
 							*turn = (bool)(buffer[i] - '0');
-						else if (step == 2) {
+						else if (step == 2)
+							*traversing = (bool)(buffer[i] - '0');
+						else if (step == 3) {
 							settings->player1 = (char*)realloc(settings->player1, sizeof(char) * x + 1);
 							settings->player1[x] = buffer[i];
 							settings->player1[x + 1] = '\0';
 							x++;
 						}
-						else if (step == 3) {
+						else if (step == 4) {
 							settings->player2 = (char*)realloc(settings->player2, sizeof(char) * x + 1);
 							settings->player2[x] = buffer[i];
 							settings->player2[x + 1] = '\0';
 							x++;
 						}
-						else if (step == 4)
-							settings->solo = (bool)(buffer[i] - '0');
 						else if (step == 5)
-							settings->depth = (int)buffer[i] - '0';
-						else if (step == 6) {
+							settings->solo = (bool)(buffer[i] - '0');
+						else if (step == 6)
+							settings->depth = (int)(buffer[i] - '0');
+						else if (step == 7) {
 							if (y < settings->boardY && ((int)buffer[i] - '0') != 0) {
 								int* tok = malloc(sizeof(int));
 								*tok = (int)buffer[i] - '0';
 								addMove(*board, x, tok);
 							}
 						}
-						else if (step == 7) {
+						else if (step == 8) {
 							resizeStack(hashGet(*history, x), (int)buffer[i] - '0');
 						}
-						else if (step == 8) {
+						else if (step == 9) {
 							if (!isSecond) {
 								move = (struct Move*)malloc(sizeof(struct Move));
 								move->column = (int)buffer[i] - '0';
@@ -537,7 +542,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 			*traversing = true;
 	}
 	else if (toChar == 's') {
-		if (saveGame(board, history, settings, turn)) {
+		if (saveGame(board, history, settings, turn, *traversing)) {
 			printf("\nGame saved!");
 			delay(1);
 		}
@@ -560,9 +565,9 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 	return failedOperation;
 }
 
-void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool turn) {
+void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool failedOperation, boardFull = false , win = false, p1ToPlay = turn, traversing = false, saving = false;
+	bool failedOperation, boardFull = false , win = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NUL;
 	char* colour;
 	int centres[2];
@@ -583,6 +588,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	else {
 		board = *loadedBoard;
 		history = *loadedHistory;
+		column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
 	}
 
 	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
