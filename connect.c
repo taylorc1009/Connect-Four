@@ -1,6 +1,7 @@
 /* TODO
 *	Implement:
 *	- Finish internal commentary
+*	- Move save and load to their own file (also reduce the size of this file)
 *	- Randomize (or allow selection) of player or AI turn on first move
 *	- Test save and load more
 *	- Test undo and redo more
