@@ -1,5 +1,6 @@
 /* TODO
 *	Implement:
+*	- Finish internal commentary
 *	- Randomize (or allow selection) of player or AI turn on first move
 *	- Test save and load more
 *	- Test undo and redo more
@@ -13,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include "AI.h"
+#include "Hashmap.h"
 
 #define NUL '\0' //used to "nullify" a char
 
@@ -334,7 +335,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn) {
 	FILE* file;
 
-	if (file = fopen("save.txt", "w")) {
+	if (file = fopen("save.bin", "w")) {
 		fprintf(file, "%c", settings->boardX + '0');
 		fprintf(file, "%c", settings->boardY + '0');
 		fprintf(file, ";");
@@ -392,7 +393,7 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 	char* buffer = malloc(sizeof(char) * bufferSize);
 	struct Move* move;
 
-	if (file = fopen("save.txt", "r")) {
+	if (file = fopen("save.bin", "r")) {
 		while (fgets(buffer, bufferSize, file) != NULL) {
 			for (int i = 0; i < bufferSize; i++) {
 
@@ -400,7 +401,7 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 				//if the size does end up exceeding the buffer size, the parameters used (such as 'step' and 'isSecond' will allow it to continue from the exact same step of
 				//the loading process with the next buffer
 				if (buffer[i] != -1 && buffer[i] != 0) {
-					printf("%d: %d(%c) | step = %d, x = %d, y = %d\n", i, buffer[i], buffer[i], step, x, y);
+					//printf("%d: %d(%c) | step = %d, x = %d, y = %d\n", i, buffer[i], buffer[i], step, x, y);
 					if (buffer[i] == ';') {
 						if (step == 6 && x != settings->boardX - 1) {
 							x++;
