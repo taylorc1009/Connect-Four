@@ -71,8 +71,8 @@ bool stackIsFull(struct Stack* s) {
 }
 
 void resizeStack(struct Stack* s, int n) {
-	s->list = (struct stackNode**)realloc(s->list, (sizeof(struct stackNode) * (s->size + n)));
-	n > 0 ? s->size++ : s->size--;
+	s->size += n;
+	s->list = (struct stackNode**)realloc(s->list, (sizeof(struct stackNode) * (s->size)));
 }
 
 void freeStack(struct Stack* s) {
