@@ -388,72 +388,74 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 	if (file = fopen("save.txt", "r")) {
 		while (fgets(buffer, bufferSize, file) != NULL) {
 			for (int j = 0; j < bufferSize; j++) {
-				printf("%d: %d(%c) | i = %d\n", j, buffer[j], buffer[j], i);
-				if (buffer[j] == ';') {
-					if (i == 5 && x != settings->boardX - 1) {
-						x++;
-						y = 0;
-					}
-					else if (i == 7 && y == hashGet(*history, 0)->size) {
-						i = 6;
-						x++;
-					}
-					else
-						i++;
-				}
-				else {
-					if (i == 0) {
-						if (j == 0) {
-							settings->player1 = malloc(sizeof(char));
-							settings->player2 = malloc(sizeof(char));
-
-							*history = createTable(2, 0);
+				if (buffer[j] != -1) {
+					printf("%d: %d(%c) | i = %d\n", j, buffer[j], buffer[j], i);
+					if (buffer[j] == ';') {
+						if (i == 5 && x != settings->boardX - 1) {
+							x++;
+							y = 0;
 						}
-
-						if (!isSecond)
-							settings->boardX = (int)buffer[j] - '0';
-						else
-							settings->boardY = (int)buffer[j] - '0';
-
-						isSecond = !isSecond;
-					}
-					else if (i == 1) {
-						if (!*board)
-							*board = createTable(settings->boardX, settings->boardY);
-
-						settings->player1 = realloc(settings->player1, sizeof(char) * strlen(settings->player1));
-						settings->player1[strlen(settings->player1)] = buffer[j];
-					}
-					else if (i == 2) {
-						settings->player2 = realloc(settings->player2, sizeof(char) * strlen(settings->player1));
-						settings->player2[strlen(settings->player2)] = buffer[j];
-					}
-					else if (i == 3)
-						settings->solo = (bool)(buffer[j] - '0');
-					else if (i == 4)
-						settings->depth = (int)buffer[j] - '0';
-					else if (i == 5) {
-						if (y < settings->boardY && ((int)buffer[j] - '0') != 0) {
-							int* tok = malloc(sizeof(int));
-							*tok = (int)buffer[j] - '0';
-							addMove(*board, x, tok);
-						}
-					}
-					else if (i == 6) {
-						resizeStack(hashGet(*history, 0), (int)buffer[j] - '0');
-						x = y = 0;
-					}
-					else if (i == 7) {
-						if (!isSecond) {
-							move = (struct Move*)malloc(sizeof(struct Move));
-							move->column = (int)buffer[j] - '0';
+						else if (i == 7 && y == hashGet(*history, 0)->size) {
+							i = 6;
+							x++;
 						}
 						else
-							move->token = (int)buffer[j] - '0';
+							i++;
+					}
+					else {
+						if (i == 0) {
+							if (j == 0) {
+								settings->player1 = malloc(sizeof(char));
+								settings->player2 = malloc(sizeof(char));
 
-						push(hashGet(*history, 0), &move);
-						y++;
-						isSecond = !isSecond;
+								*history = createTable(2, 0);
+							}
+
+							if (!isSecond)
+								settings->boardX = (int)buffer[j] - '0';
+							else
+								settings->boardY = (int)buffer[j] - '0';
+
+							isSecond = !isSecond;
+						}
+						else if (i == 1) {
+							if (!*board)
+								*board = createTable(settings->boardX, settings->boardY);
+
+							settings->player1 = realloc(settings->player1, sizeof(char) * strlen(settings->player1));
+							settings->player1[strlen(settings->player1)] = buffer[j];
+						}
+						else if (i == 2) {
+							settings->player2 = realloc(settings->player2, sizeof(char) * strlen(settings->player1));
+							settings->player2[strlen(settings->player2)] = buffer[j];
+						}
+						else if (i == 3)
+							settings->solo = (bool)(buffer[j] - '0');
+						else if (i == 4)
+							settings->depth = (int)buffer[j] - '0';
+						else if (i == 5) {
+							if (y < settings->boardY && ((int)buffer[j] - '0') != 0) {
+								int* tok = malloc(sizeof(int));
+								*tok = (int)buffer[j] - '0';
+								addMove(*board, x, tok);
+							}
+						}
+						else if (i == 6) {
+							resizeStack(hashGet(*history, 0), (int)buffer[j] - '0');
+							x = y = 0;
+						}
+						else if (i == 7) {
+							if (!isSecond) {
+								move = (struct Move*)malloc(sizeof(struct Move));
+								move->column = (int)buffer[j] - '0';
+							}
+							else
+								move->token = (int)buffer[j] - '0';
+
+							push(hashGet(*history, 0), &move);
+							y++;
+							isSecond = !isSecond;
+						}
 					}
 				}
 			}
