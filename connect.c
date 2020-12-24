@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "Hashmap.h"
 
 #define NUL '\0' //used to "nullify" a char
@@ -208,11 +209,21 @@ void getName(char** player) { //gets a player name and dynamically resizes the a
 			input = NULL;
 		} 
 		else if (buffer[bufLen - 1] != '\n') {
-			printf("\n(!) name is too long (30 characters max), please re-enter\n> ");
+			printf("\n(!) this name is too long (30 characters max), please re-enter\n> ");
 			cleanStdin();
 			input = NULL;
 		}
 		else {
+			for (int i = 0; i < bufLen; i++) { //prevents ';' in player's names - having one in their name causes issues with save and load
+				if (buffer[i] == ';') {
+					printf("\n(!) the name entered contains a ';' - this is a system character, please re-enter\n> ");
+					input = NULL;
+				}
+			}
+
+			if (input == NULL)
+				continue;
+
 			if (input[bufLen - 1] == '\n') {
 				input[bufLen - 1] = '\0';
 				bufLen--;
@@ -557,21 +568,6 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	struct Hashmap* board;
 	struct Hashmap* history;
 
-	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
-	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
-	if (settings->solo) {
-		if (x % 2) {
-			//is odd
-			centres[0] = (int)round(x / 2.0f) - 1;
-			centres[1] = 0; //we will use this to skip the double centre columns check
-		}
-		else {
-			//is even
-			centres[0] = (x / 2) - 1;
-			centres[1] = centres[0] + 1;
-		}
-	}
-
 	/*The board structure is made of a list of stacks stored in a hashmap.
 	* This is due to the play style of connect 4; a player must only pick
 	* a column to drop a token in, this corresponds to the key of the
@@ -586,6 +582,23 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	else {
 		board = *loadedBoard;
 		history = *loadedHistory;
+	}
+
+	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
+	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
+	if (settings->solo) {
+		if (x % 2) {
+			//is odd
+			printf("%d, %d", x, round(x / 2.0f));
+			delay(2);
+			centres[0] = (int)round(x / 2.0f) - 1;
+			centres[1] = 0; //we will use this to skip the double centre columns check
+		}
+		else {
+			//is even
+			centres[0] = (x / 2) - 1;
+			centres[1] = centres[0] + 1;
+		}
 	}
 
 	do {
@@ -632,6 +645,8 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				}
 				if (!traversing) {
 					printf("%s%s%s is making a move...", colour, settings->player2, PNRM);
+					printf("%d, %d", centres[0], centres[1]);
+
 					AIMakeMove(board, &column, centres, settings->depth);
 
 					int* tok = malloc(sizeof(int));
