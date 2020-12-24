@@ -11,7 +11,6 @@
 *	Update README.md upon completion (if required)
 */
 
-#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <math.h>
@@ -589,8 +588,6 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	if (settings->solo) {
 		if (x % 2) {
 			//is odd
-			printf("%d, %d", x, round(x / 2.0f));
-			delay(2);
 			centres[0] = (int)round(x / 2.0f) - 1;
 			centres[1] = 0; //we will use this to skip the double centre columns check
 		}
@@ -645,7 +642,6 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				}
 				if (!traversing) {
 					printf("%s%s%s is making a move...", colour, settings->player2, PNRM);
-					printf("%d, %d", centres[0], centres[1]);
 
 					AIMakeMove(board, &column, centres, settings->depth);
 
