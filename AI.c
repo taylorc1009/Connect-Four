@@ -29,6 +29,8 @@ bool isGameOver(struct Hashmap* board, int row, int column) {
 }
 
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta) {
+
+	//you could do an 'if(column != NULL)' here? to try and stop crashing when the previous column changed was incorrect - this would prevent all the column tracking required in undo/redo and save/load
 	struct AIMove* move = (struct AIMove*)malloc(sizeof(struct AIMove));
 	move->column = column;
 	//printf("\n%d. (%d, %d), col: %d, tok: %d", depth, x, y, column, player);
