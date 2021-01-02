@@ -301,7 +301,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(undoStack, 1);
 	push(undoStack, &undoMove);
 
-	*column = undoMove->column + 1;
+	*column = ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1;
 
 	return !pop(hashGet(*board, undoMove->column));
 }
