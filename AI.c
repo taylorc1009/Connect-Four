@@ -41,6 +41,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	if (depth == 0 || move->gameOver) {
 		if (move->gameOver) {
 			if (checkWin(row, column, board, PLAYER_2_TOKEN)) { //bot has won in this instance
+
 				/*the idea of this calculation is to give wins closer to the boards current state a
 				* higher priority as we would prefer the AI moved on those instead: we don't want
 				* it to prioritise wins that are only possible further in the future*/

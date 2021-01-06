@@ -24,6 +24,7 @@
 //C console colours (source - https://stackoverflow.com/a/3586005/11136104)
 #define P1COL "\x1B[31m" //red
 #define P2COL "\x1B[33m" //yellow
+#define PWIN "\x1B[32m" //green
 #define PNRM "\x1B[0m" //default console text color
 
 struct Settings {
@@ -42,7 +43,8 @@ struct Move {
 
 void setup(struct Settings* settings);
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing);
-void displayBoard(struct Hashmap* board);
+void displayBoard(struct Hashmap* board, int** win);
+int** checkWin(int row, int column, struct Hashmap* board, int token);
 
 static inline void cleanStdin() {
 	char c = NUL;
@@ -585,12 +587,13 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool failedOperation, boardFull = false , win = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
+	bool failedOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NUL;
 	char* colour;
 	int centres[2];
 	struct Hashmap* board;
 	struct Hashmap* history;
+	int** win = NULL;
 
 	/*The board structure is made of a list of stacks stored in a hashmap.
 	* This is due to the play style of connect 4; a player must only pick
@@ -625,22 +628,23 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	}
 
 	do {
-		displayBoard(board);
-		printf("\n\n");
-
 		if (player != NUL && !traversing && !saving) { //used to skip checks before the first initial move, otherwise null issues occur
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
-			boardFull = isBoardFull(board, x);
+			if (win == NULL)
+				boardFull = isBoardFull(board, x);
 		}
 
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
-			win ? printf("Congratulations %s%s%s, you win!\n", colour, player, PNRM) : printf("The board is full... Game over!\n");
+			displayBoard(board, win);
+			win ? printf("Congratulations %s%s%s, you win!\n", colour, player, PNRM) : printf("The board is full... Game over!\n"); //check for a win instead of board full in case a player won on the last available move
 			delay(2);
 			printf("Returning to the main menu...");
 			delay(3);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
+			displayBoard(board, NULL);
+
 			if (!saving) {
 				if (p1ToPlay) {
 					player = settings->player1;
@@ -696,10 +700,15 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 	freeHashmap(board);
 	freeHashmap(history);
+	if (win) {
+		for (int i = 0; i < ARRAY_LENGTH(win); i++)
+			free(win[i]);
+		free(win);
+	}
 }
 
-void displayBoard(struct Hashmap* board) {
-	int x = getX(board), y = getY(board), i, j;
+void displayBoard(struct Hashmap* board, int** win) {
+	int x = getX(board), y = getY(board), i, j, k = 0, l = 0, m = 3;
 	system("cls");
 
 	for (i = 0; i < y; i++) {
@@ -709,11 +718,23 @@ void displayBoard(struct Hashmap* board) {
 		printf("\n");
 		printf("|");
 		for (j = 0; j < x; j++) {
-			int token = *((int*)getToken(board, j, (y - 1) - i)); //'(y - 1) - i' fixes the display, otherwise it would come out upside down
+			k = (y - 1) - i; //'(y - 1) - i' fixes the display, otherwise it would come out upside down
+			int token = *((int*)getToken(board, j, k));
 
 			if (token) {
 				char* colour = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
-				if (token == PLAYER_1_TOKEN)
+				/*if (win) {
+					printf("%d", l);
+					printf("(%d, %d), %d(%d, %d)", j, k, l, j == win[l][0], k == win[l][1]);
+				}*/
+				if (win && (l >= 0 && l <= 3) && (j == win[l][0] && k == win[l][1])) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
+					colour = PWIN;
+				
+					//if (j == win[l][0] && k == win[l][1])
+						l++;
+					//m--; //always decrement m because, as l approaches 3, l + m will be out of bounds
+				}
+				else if (token == PLAYER_1_TOKEN)
 					colour = P1COL;
 				else if (token == PLAYER_2_TOKEN)
 					colour = P2COL;
@@ -732,10 +753,10 @@ void displayBoard(struct Hashmap* board) {
 
 	for (i = 1; i < x + 1; i++)
 		printf("  %d ", i);
-	printf("\n");
+	printf("\n\n\n");
 }
 
-bool checkWin(int row, int column, struct Hashmap* board, int token) {
+int** checkWin(int row, int column, struct Hashmap* board, int token) {
 	int x = getX(board), y = getY(board);
 	int* tok;
 	
@@ -744,8 +765,15 @@ bool checkWin(int row, int column, struct Hashmap* board, int token) {
 	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
 		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
-			if (count >= 4)
-				return true;
+			if (count >= 4) {
+				int** win = malloc(sizeof(int) * 4);
+				for (int j = 0; j < 4; j++) {
+					win[j] = malloc(sizeof(int) * 2);
+					win[j][0] = (i - 3) + j;
+					win[j][1] = row;
+				}
+				return win;
+			}
 		}
 		else
 			count = 0;
@@ -756,8 +784,15 @@ bool checkWin(int row, int column, struct Hashmap* board, int token) {
 	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
 		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
-			if (count >= 4)
-				return true;
+			if (count >= 4) {
+				int** win = malloc(sizeof(int) * 4);
+				for (int j = 0; j < 4; j++) {
+					win[j] = malloc(sizeof(int) * 2);
+					win[j][0] = column;
+					win[j][1] = i - j;
+				}
+				return win;
+			}
 		}
 		else
 			count = 0;
@@ -776,8 +811,15 @@ bool checkWin(int row, int column, struct Hashmap* board, int token) {
 	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
-			if (count >= 4)
-				return true;
+			if (count >= 4) {
+				int** win = malloc(sizeof(int) * 4);
+				for (int k = 0; k < 4; k++) {
+					win[k] = malloc(sizeof(int) * 2);
+					win[k][0] = j - k;
+					win[k][1] = i - k;
+				}
+				return win;
+			}
 		}
 		else
 			count = 0;
@@ -797,12 +839,19 @@ bool checkWin(int row, int column, struct Hashmap* board, int token) {
 	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
-			if (count >= 4)
-				return true;
+			if (count >= 4) {
+				int** win = malloc(sizeof(int) * 4);
+				for (int k = 0; k < 4; k++) {
+					win[k] = malloc(sizeof(int) * 2);
+					win[k][0] = j + k;
+					win[k][1] = i - k;
+				}
+				return win;
+			}
 		}
 		else
 			count = 0;
 	}
 
-	return false;
+	return NULL;
 }
