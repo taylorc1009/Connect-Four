@@ -1,18 +1,15 @@
 /* TODO
 *	Implement:
 *	- Finish internal commentary
-*	- Move save and load to their own file (also reduce the size of this file)
-*	- Randomize (or allow selection) of player or AI turn on first move
+*	- Randomize (or allow selection) of player or AI turn on first move?
 *	- Test save and load more
 *	- Test undo and redo more
-*	- Test how the 'evaluateWindow' 2player:2empty -=1 affects AI quality
+*	- Test how the 'evaluateWindow' 2player:2empty -=1 and count of EMPTY_SLOT in centre column(s) affects AI quality
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
-*	- Add a move down animation? Make the 4 connected tokens turn green?
+*	- Add a move down animation?
 *	
 *	Update README.md upon completion (if required)
 */
-
-//the Windows command to use to use the Makefile is: nmake [command]
 
 #include <string.h>
 #include <time.h>
@@ -111,8 +108,8 @@ int main(int argc, char** argv) {
 					system("cls");
 					welcome(settings->boardX, settings->boardY);
 				}
-				else
-					delay(2); //give some time to show the error message
+				//else
+					//delay(2); //give some time to show the error message
 
 				break;
 
@@ -168,32 +165,55 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 	return num - '0';
 }
 
-void removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
+int removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
 	int i, j;
 
 	for (i = j = 0; str[i]; ++i)
 		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
 			str[j++] = str[i];
 
-	if (str[j - 1] != '\n') {
-		if (isspace(str[j - 1]))
-			str[j - 1] = '\n';
-		str[j] = '\0';
-	}
-	else if (isspace(str[j - 2])) {
-		str[j - 2] = '\n';
-		str[j - 1] = '\0';
-	}
+	for (i = j; i < ARRAY_LENGTH(str); i++)
+		str[i] = 0;
+
+	return j; //return the new length of the string
 }
 
 void getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
 	char* buffer = (char*)malloc(sizeof(char) * NAME_MAX);
+	//char* input = (char*)malloc(sizeof(char));
+	//int i = 0;
+	//bool proceed = false;
+	//bool proceed = false;
+	
 	memset(buffer, NUL, NAME_MAX);
-
+	//input = NUL;
 	char* input = NULL;
-	while (input == NULL) {
+
+	while (input == NULL) { /*&& proceed) {
+		fgets(buffer, NAME_MAX, stdin);
+		if (buffer == 0 || buffer[0] == '\n' || buffer[0] == '\0')
+			printf("\n(!) name empty, please enter one\n> ");
+		else {
+			proceed = true;
+			while (buffer[i] != '\n' && buffer[i] != 0 && i != NAME_MAX) {
+				
+				printf("%c", buffer[i]);
+				int size = ARRAY_LENGTH(input);
+				input = (char*)realloc(input, sizeof(char) * size);
+				input[size - 1] = fgetc(stdin);
+				i++;
+			}
+			if (i == NAME_MAX) {
+				i = 0;
+				proceed = (fseek(stdin, 0, SEEK_END), ftell(stdin)) > 0;
+				rewind(stdin);
+				if (proceed)
+					fgets(buffer, NAME_MAX, stdin);
+			}
+		}*/
 		input = fgets(buffer, NAME_MAX, stdin);
-		removeExcessSpaces(buffer);
+
+		//removeExcessSpaces(buffer);
 		size_t bufLen = strlen(buffer);
 
 		if (buffer == 0 || buffer[0] == '\n' || buffer[0] == '\0') {
@@ -220,15 +240,23 @@ void getName(char** player) { //gets a player name and dynamically resizes the a
 				input[bufLen - 1] = '\0';
 				bufLen--;
 			}
-			//removeExcessSpaces(input); //might be redundant due to removeExcessSpaces above
+			int size = removeExcessSpaces(input); //might be redundant due to removeExcessSpaces above
 
 			if (bufLen > sizeof(*player))
-				*player = (char*)realloc(*player, sizeof(char) * bufLen);
+				*player = (char*)realloc(*player, sizeof(char) * size);
 
 			strcpy(*player, input);
 		}
 	}
+
+	/*if (buffer[i] != '\n')
+		cleanStdin();*/
+
+	//removeExcessSpaces(input);
+	//*player = (char*)realloc(*player, sizeof(char) * ARRAY_LENGTH(input));
+	//strcpy(*player, input);
 	free(buffer);
+	//free(input);
 }
 
 void setup(struct Settings* settings) {
