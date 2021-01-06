@@ -65,7 +65,7 @@ bool addMove(struct Hashmap* board, int column, int* tok) {
 void** getToken(struct Hashmap* board, int x, int y) {
     void** val = stackGet(hashGet(board, x), y);
     if (val == NULL) {
-        static void* nul = 0;
+        static void* nul = EMPTY_SLOT;
         return (&nul);
     }
     return val;
