@@ -19,9 +19,7 @@
 #include <math.h>
 #include "Hashmap.h"
 
-#define NUL '\0' //used to "nullify" a char
-
-#define NAME_MAX 32 //2 extra bytes to accomodate '\n' and '\0', so remember to subtract 2 during char* length checks
+#define NAME_MAX 32 //2 extra bytes to accomodate '\n' and '\0'
 
 //C console colours (source - https://stackoverflow.com/a/3586005/11136104)
 #define P1COL "\x1B[31m" //red
@@ -422,7 +420,7 @@ bool loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 			while (fgets(buffer, bufferSize, file) != NULL) {
 				for (int i = 0; i < bufferSize; i++) {
 
-					//this is a terrible way to read a file, but the save is just a buch of different parameters for the gameplay and I did it this way to safely allow an increase
+					//this is a terrible way to read a file, but the save is just a bunch of different parameters for the gameplay and I did it this way to safely allow an increase
 					//in data that ends up exceeding the buffer size
 					//if the size does end up exceeding the buffer size, the parameters used (such as 'step' and 'isSecond') will allow it to continue from the exact same step of
 					//the loading process with the next buffer

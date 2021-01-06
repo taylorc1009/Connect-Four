@@ -1,10 +1,6 @@
 #include <math.h>
 #include "Hashmap.h"
 
-#define EMPTY_SLOT 0
-
-#define ARRAY_LENGTH(x) ((int)sizeof(x) / sizeof((x)[0])) //we use this because we cannot calculate the size of a dynamic array; the compiler can never know its size
-
 struct AIMove {
 	int column;
 	int score;
