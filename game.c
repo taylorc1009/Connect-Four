@@ -380,7 +380,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	freeHashmap(board);
 	freeHashmap(history);
 	if (win) {
-		for (int i = 0; i < ARRAY_LENGTH(win); i++)
+		for (int i = 0; i < 4; i++)
 			free(win[i]);
 		free(win);
 	}

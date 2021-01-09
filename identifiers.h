@@ -9,7 +9,7 @@ typedef enum { false, true } bool;
 #define PLAYER_2_TOKEN 2
 #define EMPTY_SLOT 0
 
-#define ARRAY_LENGTH(x) ((int)sizeof(x) / (int)sizeof((x)[0])) //we use this because we cannot calculate the size of a dynamic array; the compiler can never know its size
+//#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0])) //we don't use this because we cannot calculate the size of a dynamic array; the compiler can never know its size and this will only give the size of the pointer
 
 #define NUL '\0' //used to "nullify" a char
 

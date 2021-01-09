@@ -30,9 +30,13 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 //the AI used to always prioritise centre columns on the first few moves, but, if
 //I am correct, that would only happen because it couldn't find any better moves
 //and now it does because it's counting the correct window sizes
+//
+//EDIT: it was definitely giving 1, ARRAY_LENGTH was giving the size of the pointer
+//divided by the size of int, and since both are of type int we got 4 divided by 4.
+//It seems you cannot get the size of a dynamic array in C.
 int count(int* list, int tok) {
 	int c = 0;
-	for (int i = 0; i < (int)sizeof(list); i++)
+	for (int i = 0; i < 4; i++) //the window size will always be 4
 		if (list[i] == tok)
 			c++;
 	return c;
@@ -64,9 +68,8 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 			int* col = malloc(sizeof(int) * y);
 
 			for (int j = 0; j < y; j++)
-				col[j] = *((int*)getToken(board, centres[i], j));
-
-			score += count(col, EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there, also 'y' used to by used instead of 'ARRAY_LENGTH')
+				if (*((int*)getToken(board, centres[i], j)) == EMPTY_SLOT)
+					score++; //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there)
 
 			free(col);
 		}

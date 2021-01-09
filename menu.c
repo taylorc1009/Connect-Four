@@ -76,7 +76,7 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
 			str[j++] = str[i];
 
-	for (i = j; i < ARRAY_LENGTH(str); i++)
+	for (int k = j; k < i; k++)
 		str[i] = 0;
 
 	return j; //return the new length of the string
