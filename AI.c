@@ -1,14 +1,13 @@
 //credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
 
-#include "AI.h"
+#include <math.h>
+#include "Hashmap.h"
 
-void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth) {
-	int x = getX(board), y = getY(board);
-	struct AIMove* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
-	*column = move->column + 1;
-	//printf("\ndepth %d: final score & column = %d, %d", settings->depth, move->score, move->column + 1);
-	free(move);
-}
+struct AIMove {
+	int column;
+	int score;
+	bool gameOver;
+};
 
 struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
@@ -21,6 +20,103 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 		}
 	}
 	return copy;
+}
+
+// -- NOTICE -- count previously had a paramater n which was the size of the array
+//and we'd use it for 'i < n'. It was given by ARRAY_LENGTH, but I noticed that
+//ARRAY_LENGTH was giving it a size of 1, was this true? Or was it actually
+//giving 4? I only ask because the AI is now performing differently, it seems to
+//be better from what I've tested but I haven't done enough testing, for example,
+//the AI used to always prioritise centre columns on the first few moves, but, if
+//I am correct, that would only happen because it couldn't find any better moves
+//and now it does because it's counting the correct window sizes
+int count(int* list, int tok) {
+	int c = 0;
+	for (int i = 0; i < (int)sizeof(list); i++)
+		if (list[i] == tok)
+			c++;
+	return c;
+}
+
+void evaluateWindow(int* window, int* score) {
+	if (count(window, PLAYER_2_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
+		*score += 2;
+	else if (count(window, PLAYER_2_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
+		*score += 5;
+	else if (count(window, PLAYER_2_TOKEN) == 4)
+		*score += 100; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
+	else if (count(window, PLAYER_1_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
+		*score -= 1; //was previously commented out (does the AI have a better play style without this?)
+	else if (count(window, PLAYER_1_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
+		*score -= 5; //was previously at 4 (appeared to work better in some instances)
+	else if (count(window, PLAYER_1_TOKEN) == 4)
+		*score -= 100; //same rendundancy as the AI token detection above
+
+	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
+}
+
+void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore) { //determines the best column to make a play in by giving each a score based on their current state
+	int score = 0;
+
+	//centre score - exists because moves made here give the AI more options
+	for (int i = 0; i < 2; i++) {
+		if (centres[i] != 0) { //prevents the check of a second centre column if there is only 1
+			int* col = malloc(sizeof(int) * y);
+
+			for (int j = 0; j < y; j++)
+				col[j] = *((int*)getToken(board, centres[i], j));
+
+			score += count(col, EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there, also 'y' used to by used instead of 'ARRAY_LENGTH')
+
+			free(col);
+		}
+	}
+
+	//horizontal score
+	for (int i = 0; i < y; i++) {
+		int* row = malloc(sizeof(int) * x);
+
+		for (int j = 0; j < x; j++)
+			row[j] = *((int*)getToken(board, j, i));
+
+		for (int j = 0; j < x - 3; j++) {
+			int window[4] = { row[j], row[j + 1], row[j + 2], row[j + 3] };
+			evaluateWindow(window, &score);
+		}
+		free(row);
+	}
+
+	//vertical score
+	for (int i = 0; i < x; i++) {
+		int* col = malloc(sizeof(int) * y);
+
+		for (int j = 0; j < y; j++)
+			col[j] = *((int*)getToken(board, i, j));
+
+		for (int j = 0; j < y - 3; j++) {
+			int window[4] = { col[j], col[j + 1], col[j + 2], col[j + 3] };
+			evaluateWindow(window, &score);
+		}
+		free(col);
+	}
+
+	//bottom-right to top-left diagonal score
+	for (int i = 0; i < y - 3; i++) {
+		for (int j = 0; j < x - 3; j++) {
+			int window[4] = { *((int*)getToken(board, j, i)), *((int*)getToken(board, j + 1, i + 1)), *((int*)getToken(board, j + 2, i + 2)), *((int*)getToken(board, j + 3, i + 3)) };
+			evaluateWindow(window, &score);
+		}
+	}
+
+	//bottom-left to top-right diagonal score
+	for (int i = 0; i < y - 3; i++) {
+		for (int j = 0; j < x - 3; j++) {
+			int window[4] = { *((int*)getToken(board, j + 3, i)), *((int*)getToken(board, j + 2, i + 1)), *((int*)getToken(board, j + 1, i + 2)), *((int*)getToken(board, j, i + 3)) };
+			evaluateWindow(window, &score);
+		}
+	}
+
+	*finalScore = score;
 }
 
 bool isGameOver(struct Hashmap* board, int row, int column) {
@@ -146,94 +242,10 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	}
 }
 
-void evaluateWindow(int* window, int size, int* score) {
-	if (count(window, size, PLAYER_2_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
-		*score += 2;
-	else if (count(window, size, PLAYER_2_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
-		*score += 5;
-	else if (count(window, size, PLAYER_2_TOKEN) == 4)
-		*score += 100; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
-	else if (count(window, size, PLAYER_1_TOKEN) == 2 && count(window, size, EMPTY_SLOT) == 2)
-		*score -= 1; //was previously commented out (does the AI have a better play style without this?)
-	else if (count(window, size, PLAYER_1_TOKEN) == 3 && count(window, size, EMPTY_SLOT) == 1)
-		*score -= 5; //was previously at 4 (appeared to work better in some instances)
-	else if (count(window, size, PLAYER_1_TOKEN) == 4)
-		*score -= 100; //same rendundancy as the AI token detection above
-
-	//printf("\nwindow: %d, %d, %d, %d >> size: %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], size, count(window, size, PLAYER_2_TOKEN), count(window, size, EMPTY_SLOT), *score);
-}
-
-void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore) { //determines the best column to make a play in by giving each a score based on their current state
-	int score = 0;
-
-	//centre score - exists because moves made here give the AI more options
-	for (int i = 0; i < 2; i++) {
-		if (centres[i] != 0) { //prevents the check of a second centre column if there is only 1
-			int* col = malloc(sizeof(int) * y);
-
-			for (int j = 0; j < y; j++)
-				col[j] = *((int*)getToken(board, centres[i], j));
-
-			score += count(col, ARRAY_LENGTH(col), EMPTY_SLOT); //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there, also 'y' used to by used instead of 'ARRAY_LENGTH')
-			
-			free(col);
-		}
-	}
-	
-	//horizontal score
-	for (int i = 0; i < y; i++) {
-		int* row = malloc(sizeof(int) * x);
-		
-		for (int j = 0; j < x; j++)
-			row[j] = *((int*)getToken(board, j, i));
-
-		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { row[j], row[j + 1], row[j + 2], row[j + 3] };
-			evaluateWindow(window, ARRAY_LENGTH(window), &score);
-		}		
-		free(row);
-	}
-
-	//vertical score
-	for (int i = 0; i < x; i++) {
-		int* col = malloc(sizeof(int) * y);
-
-		for (int j = 0; j < y; j++)
-			col[j] = *((int*)getToken(board, i, j));
-
-		for (int j = 0; j < y - 3; j++) {
-			int window[4] = { col[j], col[j + 1], col[j + 2], col[j + 3] };
-			evaluateWindow(window, ARRAY_LENGTH(window), &score);
-		}
-		free(col);
-	}
-	
-	//bottom-right to top-left diagonal score
-	for (int i = 0; i < y - 3; i++) {
-		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { *((int*)getToken(board, j, i)), *((int*)getToken(board, j + 1, i + 1)), *((int*)getToken(board, j + 2, i + 2)), *((int*)getToken(board, j + 3, i + 3)) };
-			evaluateWindow(window, ARRAY_LENGTH(window), &score);
-		}
-	}
-
-	//bottom-left to top-right diagonal score
-	for (int i = 0; i < y - 3; i++) {
-		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { *((int*)getToken(board, j + 3, i)), *((int*)getToken(board, j + 2, i + 1)), *((int*)getToken(board, j + 1, i + 2)), *((int*)getToken(board, j, i + 3)) };
-			evaluateWindow(window, ARRAY_LENGTH(window), &score);
-		}
-	}
-
-	*finalScore = score;
-}
-
-//ideally we would calculate the array length here, but this isn't possible
-//as the compiler doesn't know what the pointer is pointing to, so it cannot
-//define the length of the array at compile time
-int count(int* list, int n, int tok) {
-	int c = 0;
-	for (int i = 0; i < n; i++)
-		if (list[i] == tok)
-			c++;
-	return c;
+void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth) {
+	int x = getX(board), y = getY(board);
+	struct AIMove* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
+	*column = move->column + 1;
+	//printf("\ndepth %d: final score & column = %d, %d", settings->depth, move->score, move->column + 1);
+	free(move);
 }
