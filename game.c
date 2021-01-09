@@ -19,7 +19,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(undoStack, 1);
 	push(undoStack, &undoMove);
 
-	*column = ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1;
+	*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
 	return !pop(hashGet(*board, undoMove->column));
 }
@@ -341,10 +341,12 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
-					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, PNRM);
-					int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-
-					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, operation);
+					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, PNRM);
+					
+					do {
+						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+						failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, operation);
+					} while (failedOperation);
 
 					if (!traversing)
 						printf("\n");
@@ -366,9 +368,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				printf("Make your move %s%s%s, what would you like to do?\n> ", colour, player, PNRM);
 
 				do {
-					failedOperation = false;
 					column = validateOption(0, x, true);
-
 					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, -1);
 				} while (failedOperation);
 			}

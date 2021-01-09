@@ -62,7 +62,10 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		if (!valid) {
 			if (!juncture)
 				cleanStdin();
-			printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
+			if (min == 0 && max == 0)
+				printf("\n(!) invalid input: please enter an undo/redo operation or 0 to cancel\n> "); //used during the AI move being held as only 0 can be entered
+			else
+				printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
 		}
 	} while (!valid);
 
