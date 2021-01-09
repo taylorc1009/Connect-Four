@@ -12,3 +12,9 @@ typedef enum { false, true } bool;
 #define ARRAY_LENGTH(x) ((int)sizeof(x) / (int)sizeof((x)[0])) //we use this because we cannot calculate the size of a dynamic array; the compiler can never know its size
 
 #define NUL '\0' //used to "nullify" a char
+
+//C console colours (source - https://stackoverflow.com/a/3586005/11136104)
+#define P1COL "\x1B[31m" //red
+#define P2COL "\x1B[33m" //yellow
+#define PWIN "\x1B[32m" //green
+#define PNRM "\x1B[0m" //default console text color
