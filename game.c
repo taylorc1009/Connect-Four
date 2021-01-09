@@ -1,5 +1,5 @@
 #include <math.h>
-#include "Hashmap.h"
+#include "structs/Hashmap.h"
 #include "game-structures.h"
 
 bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {

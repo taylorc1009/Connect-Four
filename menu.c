@@ -13,7 +13,7 @@
 
 #include <string.h>
 #include <time.h>
-#include "Hashmap.h"
+#include "structs/Hashmap.h"
 #include "game-structures.h"
 
 #define NAME_MAX 32 //2 extra bytes to accomodate '\n' and '\0'

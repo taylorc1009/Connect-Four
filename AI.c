@@ -1,7 +1,7 @@
 //credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
 
 #include <math.h>
-#include "Hashmap.h"
+#include "structs/Hashmap.h"
 
 struct AIMove {
 	int column;

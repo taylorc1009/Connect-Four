@@ -1,4 +1,4 @@
-#include "Hashmap.h"
+#include "structs/Hashmap.h"
 #include "game-structures.h"
 
 bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn, bool traversing) {
