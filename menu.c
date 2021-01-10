@@ -76,17 +76,18 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 	int i, j;
 
 	for (i = j = 0; str[i]; ++i)
-		if (str[i] == '\n' || (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
+		if (str[i] != '\n' && (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
 			str[j++] = str[i];
 
 	for (int k = j; k < i; k++)
 		str[i] = 0;
 
-	return j; //return the new length of the string
+	return j + 1; //return the new length of the string; +1 so we can add '\0' after
 }
 
-void getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
+int getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
 	char* buffer = (char*)malloc(sizeof(char) * NAME_MAX);
+	int size;
 
 	//comments here were an attempt to get an infinitely long string: one that exceeds the buffer size
 	//char* input = (char*)malloc(sizeof(char));
@@ -144,14 +145,15 @@ void getName(char** player) { //gets a player name and dynamically resizes the a
 			if (input == NULL)
 				continue;
 
-			if (input[bufLen - 1] == '\n') {
+			/*if (input[bufLen - 1] == '\n') { removeExcessSpaces should do this
 				input[bufLen - 1] = '\0';
 				bufLen--;
-			}
-			int size = removeExcessSpaces(input); //might be redundant due to removeExcessSpaces above
+			}*/
+			size = removeExcessSpaces(input); //might be redundant due to removeExcessSpaces above
 
 			if (bufLen > sizeof(*player))
 				*player = (char*)realloc(*player, sizeof(char) * size);
+			input[size - 1] = '\0';
 
 			strcpy(*player, input);
 		}
@@ -165,15 +167,19 @@ void getName(char** player) { //gets a player name and dynamically resizes the a
 	//strcpy(*player, input);
 	free(buffer);
 	//free(input);
+
+	return size;
 }
 
 void setup(struct Settings* settings) {
 	printf("\n%sPlayer 1%s, please enter your name\n> ", P1COL, PNRM);
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
-	getName(&(settings)->player1);
+	settings->player1Size = getName(&(settings)->player1);
 
 	if (settings->solo) {
 		settings->player2 = "AI"; //this makes the char* static so no point dynamically allocating before
+		settings->player2Size = 3;
+
 		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", P1COL, settings->player1, PNRM);
 		switch (validateOption(1, 4, false)) {
 			case 1:
@@ -193,7 +199,7 @@ void setup(struct Settings* settings) {
 	else {
 		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
 		settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
-		getName(&(settings)->player2);
+		settings->player2Size = getName(&(settings)->player2);
 		printf("\nWelcome %s%s%s and %s%s%s!", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
 		delay(1);
 	}
@@ -263,7 +269,9 @@ int main(int argc, char** argv) {
 			struct Hashmap* history = NULL;
 			bool turn, traversing;
 
-			if (loadGame(&board, &history, settings, &turn, &traversing)) {
+			char* response = (char*)loadGame(&board, &history, settings, &turn, &traversing);
+
+			if (response == NULL) {
 				printf("\nGame loaded!");
 				delay(1);
 				printf("\nStarting...");
@@ -274,7 +282,8 @@ int main(int argc, char** argv) {
 				system("cls");
 				welcome(settings->boardX, settings->boardY);
 			}
-			//else
+			else
+				printf("%s", response);
 				//delay(2); //give some time to show the error message
 
 			break;
