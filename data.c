@@ -67,14 +67,9 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 		fwrite(&x, sizeof(int), 1, file);
 		fwrite(&y, sizeof(int), 1, file);
 		
-		for (int i = 0; i < x; i++) {
-			//fwrite(&(*board)->list[i]->key, sizeof(int), 1, file);
-
-			struct Stack* stack = hashGet(*board, i);
-			//fwrite(&stack->top, sizeof(int), 1, file);
+		for (int i = 0; i < x; i++) 
 			for (int j = 0; j < y; j++)
-				fwrite((int*)getToken(*board, i, j), sizeof(int), 1, file);//stack->list[j]->val
-		}
+				fwrite((int*)getToken(*board, i, j), sizeof(int), 1, file);
 
 		fwrite(&(*history)->size, sizeof(int), 1, file);
 		struct Stack* stack;
@@ -83,19 +78,9 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 			stack = hashGet(*history, i);
 			fwrite(&stack->size, sizeof(int), 1, file);
 
-			//fwrite(&(*history)->list[0]->key, sizeof(int), 1, file);
-			//fwrite(&stack->top, sizeof(int), 1, file);
 			for (int j = 0; j < stack->size; j++)
-				fwrite((struct Move*)stackGet(stack, j), sizeof(struct Move), 2, file);//stack->list[j]->val
+				fwrite((struct Move*)stackGet(stack, j), sizeof(struct Move), 2, file);
 		}
-
-		/*stack = hashGet(*history, 1);
-		fwrite(&stack->size, sizeof(int), 1, file);
-
-		//fwrite(&(*history)->list[1]->key, sizeof(int), 1, file);
-		//fwrite(&stack->top, sizeof(int), 1, file);
-		for (int i = 0; i < stack->size; i++)
-			fwrite((struct Move*)getToken(*board, 1, i), sizeof(struct Move), 1, file);//stack->list[j]->val*/
 
 		//we need to read and write each setting individually as the player name is a pointer to an array
 		fwrite(&settings->depth, sizeof(int), 1, file);
@@ -122,7 +107,6 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 
 char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool* turn, bool* traversing) {
 	FILE* file;
-	char* error;
 	//int step = 0, x = 0, y = 0, bufferSize = 300;
 	//bool isSecond = false; //we will use this to determine if the current value we're reading is the second of 2 digits, for example, X and Y
 	//char* buffer = malloc(sizeof(char) * bufferSize);
@@ -142,13 +126,8 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 			*board = createTable(x, y);
 
 			for (int i = 0; i < x; i++) {
-				//fread(&(*board)->list[i]->key, sizeof(int), 1, file);
-
-				//struct Stack* s = hashGet(*board, i);
-				//fread(&s->top, sizeof(int), 1, file);
 				for (int j = 0; j < y; j++) {
 					int buffer;
-
 					if (!fread(&buffer, sizeof(int), 1, file))
 						return cancelLoad(*board, NULL, file);
 
@@ -157,46 +136,33 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 						*token = buffer;
 						addMove(*board, i, token);
 					}
-					//else
-						//break; //there won't be any player tokens after the first empty slot in this column, so end the add for this column
 				}
 			}
 
 			int nlogs;
 			if (!fread(&nlogs, sizeof(int), 1, file))
 				return cancelLoad(*board, NULL, file);
+
 			*history = createTable(nlogs, 0);
 
 			struct Stack* stack;
 			int size;
 
 			for (int i = 0; i < nlogs; i++) {
-				stack = hashGet(*history, i);
 				if (!fread(&size, sizeof(int), 1, file))
 					return cancelLoad(*board, *history, file);
+
+				stack = hashGet(*history, i);
 				resizeStack(stack, size);
 
-				//fread(&(*history)->list[0]->key, sizeof(int), 1, file);
-				//fread(&stack->top, sizeof(int), 1, file);
 				for (int i = 0; i < size; i++) {
 					struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 					if (!fread(move, sizeof(struct Move), 2, file))
 						return cancelLoad(*board, *history, file);
+
 					push(stack, &move);
 				}
 			}
-
-			/*stack = hashGet(*history, 1);
-			fread(size, sizeof(int), 1, file);
-			resizeStack(stack, size);
-
-			//fwrite(&(*history)->list[1]->key, sizeof(int), 1, file);
-			//fwrite(&stack->top, sizeof(int), 1, file);
-			for (int i = 0; i < size; i++) {
-				struct Move* move = (struct Move*)malloc(sizeof(struct Move*));
-				fread(move, sizeof(struct Move), 1, file);//stack->list[j]->val
-				push(stack, &move);
-			}*/
 
 			if (!fread(&settings->depth, sizeof(int), 1, file) || !fread(&settings->solo, sizeof(bool), 1, file))
 				return cancelLoad(*board, *history, file);
@@ -204,6 +170,7 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 			if (!fread(&size, sizeof(int), 1, file))
 				return cancelLoad(*board, *history, file);
 			settings->player1Size = size;
+
 			settings->player1 = (char*)malloc(sizeof(char) * size);//this is a memory leak if the search fails: we still need to free it in that instance
 			if (!fread(settings->player1, sizeof(char), settings->player1Size, file))
 				return cancelLoad(*board, *history, file);
@@ -211,6 +178,7 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 			if (!fread(&size, sizeof(int), 1, file))
 				return cancelLoad(*board, *history, file);
 			settings->player2Size = size;
+
 			settings->player2 = (char*)malloc(sizeof(char) * size);
 			if (!fread(settings->player2, sizeof(char), settings->player2Size, file))
 				return cancelLoad(*board, *history, file);
