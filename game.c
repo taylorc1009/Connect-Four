@@ -170,7 +170,7 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 
 	//horizontal check
 	int count = 0;
-	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
+	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 3 > x ? x : column + 3); i++) {
 		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
 			if (count >= 4) {
@@ -189,7 +189,7 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 
 	//vertical check
 	count = 0;
-	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
+	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 3 > y ? y : row + 3); i++) {
 		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
 			if (count >= 4) {
@@ -216,7 +216,7 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 		j--;
 	}
 
-	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
+	for (i, j; i < y && j < x && i < row + 3 && j < column + 3; i++, j++) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
@@ -239,12 +239,12 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 	j = column;
 
 	//creates check point to start checking from diagonally
-	while (i != 0 && j != y && i > row - 3 && j < column + 3) {
+	while (i != 0 && j != x - 1 && i > row - 3 && j < column + 3) {
 		i--;
 		j++;
 	}
 
-	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
+	for (i, j; i < y && j >= 0 && i < row + 3 && j > column - 3; i++, j--) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
