@@ -291,7 +291,7 @@ int main(int argc, char** argv) {
 			break;
 
 		case 6:
-			free(settings);
+			free(settings); //player names are deallocated when the game is over/quit
 
 			system("cls");
 			printf("Connect 4 closed, goodbye!\n");

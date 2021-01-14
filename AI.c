@@ -20,19 +20,21 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
 	for (int j = 0; j < x; j++) {
 		for (int k = 0; k < y; k++) {
-			int* tok = malloc(sizeof(int));
-			*tok = *((int*)getToken(board, j, k));
-			if (*tok != EMPTY_SLOT)
-				addMove(copy, j, tok);
+			int* token = malloc(sizeof(int));
+			*token = *((int*)getToken(board, j, k));
+			if (*token != EMPTY_SLOT)
+				addMove(copy, j, token);
+			else
+				free(token);
 		}
 	}
 	return copy;
 }
 
-int count(int* list, int tok) {
+int count(int* list, int token) {
 	int c = 0;
 	for (int i = 0; i < 4; i++) //the window size will always be 4
-		if (list[i] == tok)
+		if (list[i] == token)
 			c++;
 	return c;
 }
@@ -135,7 +137,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	struct AIMove* move = (struct AIMove*)malloc(sizeof(struct AIMove));
 	move->column = column;
 	int row = hashGet(board, column)->top;
-	//printf("\n%d. (%d, %d), row: %d col: %d, tok: %d", depth, x, y, row, column, player);
+	//printf("\n%d. (%d, %d), row: %d col: %d, token: %d", depth, x, y, row, column, player);
 	move->gameStatus = isGameOver(board, row, column);
 	//printf(" >> gameStatus? %s", move->gameStatus ? "true" : "false");
 
@@ -148,12 +150,12 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					row++;
 
 					bool pWin = false;
-					int* tok = malloc(sizeof(int));
-					*tok = PLAYER_1_TOKEN;
-					if (addMove(board, move->column, tok)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
+					int* token = malloc(sizeof(int));
+					*token = PLAYER_1_TOKEN;
+					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN);
 					else
-						free(tok);
+						free(token);
 					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);;
 				}
 				else
@@ -165,7 +167,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 				move->score = safeWinScore(-1, depth, maxDepth);
 			else //move->gameStatus == BoardFull
 				move->score = 0;
-			//printf("\n>> column = %d, row = %d, score = %d, tok = %d", column, row, move->score, player);
+			//printf("\n>> column = %d, row = %d, score = %d, token = %d", column, row, move->score, player);
 		}
 		else
 			getScore(board, centres, x, y, &(move)->score); //evaluate the state of the final instance
@@ -179,10 +181,9 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 				continue;
 
 			struct Hashmap* temp = copyBoard(board, x, y);
-			int* tok = malloc(sizeof(int));
-			*tok = PLAYER_2_TOKEN;
-			if (!addMove(temp, i, tok))
-				continue;
+			int* token = malloc(sizeof(int));
+			*token = PLAYER_2_TOKEN;
+			addMove(temp, i, token);
 
 			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 			//	printf("\n|");
@@ -219,10 +220,9 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 				continue;
 
 			struct Hashmap* temp = copyBoard(board, x, y);
-			int* tok = malloc(sizeof(int));
-			*tok = PLAYER_1_TOKEN;
-			if (!addMove(temp, i, tok))
-				continue;
+			int* token = malloc(sizeof(int));
+			*token = PLAYER_1_TOKEN;
+			addMove(temp, i, token);
 
 			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 			//	printf("\n|");

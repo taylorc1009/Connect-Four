@@ -109,8 +109,10 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 		successfulOperation = addMove((*board), *column - 1, tok);
 		if (successfulOperation)
 			updateHistory(history, *column - 1, token);
-		else
+		else {
+			free(tok);
 			printf("\n(!) column full, please choose another\n> ");
+		}
 	}
 
 	return successfulOperation;
@@ -357,7 +359,8 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_2_TOKEN;
-					addMove(board, column - 1, tok); //shouldn't return a full column as we determine this in the AI
+					if (!addMove(board, column - 1, tok)) //shouldn't return a full column as we determine this in the AI, but just in case, deallocate the memory if this happens
+						free(tok);
 
 					updateHistory(&history, column - 1, token);
 				}
