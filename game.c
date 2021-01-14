@@ -36,7 +36,7 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	memcpy(redoMove, (struct Move*)stackGet(undoStack, undoStack->top), sizeof(struct Move));
 
 	if (!pop(undoStack))
-		return true;
+		return false;
 
 	resizeStack(undoStack, -1);
 
