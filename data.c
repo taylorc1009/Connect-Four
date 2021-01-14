@@ -40,8 +40,16 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 			stack = hashGet(*history, i);
 			fwrite(&stack->size, sizeof(int), 1, file);
 
-			for (int j = 0; j < stack->size; j++)
-				fwrite((struct Move*)stackGet(stack, j), sizeof(struct Move), 2, file);
+			for (int j = 0; j < stack->size; j++) {
+				/* I was previously trying to do this:
+				 *     fwrite((struct Move*)stackGet(stack, j), sizeof(struct Move), 2, file);
+				 * and read by doing:
+				 *     fread(move, sizeof(struct Move), 2, file);
+				 * which I've read does work but, when I tried, the reading stage would crash: what was wrong? */
+				struct Move* move = (struct Move*)stackGet(stack, j);
+				fwrite(&move->column, sizeof(int), 1, file);
+				fwrite(&move->token, sizeof(int), 1, file);
+			}
 		}
 
 		//we need to read and write each setting individually as the player name is a pointer to an array
@@ -82,7 +90,7 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 			int x = settings->boardX, y = settings->boardY;
 
 			*board = createTable(x, y);
-
+			
 			for (int i = 0; i < x; i++) {
 				for (int j = 0; j < y; j++) {
 					int buffer;
@@ -96,7 +104,7 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 					}
 				}
 			}
-
+			
 			int nlogs;
 			if (!fread(&nlogs, sizeof(int), 1, file))
 				return cancelLoad(*board, NULL, NULL, file);
@@ -109,13 +117,13 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 			for (int i = 0; i < nlogs; i++) {
 				if (!fread(&size, sizeof(int), 1, file))
 					return cancelLoad(*board, *history, NULL, file);
-
+				
 				stack = hashGet(*history, i);
 				resizeStack(stack, size);
 
-				for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
 					struct Move* move = (struct Move*)malloc(sizeof(struct Move));
-					if (!fread(move, sizeof(struct Move), 2, file))
+					if (!fread(&move->column, sizeof(int), 1, file) || !fread(&move->token, sizeof(int), 1, file))
 						return cancelLoad(*board, *history, NULL, file);
 
 					push(stack, &move);
