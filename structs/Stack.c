@@ -15,7 +15,7 @@ struct Stack* createStack(int size) {
 
 bool push(struct Stack* s, void** val) {
 	if (stackIsFull(s)) //if the stack is full
-		return true;
+		return false;
 
 	struct stackNode* newNode = (struct stackNode*)malloc(sizeof(struct stackNode));
 
@@ -29,7 +29,7 @@ bool push(struct Stack* s, void** val) {
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
 
-	return false;
+	return true;
 }
 
 bool pop(struct Stack* s) {

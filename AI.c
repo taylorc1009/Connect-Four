@@ -150,7 +150,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					bool pWin = false;
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_1_TOKEN;
-					if (!addMove(board, move->column, tok)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
+					if (addMove(board, move->column, tok)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN);
 					else
 						free(tok);
@@ -181,7 +181,8 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* tok = malloc(sizeof(int));
 			*tok = PLAYER_2_TOKEN;
-			addMove(temp, i, tok);
+			if (!addMove(temp, i, tok))
+				continue;
 
 			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 			//	printf("\n|");
@@ -220,7 +221,8 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* tok = malloc(sizeof(int));
 			*tok = PLAYER_1_TOKEN;
-			addMove(temp, i, tok);
+			if (!addMove(temp, i, tok))
+				continue;
 
 			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 			//	printf("\n|");

@@ -6,7 +6,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	struct Stack* moveStack = hashGet(*history, 0);
 
 	if (!moveStack->size)
-		return true;
+		return false;
 
 	struct Stack* undoStack = hashGet(*history, 1);
 	struct Move* undoMove = (struct Move*)malloc(sizeof(struct Move));
@@ -21,14 +21,14 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 
 	*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
-	return !pop(hashGet(*board, undoMove->column));
+	return pop(hashGet(*board, undoMove->column));
 }
 
 bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	struct Stack* undoStack = hashGet(*history, 1);
 
 	if (!undoStack->size)
-		return true;
+		return false;
 
 	struct Stack* moveStack = hashGet(*history, 0);
 
@@ -68,7 +68,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 
 bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int token, bool* traversing, bool* saving, bool turn, int AIOperator) {
 	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
-	bool failedOperation = false;
+	bool successfulOperation = true;
 
 	if ((*column == 0) || (*traversing && AIOperator == 0)) {
 		*traversing = false;
@@ -78,21 +78,22 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 		}
 	}
 	else if (toChar == 'u') {
-		failedOperation = undo(board, history, column);
-		if (failedOperation)
-			printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
-		else
+		successfulOperation = undo(board, history, column);
+		if (successfulOperation)
 			*traversing = true;
+		else
+			printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
 	}
 	else if (toChar == 'r') {
-		failedOperation = redo(board, history, column);
-		if (failedOperation)
-			printf("\n(!) there are no moves to redo, please try something else\n> ");
-		else
+		successfulOperation = redo(board, history, column);
+		if (successfulOperation)
 			*traversing = true;
+		else
+			printf("\n(!) there are no moves to redo, please try something else\n> ");
 	}
 	else if (toChar == 's') {
-		if (saveGame(board, history, settings, turn, *traversing)) {
+		successfulOperation = saveGame(board, history, settings, turn, *traversing);
+		if (successfulOperation) {
 			printf("\nGame saved!");
 			delay(1);
 		}
@@ -105,14 +106,14 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 		*traversing = false;
 		int* tok = malloc(sizeof(int));
 		*tok = token;
-		failedOperation = addMove((*board), *column - 1, tok);
-		if (failedOperation)
-			printf("\n(!) column full, please choose another\n> ");
-		else
+		successfulOperation = addMove((*board), *column - 1, tok);
+		if (successfulOperation)
 			updateHistory(history, *column - 1, token);
+		else
+			printf("\n(!) column full, please choose another\n> ");
 	}
 
-	return failedOperation;
+	return successfulOperation;
 }
 
 void displayBoard(struct Hashmap* board, int** win) {
@@ -266,7 +267,7 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool failedOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
+	bool successfulOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NUL;
 	char* colour;
 	int centres[2];
@@ -343,8 +344,8 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 					
 					do {
 						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-						failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, operation);
-					} while (failedOperation);
+						successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, operation);
+					} while (!successfulOperation);
 
 					if (!traversing)
 						printf("\n");
@@ -366,8 +367,8 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 				do {
 					column = validateOption(0, x, true);
-					failedOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, -1);
-				} while (failedOperation);
+					successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, -1);
+				} while (!successfulOperation);
 			}
 			if (!saving)
 				p1ToPlay = !p1ToPlay;
@@ -375,7 +376,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	} while ((column >= 1 && column <= x) || traversing || saving);
 
 	printf("\nReturning to the main menu...");
-	delay(3);
+	delay(2);
 
 	freeHashmap(board);
 	freeHashmap(history);
