@@ -24,7 +24,7 @@ char* cancelLoad(struct Hashmap* board, struct Hashmap* history, struct Settings
 bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn, bool traversing) {
 	FILE* file;
 
-	if (file = fopen("save.bin", "wb")) {
+	if (file = fopen("save.bin", "wb")) { //should create the file if it doesn't exist, but this is here in case the file could not be created
 		int x = settings->boardX, y = settings->boardY;
 		fwrite(&x, sizeof(int), 1, file);
 		fwrite(&y, sizeof(int), 1, file);
