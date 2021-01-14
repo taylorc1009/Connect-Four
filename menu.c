@@ -4,7 +4,6 @@
 *	- Randomize (or allow selection) of player or AI turn on first move?
 *	- Test save and load more
 *	- Test undo and redo more
-*	- Test how the 'evaluateWindow' 2player:2empty -=1 and count of EMPTY_SLOT in centre column(s) affects AI quality
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
 *	- Add a move down animation?
 *	
