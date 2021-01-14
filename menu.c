@@ -246,7 +246,10 @@ int main(int argc, char** argv) {
 			settings->boardY = validateOption(5, 9, false);
 
 			printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
-			delay(1);
+			delay(2);
+
+			system("cls");
+			welcome(settings->boardX, settings->boardY);
 			break;
 
 		case 3:
