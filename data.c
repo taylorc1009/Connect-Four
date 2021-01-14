@@ -100,7 +100,8 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 					if (buffer != EMPTY_SLOT) {
 						int* token = malloc(sizeof(int));
 						*token = buffer;
-						addMove(*board, i, token);
+						if (!addMove(*board, i, token))
+							return cancelLoad(*board, *history, NULL, file);
 					}
 				}
 			}
@@ -126,7 +127,8 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 					if (!fread(&move->column, sizeof(int), 1, file) || !fread(&move->token, sizeof(int), 1, file))
 						return cancelLoad(*board, *history, NULL, file);
 
-					push(stack, &move);
+					if (!push(stack, &move)) //push failsafe, it shouldn't fail as the correct size should be used but just in case
+						return cancelLoad(*board, *history, NULL, file);
 				}
 			}
 
