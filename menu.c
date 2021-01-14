@@ -246,7 +246,7 @@ int main(int argc, char** argv) {
 			settings->boardY = validateOption(5, 9, false);
 
 			printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
-			delay(2);
+			delay(1);
 			break;
 
 		case 3:
