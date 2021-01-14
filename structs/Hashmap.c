@@ -71,9 +71,13 @@ void** getToken(struct Hashmap* board, int x, int y) {
     return val;
 }
 
+bool columnIsFull(struct Hashmap* board, int column) {
+    return stackIsFull(hashGet(board, column));
+}
+
 bool isBoardFull(struct Hashmap* board, int x) {
     for (int i = 0; i < x; i++)
-        if (!stackIsFull(hashGet(board, i)))
+        if (!columnIsFull(board, i))
             return false;
     return true;
 }
