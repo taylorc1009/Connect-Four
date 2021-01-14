@@ -142,20 +142,23 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	if (depth == 0 || move->gameStatus) {
 		if (move->gameStatus) {
 			if (move->gameStatus == AIWin) { //bot has won in this instance
-
 				int score;
 
 				if (maxDepth > 3 && depth < maxDepth - 1) { //discourages the AI from making future moves that give the player a win ('> 3' so it only does this for high difficulties and dept < max so it will not prevent a win on the next move)
 					row++;
+
 					bool pWin = false;
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_1_TOKEN;
 					if (!addMove(board, move->column, tok)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN);
-					score = pWin ? safeWinScore(-1, depth, maxDepth) : score;
+					else
+						free(tok);
+					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);;
 				}
 				else
 					score = safeWinScore(1, depth, maxDepth);
+
 				move->score = score;
 			}
 			else if (move->gameStatus == PlayerWin) //player has won in this instance
@@ -172,37 +175,38 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	if (player == PLAYER_2_TOKEN) { //maximizing player
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
-			if (!stackIsFull(hashGet(board, i))) {
-				struct Hashmap* temp = copyBoard(board, x, y);
-				int* tok = malloc(sizeof(int));
-				*tok = PLAYER_2_TOKEN;
-				addMove(temp, i, tok);
+			if (columnIsFull(board, i))
+				continue;
 
-				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
-				//	printf("\n|");
-				//	for (int k = 0; k < x; k++) {
-				//		int p = *((int*)getToken(temp, k, (y - 1) - j));
-				//		printf("%d|", p);
-				//	}
-				//}
-				//printf("d:%d i:%d", depth, i);
+			struct Hashmap* temp = copyBoard(board, x, y);
+			int* tok = malloc(sizeof(int));
+			*tok = PLAYER_2_TOKEN;
+			addMove(temp, i, tok);
 
-				struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
+			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+			//	printf("\n|");
+			//	for (int k = 0; k < x; k++) {
+			//		int p = *((int*)getToken(temp, k, (y - 1) - j));
+			//		printf("%d|", p);
+			//	}
+			//}
+			//printf("d:%d i:%d", depth, i);
 
-				if (newMove->score > move->score) {
-					//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
-					move->score = newMove->score;
-					move->gameStatus = newMove->gameStatus;
-					move->column = move->gameStatus && move->score < -1000 ? newMove->column : i; //prevents the maximizing player from using a really low score (we still return the other values so we can let the algorithm know what happens)
-					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
-				}
-				freeHashmap(temp);
-				free(newMove);
+			struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 
-				alpha = max(alpha, move->score);
-				if (alpha >= beta)
-					break;
+			if (newMove->score > move->score) {
+				//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+				move->score = newMove->score;
+				move->gameStatus = newMove->gameStatus;
+				move->column = move->gameStatus && move->score < -1000 ? newMove->column : i; //prevents the maximizing player from using a really low score (we still return the other values so we can let the algorithm know what happens)
+				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
+			freeHashmap(temp);
+			free(newMove);
+
+			alpha = max(alpha, move->score);
+			if (alpha >= beta)
+				break;
 		}
 		//printf("\nstep up");
 		return move;
@@ -210,37 +214,38 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	else { //minimizing player
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
-			if (!stackIsFull(hashGet(board, i))) {
-				struct Hashmap* temp = copyBoard(board, x, y);
-				int* tok = malloc(sizeof(int));
-				*tok = PLAYER_1_TOKEN;
-				addMove(temp, i, tok);
+			if (columnIsFull(board, i))
+				continue;
 
-				//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
-				//	printf("\n|");
-				//	for (int k = 0; k < x; k++) {
-				//		int p = *((int*)getToken(temp, k, (y - 1) - j));
-				//		printf("%d|", p);
-				//	}
-				//}
-				//printf("d:%d i:%d", depth, i);
+			struct Hashmap* temp = copyBoard(board, x, y);
+			int* tok = malloc(sizeof(int));
+			*tok = PLAYER_1_TOKEN;
+			addMove(temp, i, tok);
 
-				struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
+			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+			//	printf("\n|");
+			//	for (int k = 0; k < x; k++) {
+			//		int p = *((int*)getToken(temp, k, (y - 1) - j));
+			//		printf("%d|", p);
+			//	}
+			//}
+			//printf("d:%d i:%d", depth, i);
 
-				if (newMove->score < move->score) {
-					//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
-					move->score = newMove->score;
-					move->gameStatus = newMove->gameStatus;
-					move->column = move->gameStatus && move->score > 1000 ? newMove->column : i; //prevents the minimizing player from using a really high (same as the one above; setting these to lower values may make the AI smarter, but too low may break things)
-					//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
-				}
-				freeHashmap(temp);
-				free(newMove);
+			struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 
-				beta = min(beta, move->score);
-				if (alpha >= beta)
-					break;
+			if (newMove->score < move->score) {
+				//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+				move->score = newMove->score;
+				move->gameStatus = newMove->gameStatus;
+				move->column = move->gameStatus && move->score > 1000 ? newMove->column : i; //prevents the minimizing player from using a really high (same as the one above; setting these to lower values may make the AI smarter, but too low may break things)
+				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
+			freeHashmap(temp);
+			free(newMove);
+
+			beta = min(beta, move->score);
+			if (alpha >= beta)
+				break;
 		}
 		//printf("\nstep up");
 		return move;
