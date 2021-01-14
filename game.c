@@ -97,7 +97,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 			delay(1);
 		}
 		else
-			delay(2);
+			delay(2); //give time to display the error message
 
 		*saving = true;
 	}
@@ -315,10 +315,8 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
 			displayBoard(board, win);
-			win ? printf("Congratulations %s%s%s, you win!\n", colour, player, PNRM) : printf("The board is full... Game over!\n"); //check for a win instead of board full in case a player won on the last available move
+			win ? printf("Congratulations %s%s%s, you win!", colour, player, PNRM) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
 			delay(2);
-			printf("Returning to the main menu...");
-			delay(3);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
@@ -361,7 +359,6 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 					addMove(board, column - 1, tok); //shouldn't return a full column as we determine this in the AI
 
 					updateHistory(&history, column - 1, token);
-					//delay(3); //use this during debugging
 				}
 			}
 			else {
@@ -376,6 +373,9 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				p1ToPlay = !p1ToPlay;
 		}
 	} while ((column >= 1 && column <= x) || traversing || saving);
+
+	printf("\nReturning to the main menu...");
+	delay(3);
 
 	freeHashmap(board);
 	freeHashmap(history);
