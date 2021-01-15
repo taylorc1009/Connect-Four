@@ -1,10 +1,8 @@
 # Connect Four
-### Developed using C
-
 Consists of both single player (player versus AI) and player versus player.
 
 ## AI features
-The AI has been implemented using a scoring system which is recursively called while utilizing the **Minimax Algorithm**, an algorithm made to evaluate the outcome of every possible move that could be made within in the next *n* turns. The greater *n* is (which is known as the *depth*), the more moves the AI can predict.
+The AI has been implemented using a scoring system which is recursively called while utilizing the **Minimax Algorithm**, an algorithm made to evaluate the outcome of every possible move that could be made within in the next *n* turns. The greater *n* is (which is known as the **depth**), the more moves the AI can predict.
 
 
 ### Minimax Algorithm
