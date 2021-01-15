@@ -4,7 +4,7 @@
 Consists of both single player (player versus AI) and player versus player.
 
 ## AI features
-The AI has been implemented using a scoring system which is recursively called while utilizing the **Minimax Algorithm**, an algorithm made to evaluate the outcome of every possible move that could be made within in the next *n* turns. The greater the *n* (which is known as the **depth*), the more moves the AI can predict.
+The AI has been implemented using a scoring system which is recursively called while utilizing the **Minimax Algorithm**, an algorithm made to evaluate the outcome of every possible move that could be made within in the next *n* turns. The greater *n* is (which is known as the *depth*), the more moves the AI can predict.
 
 
 ### Minimax Algorithm
@@ -14,7 +14,7 @@ It works by, firstly, making a copy of the board and making a move in the first 
 
 If, at any point during decision making, the algorithm reaches a Terminal Node, a score will be returned based on what the winning move is. A "Terminal Node" is a game ending move, which is either: the board is full, the AI won, or the player won. If the AI wins, a (positive) high score is returned, and the player; an overly negative number is returned. The score returned from these nodes, except when the board is full, varies depending on the depth it was found at.
 
-The algorithm is very thorough but it quickly becomes a very large procedure as you increase the depth. The sum of it's recursions is given by calculating (board's length of X)^(depth + 1), so if we had the default connect 4 dimensions (7x6) with a depth of 6 then the occurances of Minimax would become 7^7 (which equals 823,543). We can prevent this many occurances by implementing what is known as **Alpha-Beta Pruning**.
+The algorithm is very thorough but it quickly becomes a very large procedure as you increase the depth. The sum of it's recursions is given by calculating (board's length, x)^(depth + 1). So, if we had the default connect 4 dimensions (7x6) with a depth of 6, the occurances of Minimax would become 7^7 (which equals 823,543). We can prevent this many occurances by implementing what is known as **Alpha-Beta Pruning**.
 
 
 ### Alpha-Beta Pruning
