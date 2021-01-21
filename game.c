@@ -1,6 +1,5 @@
 #include <math.h>
-#include "structs/Hashmap.h"
-#include "game-structures.h"
+#include "game.h"
 
 bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	struct Stack* moveStack = hashGet(*history, 0);
@@ -17,7 +16,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(moveStack, -1);
 
 	resizeStack(undoStack, 1);
-	push(undoStack, &undoMove);
+	push(undoStack, (void**)&undoMove);
 
 	*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
@@ -39,7 +38,7 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(undoStack, -1);
 
 	resizeStack(moveStack, 1);
-	push(moveStack, &redoMove);
+	push(moveStack, (void**)&redoMove);
 
 	*column = redoMove->column + 1;
 
@@ -54,7 +53,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 	move->token = p;
 
 	resizeStack(hashGet(*history, 0), 1);
-	push(hashGet(*history, 0), &move);
+	push(hashGet(*history, 0), (void**)&move);
 
 	struct Stack* undoStack = hashGet(*history, 1);
 	if (undoStack->size) { //if there are redo-able moves, clear them as, since the user has made a new move after undoing, these may not be possible to redo
@@ -165,110 +164,10 @@ void displayBoard(struct Hashmap* board, int** win) {
 	printf("\n\n\n");
 }
 
-int** checkWin(int row, int column, struct Hashmap* board, int token) {
-	int x = getX(board), y = getY(board);
-	int* tok;
-
-	//horizontal check
-	int count = 0;
-	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
-		if (*((int*)getToken(board, i, row)) == token) {
-			count++;
-			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
-				for (int j = 0; j < 4; j++) {
-					win[j] = malloc(sizeof(int) * 2);
-					win[j][0] = (i - 3) + j;
-					win[j][1] = row;
-				}
-				return win;
-			}
-		}
-		else
-			count = 0;
-	}
-
-	//vertical check
-	count = 0;
-	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
-		if (*((int*)getToken(board, column, i)) == token) {
-			count++;
-			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
-				for (int j = 0; j < 4; j++) {
-					win[j] = malloc(sizeof(int) * 2);
-					win[j][0] = column;
-					win[j][1] = i - j;
-				}
-				return win;
-			}
-		}
-		else
-			count = 0;
-	}
-
-	//bottom-left to top-right diagonal check
-	count = 0;
-	int i = row, j = column;
-
-	//creates check point to start checking from diagonally
-	while (i != 0 && j != 0 && i > row - 3 && j > column - 3) {
-		i--;
-		j--;
-	}
-
-	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
-		if (*((int*)getToken(board, j, i)) == token) {
-			count++;
-			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
-				for (int k = 0; k < 4; k++) {
-					win[k] = malloc(sizeof(int) * 2);
-					win[k][0] = j - k;
-					win[k][1] = i - k;
-				}
-				return win;
-			}
-		}
-		else
-			count = 0;
-	}
-
-	//bottom-right to top-left diagonal check
-	count = 0;
-	i = row;
-	j = column;
-
-	//creates check point to start checking from diagonally
-	while (i != 0 && j != x - 1 && i > row - 3 && j < column + 3) {
-		i--;
-		j++;
-	}
-
-	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
-		if (*((int*)getToken(board, j, i)) == token) {
-			count++;
-			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
-				for (int k = 0; k < 4; k++) {
-					win[k] = malloc(sizeof(int) * 2);
-					win[k][0] = j + k;
-					win[k][1] = i - k;
-				}
-				return win;
-			}
-		}
-		else
-			count = 0;
-	}
-
-	return NULL;
-}
-
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
 	bool successfulOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
-	char* player = NUL;
+	char* player = NULL;
 	char* colour;
 	int centres[2];
 	struct Hashmap* board;
@@ -308,7 +207,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	}
 
 	do {
-		if (player != NUL && !traversing && !saving) { //used to skip checks before the first initial move, otherwise null issues occur
+		if (player != NULL && !traversing && !saving) { //used to skip checks before the first initial move, otherwise null issues occur
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
 			if (win == NULL)
 				boardFull = isBoardFull(board, x);

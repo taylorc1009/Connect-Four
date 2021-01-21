@@ -10,66 +10,7 @@
 *	Update README.md upon completion (if required)
 */
 
-#include <string.h>
-#include <time.h>
-#include "structs/Hashmap.h"
-#include "game-structures.h"
-
-#define NAME_MAX 32 //2 extra bytes to accomodate '\n' and '\0'
-
-static inline void cleanStdin() {
-	char c = NUL;
-	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
-}
-
-void delay(int numOfSeconds) {
-	int milliSeconds = 1000 * numOfSeconds;
-	clock_t startTime = clock();
-	while (clock() < startTime + milliSeconds);
-}
-
-int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
-	bool valid;
-	int num;
-	char buffer[3];
-
-	//while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
-	//	char term;
-	//	if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
-	//		printf("%d", num);
-	//		if (inPlay && (num == 'r' || num == 'u'))
-	//			continue;
-
-	//		printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
-	//		/*char c = NUL;
-	//		do {
-	//			c = getchar();
-	//		} while (!isdigit(c));
-	//		ungetc(c, stdin);*/
-	//		cleanStdin();
-	//		num = -1;
-	//	}
-	//}
-
-	do {
-		fgets(buffer, sizeof buffer, stdin);
-
-		num = (int)buffer[0];
-		bool juncture = buffer[1] == '\n';
-
-		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
-		if (!valid) {
-			if (!juncture)
-				cleanStdin();
-			if (min == 0 && max == 0)
-				printf("\n(!) invalid input: please enter an undo/redo operation or 0 to cancel\n> "); //used during the AI move being held as only 0 can be entered
-			else
-				printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
-		}
-	} while (!valid);
-
-	return num - '0';
-}
+#include "menu.h"
 
 int removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
 	int i, j;
@@ -85,7 +26,7 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 }
 
 int getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
-	char* buffer = (char*)malloc(sizeof(char) * NAME_MAX);
+	char* buffer = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
 	int size;
 
 	//comments here were an attempt to get an infinitely long string: one that exceeds the buffer size
@@ -93,7 +34,7 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 	//int i = 0;
 	//bool proceed = false;
 	
-	memset(buffer, NUL, NAME_MAX);
+	memset(buffer, NUL, NAME_BUFFER_MAX);
 	//input = NUL;
 	char* input = NULL;
 
@@ -119,7 +60,7 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 					fgets(buffer, NAME_MAX, stdin);
 			}
 		}*/
-		input = fgets(buffer, NAME_MAX, stdin);
+		input = fgets(buffer, NAME_BUFFER_MAX, stdin);
 
 		//removeExcessSpaces(buffer);
 		size_t bufLen = strlen(buffer);
@@ -172,7 +113,7 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 
 void setup(struct Settings* settings) {
 	printf("\n%sPlayer 1%s, please enter your name\n> ", P1COL, PNRM);
-	settings->player1 = (char*)malloc(sizeof(char) * NAME_MAX);
+	settings->player1 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
 	settings->player1Size = getName(&(settings)->player1);
 
 	if (settings->solo) {
@@ -197,7 +138,7 @@ void setup(struct Settings* settings) {
 	}
 	else {
 		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
-		settings->player2 = (char*)malloc(sizeof(char) * NAME_MAX);
+		settings->player2 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
 		settings->player2Size = getName(&(settings)->player2);
 		printf("\nWelcome %s%s%s and %s%s%s!", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
 		delay(1);
@@ -266,7 +207,7 @@ int main(int argc, char** argv) {
 			welcome(settings->boardX, settings->boardY);
 			break;
 
-		case 5:
+		case 5: ; //reason for ';' - https://stackoverflow.com/questions/18496282/why-do-i-get-a-label-can-only-be-part-of-a-statement-and-a-declaration-is-not-a
 			struct Hashmap* board = NULL;
 			struct Hashmap* history = NULL;
 			bool turn, traversing;

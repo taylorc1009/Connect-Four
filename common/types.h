@@ -1,3 +1,5 @@
+#include "../structs/Hashmap.h"
+
 struct Settings {
 	int boardX;
 	int boardY;

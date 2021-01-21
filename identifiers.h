@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //we use a typedef instead of '#include<stdbool.h>' as "bool" is not a key-word to the compiler
 //so including it when we use it as a return type gives errors

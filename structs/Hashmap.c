@@ -59,7 +59,7 @@ int getY(struct Hashmap* board) {
 }
 
 bool addMove(struct Hashmap* board, int column, int* tok) {
-    return push(hashGet(board, column), &tok);
+    return push(hashGet(board, column), (void**)&tok);
 }
 
 void** getToken(struct Hashmap* board, int x, int y) {

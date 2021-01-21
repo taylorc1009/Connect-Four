@@ -1,20 +1,7 @@
 //credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
 
 #include <math.h>
-#include "structs/Hashmap.h"
-
-typedef enum {
-	Ongoing = 0,
-	AIWin = 1,
-	PlayerWin = 2,
-	BoardFull = 3
-} GameStatus;
-
-struct AIMove {
-	int column;
-	int score;
-	GameStatus gameStatus; //0 = game is still going, 1 = AI wins, 2 = player wins, 3 = board is full
-};
+#include "AI.h"
 
 struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
@@ -113,7 +100,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	*finalScore = score;
 }
 
-enum GameStatus isGameOver(struct Hashmap* board, int row, int column) {
+int isGameOver(struct Hashmap* board, int row, int column) {
 	//printf("\ncheckWin P1 = %d, P2 = %d >> row: %d, column: %d\n", checkWin(row, column, board, PLAYER_1_TOKEN), checkWin(row, column, board, PLAYER_2_TOKEN), row, column);
 	if (checkWin(row, column, board, PLAYER_2_TOKEN))
 		return AIWin;
@@ -153,7 +140,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					int* token = malloc(sizeof(int));
 					*token = PLAYER_1_TOKEN;
 					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
-						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN);
+						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN) != NULL ? true : false;
 					else
 						free(token);
 					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);;
@@ -177,8 +164,10 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	if (player == PLAYER_2_TOKEN) { //maximizing player
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
-			if (columnIsFull(board, i))
-				continue;
+			#if (__has_include("Hashmap.h")) //it will always be included, this is just to suppress the compiler warning
+				if (columnIsFull(board, i))
+					continue;
+			#endif
 
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
@@ -206,7 +195,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			freeHashmap(temp);
 			free(newMove);
 
-			alpha = max(alpha, move->score);
+			alpha = MAX(alpha, move->score);
 			if (alpha >= beta)
 				break;
 		}
@@ -216,8 +205,10 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	else { //minimizing player
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
-			if (columnIsFull(board, i))
-				continue;
+			#if (__has_include("Hashmap.h")) //same as above
+				if(columnIsFull(board, i))
+					continue;
+			#endif
 
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
@@ -245,7 +236,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			freeHashmap(temp);
 			free(newMove);
 
-			beta = min(beta, move->score);
+			beta = MIN(beta, move->score);
 			if (alpha >= beta)
 				break;
 		}

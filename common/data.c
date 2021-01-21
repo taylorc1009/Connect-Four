@@ -1,9 +1,4 @@
-#include "structs/Hashmap.h"
-#include "game-structures.h"
-
-#define FAILED_MESSAGE "\n(!) failed to load the save correctly\n"
-#define NOT_FOUND_MESSAGE "\n(!) file to load from was not found: 'save.bin'\n"
-#define NONE_EXISTING_MESSAGE "\n(!) there is no existing save\n"
+#include "data.h"
 
 char* cancelLoad(struct Hashmap* board, struct Hashmap* history, struct Settings* settings, FILE* file) {
 	if (board != NULL)
@@ -129,7 +124,7 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 					if (!fread(&move->column, sizeof(int), 1, file) || !fread(&move->token, sizeof(int), 1, file))
 						return cancelLoad(*board, *history, NULL, file);
 
-					if (!push(stack, &move)) { //push failsafe, it shouldn't fail as the correct size should be used but just in case
+					if (!push(stack, (void**)&move)) { //push failsafe, it shouldn't fail as the correct size should be used but just in case
 						free(move);
 						return cancelLoad(*board, *history, NULL, file);
 					}
