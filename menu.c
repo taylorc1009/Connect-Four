@@ -6,6 +6,8 @@
 *	- Test undo and redo more
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
 *	- Add a move down animation?
+*
+*	-- GCC - I need to add a command line parameter so I can tell the program which actions to perform in some places, for example: system("cls") does not work in Unix, so maybe try system("clear")?
 *	
 *	Update README.md upon completion (if required)
 */
