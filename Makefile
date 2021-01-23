@@ -9,8 +9,13 @@
 # 	endif
 # endif
 
-play:
-	
+play: # this should also work on Linux, but just incase it doesn't there's a Linux command below
+	build/Connect
+
+play-linux:
+	./build/Connect
+
+# play:
 	# ifeq ($(TYPE), 1)
 	# 	connect
 	# endif
@@ -23,9 +28,8 @@ play:
 
 compile:
 	mkdir build
-	cd build
-	cmake ..
-	cmake --build .
+	cmake -B build
+	cmake --build build
 	# ifeq ($(TYPE), 1)
 	# 	cl structs/Stack.c structs/Hashmap.c AI.c data.c game.c menu.c /link /out:connect.exe
 	# endif
