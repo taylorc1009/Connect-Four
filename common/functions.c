@@ -1,9 +1,13 @@
 #include "functions.h"
 
 void delay(int numOfSeconds) {
+	#ifdef wait
+	wait(numOfSeconds); // Unix 'wait' - the block below does not work with Unixs' standard library
+	#else
 	int milliSeconds = 1000 * numOfSeconds;
 	clock_t startTime = clock();
 	while (clock() < startTime + milliSeconds);
+	#endif
 }
 
 void cleanStdin() {

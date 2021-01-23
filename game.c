@@ -130,23 +130,23 @@ void displayBoard(struct Hashmap* board, int** win) {
 			int token = *((int*)getToken(board, j, k));
 
 			if (token) {
-				char* colour = PNRM; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
+				char* colour = DEFAULT_COLOUR; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
 				/*if (win) {
 					printf("%d", l);
 					printf("(%d, %d), %d(%d, %d)", j, k, l, j == win[l][0], k == win[l][1]);
 				}*/
 				if (win && (l >= 0 && l <= 3) && (j == win[l][0] && k == win[l][1])) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
-					colour = PWIN;
+					colour = WIN_COLOUR;
 
 					//if (j == win[l][0] && k == win[l][1])
 					l++;
 					//m--; //always decrement m because, as l approaches 3, l + m will be out of bounds
 				}
 				else if (token == PLAYER_1_TOKEN)
-					colour = P1COL;
+					colour = PLAYER_1_COLOUR;
 				else if (token == PLAYER_2_TOKEN)
-					colour = P2COL;
-				printf(" %sO%s |", colour, PNRM);
+					colour = PLAYER_2_COLOUR;
+				printf(" %sO%s |", colour, DEFAULT_COLOUR);
 			}
 			else
 				printf("   |");
@@ -162,6 +162,12 @@ void displayBoard(struct Hashmap* board, int** win) {
 	for (i = 1; i < x + 1; i++)
 		printf("  %d ", i);
 	printf("\n\n\n");
+
+	/*if (win) {
+		//for (int i = 0; i < 4; i++)
+			//free(win[i]);
+		free(win);
+	}*/
 }
 
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
@@ -215,7 +221,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
 			displayBoard(board, win);
-			win ? printf("Congratulations %s%s%s, you win!", colour, player, PNRM) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
+			win ? printf("Congratulations %s%s%s, you win!", colour, player, DEFAULT_COLOUR) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
 			delay(2);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
@@ -226,12 +232,12 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				if (p1ToPlay) {
 					player = settings->player1;
 					token = PLAYER_1_TOKEN;
-					colour = P1COL;
+					colour = PLAYER_1_COLOUR;
 				}
 				else {
 					player = settings->player2;
 					token = PLAYER_2_TOKEN;
-					colour = P2COL;
+					colour = PLAYER_2_COLOUR;
 				}
 			}
 			else
@@ -239,7 +245,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 			if (!p1ToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
-					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, PNRM);
+					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 					
 					do {
 						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
@@ -250,7 +256,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 						printf("\n");
 				}
 				if (!traversing) {
-					printf("%s%s%s is making a move...", colour, settings->player2, PNRM);
+					printf("%s%s%s is making a move...", colour, settings->player2, DEFAULT_COLOUR);
 
 					AIMakeMove(board, &column, centres, settings->depth); //give board by value so we don't accidentally edit it
 
@@ -263,7 +269,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 				}
 			}
 			else {
-				printf("Make your move %s%s%s, what would you like to do?\n> ", colour, player, PNRM);
+				printf("Make your move %s%s%s, what would you like to do?\n> ", colour, player, DEFAULT_COLOUR);
 
 				do {
 					column = validateOption(0, x, true);
@@ -280,9 +286,12 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 	freeHashmap(board);
 	freeHashmap(history);
+
+	#if _WIN32
 	if (win) {
 		for (int i = 0; i < 4; i++)
 			free(win[i]);
 		free(win);
 	}
+	#endif
 }

@@ -15,7 +15,13 @@ typedef enum { false, true } bool;
 #define NUL '\0' //used to "nullify" a char
 
 //C console colours (source - https://stackoverflow.com/a/3586005/11136104)
-#define P1COL "\x1B[31m" //red
-#define P2COL "\x1B[33m" //yellow
-#define PWIN "\x1B[32m" //green
-#define PNRM "\x1B[0m" //default console text color
+#define PLAYER_1_COLOUR "\x1B[31m" //red
+#define PLAYER_2_COLOUR "\x1B[33m" //yellow
+#define WIN_COLOUR "\x1B[32m" //green
+#define DEFAULT_COLOUR "\x1B[0m" //default console text color
+
+#if _WIN32
+#define CLEAR_TERMINAL "cls"
+#elif __linux__ || __unix__
+#define CLEAR_TERMINAL "clear"
+#endif

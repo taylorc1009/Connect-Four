@@ -7,8 +7,11 @@
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
 *	- Add a move down animation?
 *
-*	-- GCC - I need to add a command line parameter so I can tell the program which actions to perform in some places, for example: system("cls") does not work in Unix, so maybe try system("clear")?
-*	
+*	-- GCC - I need to add a command line parameter (or a macro) so I can tell the program which actions to perform in some places, for example: system("cls") does not work in Unix, so maybe try system("clear")?
+*		   - UPDATE: (partially) done - check how the OS identification is done in 'identifiers.h'
+*	-- GCC TODO - I have found that the 'free(win[i])' at the bottom of 'play()' in 'game.c' is crashing, I'm assuming that the 'displayBoard()' function is invalidating it, but I'm insure if it is also deallocating it because I can still acces the matrixs' values from 'play()'
+*				- I have also created a 'CLEAR_TERMINAL' constant with the command to to clear the terminal based on the OS, but I am not using it yet as I'm still trying to debug the 'free()' problem from above
+*
 *	Update README.md upon completion (if required)
 */
 
@@ -114,7 +117,7 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 }
 
 void setup(struct Settings* settings) {
-	printf("\n%sPlayer 1%s, please enter your name\n> ", P1COL, PNRM);
+	printf("\n%sPlayer 1%s, please enter your name\n> ", PLAYER_1_COLOUR, DEFAULT_COLOUR);
 	settings->player1 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
 	settings->player1Size = getName(&(settings)->player1);
 
@@ -122,7 +125,7 @@ void setup(struct Settings* settings) {
 		settings->player2 = "AI"; //this makes the char* static so no point dynamically allocating before
 		settings->player2Size = 3;
 
-		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", P1COL, settings->player1, PNRM);
+		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR);
 		switch (validateOption(1, 4, false)) {
 			case 1:
 				settings->depth = 1;
@@ -139,10 +142,10 @@ void setup(struct Settings* settings) {
 		}
 	}
 	else {
-		printf("\n%sPlayer 2%s, please enter your name\n> ", P2COL, PNRM);
+		printf("\n%sPlayer 2%s, please enter your name\n> ", PLAYER_2_COLOUR, DEFAULT_COLOUR);
 		settings->player2 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
 		settings->player2Size = getName(&(settings)->player2);
-		printf("\nWelcome %s%s%s and %s%s%s!", P1COL, settings->player1, PNRM, P2COL, settings->player2, PNRM);
+		printf("\nWelcome %s%s%s and %s%s%s!", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR, PLAYER_2_COLOUR, settings->player2, DEFAULT_COLOUR);
 		delay(1);
 	}
 
@@ -156,11 +159,12 @@ void setup(struct Settings* settings) {
 }
 
 void welcome(int x, int y) {
-	system("clear");
+	//system("clear");
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
+	system("clear");
 	struct Settings* settings = (struct Settings*)malloc(sizeof(struct Settings));
 	settings->boardX = 7;
 	settings->boardY = 6;
@@ -176,7 +180,7 @@ int main(int argc, char** argv) {
 		option = validateOption(1, 6, false);
 		switch (option) {
 		case 1:
-			printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", P1COL, PNRM, P2COL, PNRM);
+			printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", PLAYER_1_COLOUR, DEFAULT_COLOUR, PLAYER_2_COLOUR, DEFAULT_COLOUR);
 			break;
 
 		case 2:

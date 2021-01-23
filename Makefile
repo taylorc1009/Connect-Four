@@ -27,6 +27,9 @@ play-linux:
 	# endif
 
 compile:
+	# ifneq ("$(wildcard $(PATH_TO_FILE))","")
+    # 	rm -rf build
+	# endif
 	mkdir build
 	cmake -B build
 	cmake --build build
