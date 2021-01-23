@@ -62,5 +62,8 @@ dkms.conf
 /.vs
 /.vscode
 
+# CMake files
+/build
+
 # Program generated files
 save.bin

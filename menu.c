@@ -156,12 +156,11 @@ void setup(struct Settings* settings) {
 }
 
 void welcome(int x, int y) {
+	system("clear");
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
-	system("cls");
-
 	struct Settings* settings = (struct Settings*)malloc(sizeof(struct Settings));
 	settings->boardX = 7;
 	settings->boardY = 6;
@@ -190,14 +189,12 @@ int main(int argc, char** argv) {
 			printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 			delay(2);
 
-			system("cls");
 			welcome(settings->boardX, settings->boardY);
 			break;
 
 		case 3:
 			setup(settings);
 
-			system("cls");
 			welcome(settings->boardX, settings->boardY);
 			break;
 
@@ -205,7 +202,7 @@ int main(int argc, char** argv) {
 			settings->solo = true;
 			setup(settings);
 
-			system("cls");
+			
 			welcome(settings->boardX, settings->boardY);
 			break;
 
@@ -224,7 +221,6 @@ int main(int argc, char** argv) {
 
 				play(&board, &history, settings, turn, traversing);
 
-				system("cls");
 				welcome(settings->boardX, settings->boardY);
 			}
 			else
