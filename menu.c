@@ -165,7 +165,9 @@ void welcome(int x, int y) {
 
 int main(int argc, char** argv) {
 	#if !__WIN32
-	setbuf(stdout, NULL); //remove this and you'll notice that 'printf' outputs are buffered (they happen after delays, terminal clears...), but it only happend on Unix by default
+	//remove this and you'll notice that 'printf' outputs are buffered (they happen after delays, terminal clears...), but it only happend on Unix by default
+	//reference - https://stackoverflow.com/a/16877432
+	setbuf(stdout, NULL);
 	#endif
 
 	struct Settings* settings = (struct Settings*)malloc(sizeof(struct Settings));
