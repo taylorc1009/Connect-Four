@@ -131,11 +131,9 @@ void displayBoard(struct Hashmap* board, struct Matrix* win) {
 
 			if (token) {
 				char* colour = DEFAULT_COLOUR; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
-				/*if (win) {
-					printf("%d", l);
-					printf("(%d, %d), %d(%d, %d)", j, k, l, j == win[l][0], k == win[l][1]);
-				}*/
-				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, l, 0)) && k == *((int*)matrixCell(win, l, 1)))) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
+				//if (win)
+					//printf("%d(%d, %d), (%d, %d)", l, j, k, *((int*)matrixCell(win, 0, l)), *((int*)matrixCell(win, 1, l)));
+				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, 0, l)) && k == *((int*)matrixCell(win, 1, l)))) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
 					colour = WIN_COLOUR;
 
 					//if (j == win[l][0] && k == win[l][1])
@@ -162,12 +160,6 @@ void displayBoard(struct Hashmap* board, struct Matrix* win) {
 	for (i = 1; i < x + 1; i++)
 		printf("  %d ", i);
 	printf("\n\n\n");
-
-	/*if (win) {
-		//for (int i = 0; i < 4; i++)
-			//free(win[i]);
-		free(win);
-	}*/
 }
 
 void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
