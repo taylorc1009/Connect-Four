@@ -19,8 +19,10 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 		if (str[i] != '\n' && !isspace(str[i]) || (i > 0 && isspace(str[i]) && !isspace(str[i - 1])))
 			str[j++] = str[i];
 
-	if (j > 0 && isspace(str[j - 1]))
+	if (j > 0 && isspace(str[j - 1])) {
 		str[j - 1] = '\0';
+		j--;
+	}
 
 	return j; //return the new length of the string; +1 so we can add '\0' after
 }
