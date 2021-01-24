@@ -37,7 +37,7 @@
 *.hex
 
 # GCC Output files
-connect
+Connect
 
 # Debug files
 *.dSYM/
