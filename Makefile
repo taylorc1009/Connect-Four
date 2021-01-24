@@ -31,7 +31,7 @@ clean-windows:
 	del *.exe
 
 clean-shell:
-	rm *.out
-	rm *.o
-	rm *.run
 	rm Connect
+	rm *.o
+	rm *.out
+	rm *.run
