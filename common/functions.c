@@ -2,9 +2,8 @@
 
 void delay(int numOfSeconds) {
 	#if !_WIN32
-	unsigned int left = numOfSeconds;
-    while (left > 0)
-        left = sleep(left); // Unix 'sleep' - the block below does not work with Unixs' standard library
+	unsigned int retTime = time(0) + numOfSeconds;
+    while (time(0) < retTime); // Unix 'sleep' - the block below does not work with Unixs' standard library
 	#else
 	int milliSeconds = 1000 * numOfSeconds;
 	clock_t startTime = clock();
