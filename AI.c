@@ -100,7 +100,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	*finalScore = score;
 }
 
-int isGameOver(struct Hashmap* board, int row, int column) {
+GameStatus isGameOver(struct Hashmap* board, int row, int column) {
 	//printf("\ncheckWin P1 = %d, P2 = %d >> row: %d, column: %d\n", checkWin(row, column, board, PLAYER_1_TOKEN), checkWin(row, column, board, PLAYER_2_TOKEN), row, column);
 	if (checkWin(row, column, board, PLAYER_2_TOKEN))
 		return AIWin;
@@ -126,7 +126,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	int row = hashGet(board, column)->top;
 	//printf("\n%d. (%d, %d), row: %d col: %d, token: %d", depth, x, y, row, column, player);
 	move->gameStatus = isGameOver(board, row, column);
-	//printf(" >> gameStatus? %s", move->gameStatus ? "true" : "false");
+	//printf(" >> gameStatus? %d", move->gameStatus);
 
 	if (depth == 0 || move->gameStatus) {
 		if (move->gameStatus) {
@@ -174,26 +174,29 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			*token = PLAYER_2_TOKEN;
 			addMove(temp, i, token);
 
-			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
-			//	printf("\n|");
-			//	for (int k = 0; k < x; k++) {
-			//		int p = *((int*)getToken(temp, k, (y - 1) - j));
-			//		printf("%d|", p);
-			//	}
-			//}
-			//printf("d:%d i:%d", depth, i);
+			/*for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+				printf("\n|");
+				for (int k = 0; k < x; k++) {
+					int p = *((int*)getToken(temp, k, (y - 1) - j));
+					printf("%d|", p);
+				}
+			}
+			printf("d:%d i:%d", depth, i);*/
 
 			struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 
 			if (newMove->score > move->score) {
-				//printf("\nnewMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+				//printf("\nmaximizing-newMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 				move->score = newMove->score;
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score < -1000 ? newMove->column : i; //prevents the maximizing player from using a really low score (we still return the other values so we can let the algorithm know what happens)
 				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
+			//printf("\npointers: tempBoard(%d), newMove(%d)", (int)temp, (int)newMove);
+			//#if _WIN32
 			freeHashmap(temp);
 			free(newMove);
+			//#endif
 
 			alpha = MAX(alpha, move->score);
 			if (alpha >= beta)
@@ -215,26 +218,29 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			*token = PLAYER_1_TOKEN;
 			addMove(temp, i, token);
 
-			//for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
-			//	printf("\n|");
-			//	for (int k = 0; k < x; k++) {
-			//		int p = *((int*)getToken(temp, k, (y - 1) - j));
-			//		printf("%d|", p);
-			//	}
-			//}
-			//printf("d:%d i:%d", depth, i);
+			/*for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
+				printf("\n|");
+				for (int k = 0; k < x; k++) {
+					int p = *((int*)getToken(temp, k, (y - 1) - j));
+					printf("%d|", p);
+				}
+			}
+			printf("d:%d i:%d", depth, i);*/
 
 			struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 
 			if (newMove->score < move->score) {
-				//printf("\nnewMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
+				//printf("\nminimizing-newMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 				move->score = newMove->score;
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score > 1000 ? newMove->column : i; //prevents the minimizing player from using a really high (same as the one above; setting these to lower values may make the AI smarter, but too low may break things)
 				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
+			//printf("\npointers: tempBoard(%d), newMove(%d)", (int)temp, (int)newMove);
+			//#if _WIN32
 			freeHashmap(temp);
 			free(newMove);
+			//#endif
 
 			beta = MIN(beta, move->score);
 			if (alpha >= beta)

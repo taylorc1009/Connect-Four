@@ -11,6 +11,7 @@
 *		   - UPDATE: (partially) done - check how the OS identification is done in 'identifiers.h'
 *	-- GCC TODO - I have found that the 'free(win[i])' at the bottom of 'play()' in 'game.c' is crashing, I'm assuming that the 'displayBoard()' function is invalidating it, but I'm insure if it is also deallocating it because I can still acces the matrixs' values from 'play()'
 *				- I have also created a 'CLEAR_TERMINAL' constant with the command to to clear the terminal based on the OS, but I am not using it yet as I'm still trying to debug the 'free()' problem from above
+*				- UPDATE: check the bottom of the 'play' method in 'game.c'
 *
 *	Update README.md upon completion (if required)
 */

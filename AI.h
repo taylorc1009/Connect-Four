@@ -21,7 +21,7 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y);
 int count(int* list, int token);
 void evaluateWindow(int* window, int* score);
 void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore);
-int isGameOver(struct Hashmap* board, int row, int column);
+GameStatus isGameOver(struct Hashmap* board, int row, int column);
 int safeWinScore(int scale, int depth, int maxDepth);
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta);
 void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth);
