@@ -164,6 +164,10 @@ void welcome(int x, int y) {
 }
 
 int main(int argc, char** argv) {
+	#if !__WIN32
+	setbuf(stdout, NULL); //remove this and you'll notice that 'printf' outputs are buffered (they happen after delays, terminal clears...), but it only happend on Unix by default
+	#endif
+
 	struct Settings* settings = (struct Settings*)malloc(sizeof(struct Settings));
 	settings->boardX = 7;
 	settings->boardY = 6;
