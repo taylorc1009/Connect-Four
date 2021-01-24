@@ -117,7 +117,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 
 void displayBoard(struct Hashmap* board, int** win) {
 	int x = getX(board), y = getY(board), i, j, k = 0, l = 0, m = 3;
-	system("cls");
+	system(CLEAR_TERMINAL);
 
 	for (i = 0; i < y; i++) {
 		printf("+");

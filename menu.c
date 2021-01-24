@@ -7,10 +7,9 @@
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
 *	- Add a move down animation?
 *
-*	-- GCC - I need to add a command line parameter (or a macro) so I can tell the program which actions to perform in some places, for example: system("cls") does not work in Unix, so maybe try system("clear")?
-*		   - UPDATE: (partially) done - check how the OS identification is done in 'identifiers.h'
 *	-- GCC TODO - I have found that the 'free(win[i])' at the bottom of 'play()' in 'game.c' is crashing, I'm assuming that the 'displayBoard()' function is invalidating it, but I'm insure if it is also deallocating it because I can still acces the matrixs' values from 'play()'
 *				- I have also created a 'CLEAR_TERMINAL' constant with the command to to clear the terminal based on the OS, but I am not using it yet as I'm still trying to debug the 'free()' problem from above
+*				- 'delay()' needs to be fixed: I am unsure if the function 'clock()' is working the same as in Windows
 *				- UPDATE: check the bottom of the 'play' method in 'game.c'
 *
 *	Update README.md upon completion (if required)
@@ -160,12 +159,11 @@ void setup(struct Settings* settings) {
 }
 
 void welcome(int x, int y) {
-	//system("clear");
+	system(CLEAR_TERMINAL);
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
-	system("clear");
 	struct Settings* settings = (struct Settings*)malloc(sizeof(struct Settings));
 	settings->boardX = 7;
 	settings->boardY = 6;
@@ -237,7 +235,7 @@ int main(int argc, char** argv) {
 		case 6:
 			free(settings); //player names are deallocated when the game is over/quit
 
-			system("cls");
+			system(CLEAR_TERMINAL);
 			printf("Connect 4 closed, goodbye!\n");
 			break;
 		}
