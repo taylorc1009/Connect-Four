@@ -17,7 +17,7 @@ compile:
 	cmake --build build
 
 compile-windows:
-	cl structs/Stack.c structs/Hashmap.c AI.c data.c game.c menu.c /link /out:Connect.exe
+	cl structs/Stack.c structs/Hashmap.c structs/Matrix.c AI.c data.c game.c menu.c /link /out:Connect.exe
 
 compile-gcc:
 	gcc structs/Stack.c structs/Hashmap.c AI.c common/functions.c common/data.c game.c menu.c -lm -o Connect

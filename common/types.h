@@ -1,4 +1,4 @@
-#include "../structs/Hashmap.h"
+#include "../structs/Matrix.h"
 
 struct Settings {
 	int boardX;

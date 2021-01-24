@@ -58,7 +58,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 	return num - '0';
 }
 
-int** checkWin(int row, int column, struct Hashmap* board, int token) {
+struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 	int x = getX(board), y = getY(board);
 	int* tok;
 
@@ -68,11 +68,12 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
 			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
+				//int** win = (int**)malloc(sizeof(int) * 4);
+				struct Matrix* win = createMatrix(4, 2);
 				for (int j = 0; j < 4; j++) {
-					win[j] = malloc(sizeof(int) * 2);
-					win[j][0] = (i - 3) + j;
-					win[j][1] = row;
+					//win[j] = (int*)malloc(sizeof(int) * 2);
+					*((int*)matrixCell(win, j, 0)) = (i - 3) + j;
+					*((int*)matrixCell(win, j, 1)) = row;
 				}
 				return win;
 			}
@@ -87,11 +88,12 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
 			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
+				//int** win = (int**)malloc(sizeof(int) * 4);
+				struct Matrix* win = createMatrix(4, 2);
 				for (int j = 0; j < 4; j++) {
-					win[j] = malloc(sizeof(int) * 2);
-					win[j][0] = column;
-					win[j][1] = i - j;
+					//win[j] = (int*)malloc(sizeof(int) * 2);
+					*((int*)matrixCell(win, j, 0)) = column;
+					*((int*)matrixCell(win, j, 1)) = i - j;
 				}
 				return win;
 			}
@@ -114,11 +116,12 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
+				//int** win = (int**)malloc(sizeof(int) * 4);
+				struct Matrix* win = createMatrix(4, 2);
 				for (int k = 0; k < 4; k++) {
-					win[k] = malloc(sizeof(int) * 2);
-					win[k][0] = j - k;
-					win[k][1] = i - k;
+					//win[k] = (int*)malloc(sizeof(int) * 2);
+					*((int*)matrixCell(win, j, 0)) = j - k;
+					*((int*)matrixCell(win, j, 1)) = i - k;
 				}
 				return win;
 			}
@@ -142,11 +145,12 @@ int** checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				int** win = malloc(sizeof(int) * 4);
+				//int** win = (int**)malloc(sizeof(int) * 4);
+				struct Matrix* win = createMatrix(4, 2);
 				for (int k = 0; k < 4; k++) {
-					win[k] = malloc(sizeof(int) * 2);
-					win[k][0] = j + k;
-					win[k][1] = i - k;
+					//win[k] = (int*)malloc(sizeof(int) * 2);
+					*((int*)matrixCell(win, j, 0)) = j + k;
+					*((int*)matrixCell(win, j, 1)) = i - k;
 				}
 				return win;
 			}

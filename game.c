@@ -115,7 +115,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 	return successfulOperation;
 }
 
-void displayBoard(struct Hashmap* board, int** win) {
+void displayBoard(struct Hashmap* board, struct Matrix* win) {
 	int x = getX(board), y = getY(board), i, j, k = 0, l = 0, m = 3;
 	system(CLEAR_TERMINAL);
 
@@ -135,7 +135,7 @@ void displayBoard(struct Hashmap* board, int** win) {
 					printf("%d", l);
 					printf("(%d, %d), %d(%d, %d)", j, k, l, j == win[l][0], k == win[l][1]);
 				}*/
-				if (win && (l >= 0 && l <= 3) && (j == win[l][0] && k == win[l][1])) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
+				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, l, 0)) && k == *((int*)matrixCell(win, l, 1)))) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
 					colour = WIN_COLOUR;
 
 					//if (j == win[l][0] && k == win[l][1])
@@ -178,7 +178,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	int centres[2];
 	struct Hashmap* board;
 	struct Hashmap* history;
-	int** win = NULL;
+	struct Matrix* win = NULL;
 
 	/*The board structure is made of a list of stacks stored in a hashmap.
 	* This is due to the play style of connect 4; a player must only pick
@@ -295,9 +295,10 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	 *					   Minimax are also failing.
 	 */
 	if (win) {
-		for (int i = 0; i < 4; i++)
+		/*for (int i = 0; i < 4; i++)
 			free(win[i]);
-		free(win);
+		free(win);*/
+		freeMatrix(win);
 	}
 	//#else - will we need any further action here if the pointers are now invalid
 	//#endif
