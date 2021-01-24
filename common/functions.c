@@ -1,8 +1,10 @@
 #include "functions.h"
 
 void delay(int numOfSeconds) {
-	#ifdef wait
-	wait(numOfSeconds); // Unix 'wait' - the block below does not work with Unixs' standard library
+	#if !_WIN32
+	unsigned int left = numOfSeconds;
+    while (left > 0)
+        left = sleep(left); // Unix 'sleep' - the block below does not work with Unixs' standard library
 	#else
 	int milliSeconds = 1000 * numOfSeconds;
 	clock_t startTime = clock();
