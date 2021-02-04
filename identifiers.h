@@ -22,6 +22,6 @@ typedef enum { false, true } bool;
 
 #if _WIN32
 #define CLEAR_TERMINAL "cls"
-#elif __linux__ || __unix__
+#else //elif __linux__ || __unix__
 #define CLEAR_TERMINAL "clear"
 #endif
