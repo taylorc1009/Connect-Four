@@ -6,6 +6,7 @@
 *	- Test undo and redo more
 *	- Look at if infinitely long player names are possible (using stdin and realloc)
 *	- Add a move down animation?
+*	- Implement CMake's security suggestions
 *
 *	-- GCC TODO - I have found that the 'free(win[i])' at the bottom of 'play()' in 'game.c' is crashing, I'm assuming that the 'displayBoard()' function is invalidating it, but I'm insure if it is also deallocating it because I can still acces the matrixs' values from 'play()'
 *				- I have also created a 'CLEAR_TERMINAL' constant with the command to to clear the terminal based on the OS, but I am not using it yet as I'm still trying to debug the 'free()' problem from above
