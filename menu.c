@@ -25,7 +25,7 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 		j--;
 	}
 
-	return j; //return the new length of the string; +1 so we can add '\0' after
+	return j; //return the new length of the string
 }
 
 int getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
