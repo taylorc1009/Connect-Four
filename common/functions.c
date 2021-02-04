@@ -61,7 +61,6 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 
 struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 	int x = getX(board), y = getY(board);
-	int* tok;
 
 	//horizontal check
 	int count = 0;
