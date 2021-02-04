@@ -8,11 +8,6 @@
 *	- Add a move down animation?
 *	- Implement CMake's security suggestions
 *
-*	-- GCC TODO - I have found that the 'free(win[i])' at the bottom of 'play()' in 'game.c' is crashing, I'm assuming that the 'displayBoard()' function is invalidating it, but I'm insure if it is also deallocating it because I can still acces the matrixs' values from 'play()'
-*				- I have also created a 'CLEAR_TERMINAL' constant with the command to to clear the terminal based on the OS, but I am not using it yet as I'm still trying to debug the 'free()' problem from above
-*				- 'delay()' needs to be fixed: I am unsure if the function 'clock()' is working the same as in Windows
-*				- UPDATE: check the bottom of the 'play' method in 'game.c'
-*
 *	Update README.md upon completion (if required)
 */
 
@@ -22,13 +17,15 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 	int i, j;
 
 	for (i = j = 0; str[i]; ++i)
-		if (str[i] != '\n' && (!isspace(str[i]) || (i > 0 && !isspace(str[i - 1]))))
+		if (str[i] != '\n' && !isspace(str[i]) || (i > 0 && isspace(str[i]) && !isspace(str[i - 1])))
 			str[j++] = str[i];
 
-	for (int k = j; k < i; k++)
-		str[i] = 0;
+	if (j > 0 && isspace(str[j - 1])) {
+		str[j - 1] = '\0';
+		j--;
+	}
 
-	return j + 1; //return the new length of the string; +1 so we can add '\0' after
+	return j; //return the new length of the string; +1 so we can add '\0' after
 }
 
 int getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
@@ -99,7 +96,6 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 
 			if (bufLen > sizeof(*player))
 				*player = (char*)realloc(*player, sizeof(char) * size);
-			input[size - 1] = '\0';
 
 			strcpy(*player, input);
 		}

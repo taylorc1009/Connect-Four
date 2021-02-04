@@ -279,19 +279,6 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	freeHashmap(board);
 	freeHashmap(history);
 
-	//#if _WIN32 //I am unsure as to why but by this point, in Linux, the pointers become invalid, signifying they've already been deallocated
-	/*			   UPDATE: I've discovered that upon declaring 'win' as dynamic, malloc is giving the pointer a negative address and I've no idea why.
-	 *					   My only guess is; is this perhaps a symptom of the Intel Optane memory module? If it isn't then I really cannot even hazard
-	 *					   a guess as to why deallocation is so broken here. Although, that begs the question of why other dynamically allocated data
-	 *					   is working perfectly fine, such as the Hashmaps. Also, the 'freeHashmap(temp);' and 'free(newMove);' deallocations in
-	 *					   Minimax are also failing.
-	 */
-	if (win) {
-		/*for (int i = 0; i < 4; i++)
-			free(win[i]);
-		free(win);*/
+	if (win)
 		freeMatrix(win);
-	}
-	//#else - will we need any further action here if the pointers are now invalid
-	//#endif
 }
