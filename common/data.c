@@ -138,17 +138,19 @@ char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings
 				return cancelLoad(*board, *history, NULL, file);
 			settings->player1Size = size;
 
-			settings->player1 = (char*)malloc(sizeof(char) * size);
+			settings->player1 = (char*)malloc(sizeof(char) * size + 1);
 			if (!fread(settings->player1, sizeof(char), settings->player1Size, file))
 				return cancelLoad(*board, *history, settings, file);
+			settings->player1[settings->player1Size] = '\0'; //fixes the lack of a string terminator
 
 			if (!fread(&size, sizeof(int), 1, file))
 				return cancelLoad(*board, *history, settings, file);
 			settings->player2Size = size;
 
-			settings->player2 = (char*)malloc(sizeof(char) * size);
+			settings->player2 = (char*)malloc(sizeof(char) * size + 1);
 			if (!fread(settings->player2, sizeof(char), settings->player2Size, file))
 				return cancelLoad(*board, *history, settings, file);
+			settings->player2[settings->player2Size] = '\0';
 
 			if (!fread(turn, sizeof(bool), 1, file) || !fread(traversing, sizeof(bool), 1, file))
 				return cancelLoad(*board, *history, settings, file);
