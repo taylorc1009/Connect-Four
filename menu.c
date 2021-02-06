@@ -78,7 +78,8 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 			input = NULL;
 		}
 		else {
-			for (int i = 0; i < bufLen; i++) { //prevents ';' in player's names - having one in their name causes issues with save and load
+			//this shouldn't be needed now as the save/load method has been improved
+			/*for (int i = 0; i < bufLen; i++) { //prevents ';' in player's names - having one in their name causes issues with save and load
 				if (buffer[i] == ';') {
 					printf("\n(!) the name entered contains a ';' - this is a system character, please re-enter\n> ");
 					input = NULL;
@@ -86,7 +87,7 @@ int getName(char** player) { //gets a player name and dynamically resizes the al
 			}
 
 			if (input == NULL)
-				continue;
+				continue;*/
 
 			/*if (input[bufLen - 1] == '\n') { removeExcessSpaces should do this
 				input[bufLen - 1] = '\0';
