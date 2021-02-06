@@ -254,7 +254,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 
 					int* tok = malloc(sizeof(int));
 					*tok = PLAYER_2_TOKEN;
-					if (!addMove(board, column - 1, tok)) //shouldn't return a full column as we determine this in the AI, but just in case, deallocate the memory if this happens
+					if (!addMove(board, column - 1, tok)) //shouldn't return a full column as we determine this in the AI (if we didn't, we'd need to run Minimax twice from here which is a bad (slow) idea), but just in case, deallocate the memory if this happens
 						free(tok);
 
 					updateHistory(&history, column - 1, token);

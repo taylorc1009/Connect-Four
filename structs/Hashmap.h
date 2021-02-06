@@ -19,5 +19,6 @@ int getX(struct Hashmap* board);
 int getY(struct Hashmap* board);
 bool addMove(struct Hashmap* board, int column, int* tok);
 void** getToken(struct Hashmap* board, int x, int y);
+bool columnIsFull(struct Hashmap* board, int column);
 bool isBoardFull(struct Hashmap* board, int x);
 void freeHashmap(struct Hashmap* h);
