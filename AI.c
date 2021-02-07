@@ -181,7 +181,9 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			if (addMove(temp, i, token)) //I previously used the 'columnIsFull' detection above, but when the board state came to a point where the AI could only make bad moves, it would choose the full column as it's score was still 0 (therefore greater than a negative number)
 				newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
+				free(token);
 				newMove = malloc(sizeof(struct AIMove));
+				
 				newMove->score = INT_MIN;
 				newMove->gameStatus = Ongoing;
 				newMove->column = i;
@@ -238,7 +240,9 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			if (addMove(temp, i, token)) //same as above, but for the minimizing player
 				newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
+				free(token);
 				newMove = malloc(sizeof(struct AIMove));
+
 				newMove->score = INT_MAX;
 				newMove->gameStatus = Ongoing;
 				newMove->column = i;
