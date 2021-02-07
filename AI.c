@@ -165,12 +165,8 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
 			/*#if (__has_include("Hashmap.h")) //it will always be included, this is just to suppress the compiler warning
-				if (columnIsFull(board, i)) {
-					move->score = INT_MAX;
-					move->gameStatus = Ongoing;
-					move->column = i;
+				if (columnIsFull(board, i))
 					continue;
-				}
 			#endif*/
 
 			struct Hashmap* temp = copyBoard(board, x, y);
@@ -224,12 +220,8 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
 			/*#if (__has_include("Hashmap.h")) //same as above
-				if (columnIsFull(board, i)) {
-					move->score = INT_MIN;
-					move->gameStatus = Ongoing;
-					move->column = i;
+				if (columnIsFull(board, i))
 					continue;
-				}
 			#endif*/
 
 			struct Hashmap* temp = copyBoard(board, x, y);
