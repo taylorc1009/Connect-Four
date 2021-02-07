@@ -5,12 +5,12 @@
 
 struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
-	for (int j = 0; j < x; j++) {
-		for (int k = 0; k < y; k++) {
+	for (int i = 0; i < x; i++) {
+		for (int j = 0; j < y; j++) {
 			int* token = malloc(sizeof(int));
-			*token = *((int*)getToken(board, j, k));
+			*token = *((int*)getToken(board, i, j));
 			if (*token != EMPTY_SLOT)
-				addMove(copy, j, token);
+				addMove(copy, i, token);
 			else
 				free(token);
 		}
@@ -112,7 +112,7 @@ GameStatus isGameOver(struct Hashmap* board, int row, int column) {
 }
 
 int safeWinScore(int scale, int depth, int maxDepth) {
-	/*the idea of this calculation is to give wins closer to the boards current state a
+	/* the idea of this calculation is to give wins closer to the boards current state a
 	 * higher priority as we would prefer the AI moved on those instead: we don't want
 	 * it to prioritise wins that are only possible further in the future*/
 	return (int)round((150 * (int)scale * maxDepth) / (float)(maxDepth - depth));
