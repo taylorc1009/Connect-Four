@@ -17,9 +17,11 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 		return false;
 	}
 
+	//remove the move, that's being undone, from the move history
 	pop(moveStack);
 	resizeStack(moveStack, -1);
 
+	//add the move, that's being undone, to the history of undone moves
 	resizeStack(undoStack, 1);
 	push(undoStack, (void**)&undoMove);
 
@@ -46,9 +48,11 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 		return false;
 	}
 
+	//remove the move, that's being redone, from the undo history
 	pop(undoStack);
 	resizeStack(undoStack, -1);
 
+	//add the move, that's being redone, to the history of moves
 	resizeStack(moveStack, 1);
 	push(moveStack, (void**)&redoMove);
 
