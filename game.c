@@ -12,6 +12,11 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 
 	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
+	if (!pop(hashGet(*board, undoMove->column))) { //if the removing (undoing) the move from the column was unsuccessful, prevent move history and undo history manipulation so the move isn't lost
+		free(undoMove);
+		return false;
+	}
+
 	pop(moveStack);
 	resizeStack(moveStack, -1);
 
@@ -20,7 +25,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 
 	*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
-	return pop(hashGet(*board, undoMove->column));
+	return true;
 }
 
 bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
@@ -34,6 +39,13 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	struct Move* redoMove = (struct Move*)malloc(sizeof(struct Move));
 	memcpy(redoMove, (struct Move*)stackGet(undoStack, undoStack->top), sizeof(struct Move));
 
+	int* tok = malloc(sizeof(int));
+	*tok = redoMove->token;
+	if(!addMove(*board, redoMove->column, tok)) { //if the adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
+		free(redoMove);
+		return false;
+	}
+
 	pop(undoStack);
 	resizeStack(undoStack, -1);
 
@@ -42,9 +54,7 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 
 	*column = redoMove->column + 1;
 
-	int* tok = malloc(sizeof(int));
-	*tok = redoMove->token;
-	return addMove(*board, redoMove->column, tok);
+	return true;
 }
 
 void updateHistory(struct Hashmap** history, int column, int p) {
