@@ -28,96 +28,48 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 	return j; //return the new length of the string
 }
 
-int getName(char** player) { //gets a player name and dynamically resizes the allocation of the char array based on the input
-	char* buffer = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
-	int size;
+char* inputString(FILE* fp, size_t size) { //credit - https://stackoverflow.com/a/16871702/11136104
+	char* str;
+	int ch;
+	size_t len = 0;
 
-	//comments here were an attempt to get an infinitely long string: one that exceeds the buffer size
-	//char* input = (char*)malloc(sizeof(char));
-	//int i = 0;
-	//bool proceed = false;
-	
-	memset(buffer, NUL, NAME_BUFFER_MAX);
-	//input = NUL;
-	char* input = NULL;
+	str = realloc(NULL, sizeof(*str) * size);
 
-	while (input == NULL) { /*&& proceed) {
-		fgets(buffer, NAME_MAX, stdin);
-		if (buffer == 0 || buffer[0] == '\n' || buffer[0] == '\0')
-			printf("\n(!) name empty, please enter one\n> ");
-		else {
-			proceed = true;
-			while (buffer[i] != '\n' && buffer[i] != 0 && i != NAME_MAX) {
-				
-				printf("%c", buffer[i]);
-				int size = ARRAY_LENGTH(input);
-				input = (char*)realloc(input, sizeof(char) * size);
-				input[size - 1] = fgetc(stdin);
-				i++;
-			}
-			if (i == NAME_MAX) {
-				i = 0;
-				proceed = (fseek(stdin, 0, SEEK_END), ftell(stdin)) > 0;
-				rewind(stdin);
-				if (proceed)
-					fgets(buffer, NAME_MAX, stdin);
-			}
-		}*/
-		input = fgets(buffer, NAME_BUFFER_MAX, stdin);
+	if (!str)
+		return str;
 
-		//removeExcessSpaces(buffer);
-		size_t bufLen = strlen(buffer);
+	while (EOF != (ch = fgetc(fp)) && ch != '\n') {
+		str[len++] = ch;
+		if (len == size) {
+			str = realloc(str, sizeof(*str) * (size += 16));
 
-		if (buffer == 0 || buffer[0] == '\n' || buffer[0] == '\0') {
-			printf("\n(!) name empty, please enter one\n> ");
-			input = NULL;
-		} 
-		else if (buffer[bufLen - 1] != '\n') {
-			printf("\n(!) this name is too long (30 characters max), please re-enter\n> ");
-			cleanStdin();
-			input = NULL;
-		}
-		else {
-			//this shouldn't be needed now as the save/load method has been improved
-			/*for (int i = 0; i < bufLen; i++) { //prevents ';' in player's names - having one in their name causes issues with save and load
-				if (buffer[i] == ';') {
-					printf("\n(!) the name entered contains a ';' - this is a system character, please re-enter\n> ");
-					input = NULL;
-				}
-			}
-
-			if (input == NULL)
-				continue;*/
-
-			/*if (input[bufLen - 1] == '\n') { removeExcessSpaces should do this
-				input[bufLen - 1] = '\0';
-				bufLen--;
-			}*/
-			size = removeExcessSpaces(input); //might be redundant due to removeExcessSpaces above
-
-			if (bufLen > sizeof(*player))
-				*player = (char*)realloc(*player, sizeof(char) * size);
-
-			strcpy(*player, input);
+			if (!str)
+				return str;
 		}
 	}
+	str[len++] = '\0';
 
-	/*if (buffer[i] != '\n')
-		cleanStdin();*/
+	return realloc(str, sizeof(*str) * len);
+}
 
-	//removeExcessSpaces(input);
-	//*player = (char*)realloc(*player, sizeof(char) * ARRAY_LENGTH(input));
-	//strcpy(*player, input);
-	free(buffer);
-	//free(input);
+void getPlayerName(char** name, int* nameSize, int playerNum) {
+	bool empty;
 
-	return size;
+	printf("\n%sPlayer %d%s, please enter your name\n> ", playerNum == 1 ? PLAYER_1_COLOUR : PLAYER_2_COLOUR, playerNum, DEFAULT_COLOUR);
+
+	do {
+		*name = inputString(stdin, 30);
+		empty = !*name || *name[0] == '\0';
+
+		if (empty)
+			printf("\n(!) name empty, please enter one\n> ");
+		else
+			*nameSize = removeExcessSpaces(*name);
+	} while (empty);
 }
 
 void setup(struct Settings* settings) {
-	printf("\n%sPlayer 1%s, please enter your name\n> ", PLAYER_1_COLOUR, DEFAULT_COLOUR);
-	settings->player1 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
-	settings->player1Size = getName(&(settings)->player1);
+	getPlayerName(&settings->player1, &settings->player1Size, 1);
 
 	if (settings->solo) {
 		settings->player2 = "AI"; //this makes the char* static so no point dynamically allocating before
@@ -140,9 +92,7 @@ void setup(struct Settings* settings) {
 		}
 	}
 	else {
-		printf("\n%sPlayer 2%s, please enter your name\n> ", PLAYER_2_COLOUR, DEFAULT_COLOUR);
-		settings->player2 = (char*)malloc(sizeof(char) * NAME_BUFFER_MAX);
-		settings->player2Size = getName(&(settings)->player2);
+		getPlayerName(&settings->player2, &settings->player2Size, 2);
 		printf("\nWelcome %s%s%s and %s%s%s!", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR, PLAYER_2_COLOUR, settings->player2, DEFAULT_COLOUR);
 		delay(1);
 	}
@@ -209,7 +159,6 @@ int main(int argc, char** argv) {
 			settings->solo = true;
 			setup(settings);
 
-			
 			welcome(settings->boardX, settings->boardY);
 			break;
 
