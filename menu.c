@@ -1,11 +1,10 @@
 /* TODO
 *	Implement:
+*	- Clean up the code (some things may still have their first, inefficient implementation, but remain as they always have simply because they work)
+*		- Also, use Code Inspector or CMake to check for security/standards violations
 *	- Finish internal commentary
 *	- Randomize (or allow selection) of player or AI turn on first move?
-*	- Test save and load more
-*	- Test undo and redo more
 *	- Add a move down animation?
-*	- Implement CMake's security suggestions
 *
 *	Update README.md upon completion (if required)
 */
