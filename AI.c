@@ -55,36 +55,40 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 					score++; //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there)
 
 	//horizontal score
-	int* row = malloc(sizeof(int) * x);
 	for (int i = 0; i < y; i++) {
-		for (int j = 0; j < x; j++)
-			row[j] = *((int*)getToken(board, j, i));
-
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { row[j], row[j + 1], row[j + 2], row[j + 3] };
+			int window[4] = {
+				*((int*)getToken(board, j, i)),
+				*((int*)getToken(board, j + 1, i)),
+				*((int*)getToken(board, j + 2, i)),
+				*((int*)getToken(board, j + 3, i))
+			};
 			evaluateWindow(window, &score);
 		}
 	}
-	free(row);
 
 	//vertical score
-	int* col = malloc(sizeof(int) * y);
 	for (int i = 0; i < x; i++) {
-		
-		for (int j = 0; j < y; j++)
-			col[j] = *((int*)getToken(board, i, j));
-
 		for (int j = 0; j < y - 3; j++) {
-			int window[4] = { col[j], col[j + 1], col[j + 2], col[j + 3] };
+			int window[4] = {
+				*((int*)getToken(board, i, j)),
+				*((int*)getToken(board, i, j + 1)),
+				*((int*)getToken(board, i, j + 2)),
+				*((int*)getToken(board, i, j + 3))
+			};
 			evaluateWindow(window, &score);
 		}
 	}
-	free(col);
 
 	//bottom-right to top-left diagonal score
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { *((int*)getToken(board, j, i)), *((int*)getToken(board, j + 1, i + 1)), *((int*)getToken(board, j + 2, i + 2)), *((int*)getToken(board, j + 3, i + 3)) };
+			int window[4] = {
+				*((int*)getToken(board, j, i)),
+				*((int*)getToken(board, j + 1, i + 1)),
+				*((int*)getToken(board, j + 2, i + 2)),
+				*((int*)getToken(board, j + 3, i + 3))
+			};
 			evaluateWindow(window, &score);
 		}
 	}
@@ -92,7 +96,12 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	//bottom-left to top-right diagonal score
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = { *((int*)getToken(board, j + 3, i)), *((int*)getToken(board, j + 2, i + 1)), *((int*)getToken(board, j + 1, i + 2)), *((int*)getToken(board, j, i + 3)) };
+			int window[4] = {
+				*((int*)getToken(board, j + 3, i)),
+				*((int*)getToken(board, j + 2, i + 1)),
+				*((int*)getToken(board, j + 1, i + 2)),
+				*((int*)getToken(board, j, i + 3))
+			};
 			evaluateWindow(window, &score);
 		}
 	}
