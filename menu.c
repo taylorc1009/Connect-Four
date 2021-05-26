@@ -111,7 +111,7 @@ void welcome(int x, int y) {
 
 int main(int argc, char** argv) {
 	#if !__WIN32
-	//remove this and you'll notice that 'printf' outputs are buffered (they happen after delays, terminal clears...), but it only happend on Unix by default
+	//remove this and you'll notice that 'printf' outputs are buffered (they happen after delays, terminal clears...), but it only happens on Unix by default
 	//reference - https://stackoverflow.com/a/16877432
 	setbuf(stdout, NULL);
 	#endif

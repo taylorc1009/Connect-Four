@@ -12,7 +12,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 
 	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
-	if (!pop(hashGet(*board, undoMove->column))) { //if the removing (undoing) the move from the column was unsuccessful, prevent move history and undo history manipulation so the move isn't lost
+	if (!pop(hashGet(*board, undoMove->column))) { //if removing (undoing) the move from the column was unsuccessful, prevent move history and undo history manipulation so the move isn't lost
 		free(undoMove);
 		return false;
 	}
@@ -43,7 +43,7 @@ bool redo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 
 	int* tok = malloc(sizeof(int));
 	*tok = redoMove->token;
-	if(!addMove(*board, redoMove->column, tok)) { //if the adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
+	if(!addMove(*board, redoMove->column, tok)) { //if adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
 		free(redoMove);
 		return false;
 	}
