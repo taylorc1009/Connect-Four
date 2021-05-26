@@ -128,18 +128,22 @@ int safeWinScore(int scale, int depth, int maxDepth) {
 }
 
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta) {
-
 	//you could do an 'if(column != NULL)' here? to try and stop crashing when the previous column changed was incorrect - this would prevent all the column tracking required in undo/redo and save/load
 	struct AIMove* move = (struct AIMove*)malloc(sizeof(struct AIMove));
-	move->column = column;
-	int row = hashGet(board, column)->top;
-	//printf("\n%d. (%d, %d), row: %d col: %d, token: %d", depth, x, y, row, column, player);
-	move->gameStatus = isGameOver(board, row, column);
-	//printf(" >> gameStatus? %d", move->gameStatus);
+	int row = 0;
+	if (column != -1) {
+		move->column = column;
+		row = hashGet(board, column)->top;
+		//printf("\n%d. (%d, %d), row: %d col: %d, token: %d", depth, x, y, row, column, player);
+		move->gameStatus = isGameOver(board, row, column);
+		//printf(" >> gameStatus? %d", move->gameStatus);
+	}
+	else
+		move->gameStatus = Ongoing;
 
 	if (depth == 0 || move->gameStatus) {
 		if (move->gameStatus) {
-			if (move->gameStatus == AIWin) { //bot has won in this instance
+			if (move->gameStatus == AIWin) { //AI has won in this instance
 				int score;
 
 				if (maxDepth > 3 && depth < maxDepth - 1) { //discourages the AI from making future moves that give the player a win ('> 3' so it only does this for high difficulties and dept < max so it will not prevent a win on the next move)
@@ -152,7 +156,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN) != NULL ? true : false;
 					else
 						free(token);
-					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);;
+					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);
 				}
 				else
 					score = safeWinScore(1, depth, maxDepth);
@@ -283,10 +287,9 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 }
 
 void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth) {
-	int x = getX(board), y = getY(board);
-	struct AIMove* move = minimax(board, x, y, *column - 1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
+	struct AIMove* move = minimax(board, getX(board), getY(board), -1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
 	*column = move->column + 1;
-	//printf("\ndepth %d: final score & column = %d, %d", depth, move->score, move->column + 1);
+	printf("\ndepth %d: final score & column = %d, %d", depth, move->score, move->column + 1);
 	//delay(10);
 	free(move);
 }
