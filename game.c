@@ -145,14 +145,9 @@ void displayBoard(struct Hashmap* board, struct Matrix* win) {
 
 			if (token) {
 				char* colour = DEFAULT_COLOUR; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
-				//if (win)
-					//printf("%d(%d, %d), (%d, %d)", l, j, k, *((int*)matrixCell(win, 0, l)), *((int*)matrixCell(win, 1, l)));
-				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, 0, l)) && k == *((int*)matrixCell(win, 1, l)))) {//|| (j == win[l + m][0] && k == win[l + m][1]))) { //as the board is always displayed from top-left to bottom-right, 
+				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, 0, l)) && k == *((int*)matrixCell(win, 1, l)))) {
 					colour = WIN_COLOUR;
-
-					//if (j == win[l][0] && k == win[l][1])
 					l++;
-					//m--; //always decrement m because, as l approaches 3, l + m will be out of bounds
 				}
 				else if (token == PLAYER_1_TOKEN)
 					colour = PLAYER_1_COLOUR;
@@ -200,7 +195,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	else {
 		board = *loadedBoard;
 		history = *loadedHistory;
-		column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
+		//column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
 	}
 
 	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
@@ -219,7 +214,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	}
 
 	do {
-		if (player != NULL && !traversing && !saving) { //used to skip checks before the first initial move, otherwise null issues occur
+		if (player != NULL && !traversing && !saving) { //used to skip checks before the first move (including after a game has been loaded), otherwise null issues occur
 			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
 			if (win == NULL)
 				boardFull = isBoardFull(board, x);
@@ -261,7 +256,7 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 					if (!traversing)
 						printf("\n");
 				}
-				if (!traversing) {
+				if (!traversing) { //this looks like it could be an "else" to the above "if" but it can't; if "doOperation", in the above "if", sets 'traversing' to false then that means the user cancelled undoing/redoing an AI move, at which point 'column' would also be 0 and (if this line is an else) the code below won't execute as the code above did, so the AI never makes a move and thus the game is closed
 					printf("%s%s%s is making a move...", colour, settings->player2, DEFAULT_COLOUR);
 
 					AIMakeMove(board, &column, centres, settings->depth); //give board by value so we don't accidentally edit it
