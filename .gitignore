@@ -62,6 +62,9 @@ dkms.conf
 /.vs
 /.vscode
 
+# IDEA extensions' files
+/.idea
+
 # CMake files
 /build
 /out
