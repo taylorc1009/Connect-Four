@@ -3,7 +3,7 @@
 void delay(int numOfSeconds) {
 	#if !_WIN32
 	unsigned int retTime = time(0) + numOfSeconds;
-    while (time(0) < retTime); // Unix 'sleep' - the block below does not work with Unixs' standard library
+    while (time(0) < retTime); // Unix 'sleep' - the block below does not work with Unix's standard library
 	#else
 	int milliSeconds = 1000 * numOfSeconds;
 	clock_t startTime = clock();
@@ -16,7 +16,7 @@ void cleanStdin() {
 	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
 }
 
-int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit
+int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
 	bool valid;
 	int num;
 	char buffer[3]; //I'm aware that this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway
@@ -25,7 +25,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		fgets(buffer, sizeof buffer, stdin);
 
 		num = (int)buffer[0];
-		bool juncture = buffer[1] == '\n';
+		const bool juncture = buffer[1] == '\n';
 
 		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
 		if (!valid) {
