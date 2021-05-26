@@ -16,28 +16,10 @@ void cleanStdin() {
 	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
 }
 
-int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
+int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit
 	bool valid;
 	int num;
 	char buffer[3]; //I'm aware that this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway
-
-	//while (num == -1) { //if a char is entered, invalid input message isn't displayed (only after the first input so is this something to do with the input stream?)
-	//	char term;
-	//	if (scanf("%d%c", &num, &term) != 2 || term != '\n' || !(num >= min && num <= max)) {
-	//		printf("%d", num);
-	//		if (inPlay && (num == 'r' || num == 'u'))
-	//			continue;
-
-	//		printf("\n(!) invalid input: please re-enter an number between %d and %d\n> ", min, max);
-	//		/*char c = NUL;
-	//		do {
-	//			c = getchar();
-	//		} while (!isdigit(c));
-	//		ungetc(c, stdin);*/
-	//		cleanStdin();
-	//		num = -1;
-	//	}
-	//}
 
 	do {
 		fgets(buffer, sizeof buffer, stdin);
