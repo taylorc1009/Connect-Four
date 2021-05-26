@@ -33,13 +33,13 @@ void evaluateWindow(int* window, int* score) {
 	else if (count(window, PLAYER_2_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
 		*score += 5;
 	else if (count(window, PLAYER_2_TOKEN) == 4)
-		*score += 50; //if minimax is being used, this is useless, but if we set the minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
+		*score += 50; //if minimax is being used, this is useless, but if we set the Minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
 	else if (count(window, PLAYER_1_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
 		*score -= 2; //was previously commented out (does the AI have a better play style without this?)
 	else if (count(window, PLAYER_1_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
 		*score -= 5; //was previously at 4 (appeared to work better in some instances)
 	else if (count(window, PLAYER_1_TOKEN) == 4)
-		*score -= 50; //same rendundancy as the AI token detection above
+		*score -= 50; //same redundancy as the AI token detection above
 
 	//printf("\nwindow: %d, %d, %d, %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], count(window, PLAYER_2_TOKEN), count(window, EMPTY_SLOT), *score);
 }
@@ -151,7 +151,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					bool pWin = false;
 					int* token = malloc(sizeof(int));
 					*token = PLAYER_1_TOKEN;
-					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AIs'
+					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN) != NULL ? true : false;
 					else
 						free(token);
