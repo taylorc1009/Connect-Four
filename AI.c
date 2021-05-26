@@ -128,7 +128,6 @@ int safeWinScore(int scale, int depth, int maxDepth) {
 }
 
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta) {
-	//you could do an 'if(column != NULL)' here? to try and stop crashing when the previous column changed was incorrect - this would prevent all the column tracking required in undo/redo and save/load
 	struct AIMove* move = (struct AIMove*)malloc(sizeof(struct AIMove));
 	int row = 0;
 	if (column != -1) {
@@ -177,11 +176,6 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	if (player == PLAYER_2_TOKEN) { //maximizing player
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
-			/*#if (__has_include("Hashmap.h")) //it will always be included, this is just to suppress the compiler warning
-				if (columnIsFull(board, i))
-					continue;
-			#endif*/
-
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
 			*token = PLAYER_2_TOKEN;
@@ -207,20 +201,14 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			}
 			printf("d:%d i:%d", depth, i);*/
 
-			//struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
-
 			if (newMove->score > move->score) {
 				//printf("\nmaximizing-newMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 				move->score = newMove->score;
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score < -1000 ? newMove->column : i; //prevents the maximizing player from using a really low score (we still return the other values so we can let the algorithm know what happens)
-				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
-			//printf("\npointers: tempBoard(%d), newMove(%d)", (int)temp, (int)newMove);
-			//#if _WIN32
 			freeHashmap(temp);
 			free(newMove);
-			//#endif
 
 			alpha = MAX(alpha, move->score);
 			if (alpha >= beta)
@@ -232,11 +220,6 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 	else { //minimizing player
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
-			/*#if (__has_include("Hashmap.h")) //same as above
-				if (columnIsFull(board, i))
-					continue;
-			#endif*/
-
 			struct Hashmap* temp = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
 			*token = PLAYER_1_TOKEN;
@@ -262,20 +245,14 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 			}
 			printf("d:%d i:%d", depth, i);*/
 
-			//struct AIMove* newMove = minimax(temp, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
-
 			if (newMove->score < move->score) {
 				//printf("\nminimizing-newMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
 				move->score = newMove->score;
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score > 1000 ? newMove->column : i; //prevents the minimizing player from using a really high (same as the one above; setting these to lower values may make the AI smarter, but too low may break things)
-				//printf(" >> move->score changed = %d, column = %d", move->score, move->column);
 			}
-			//printf("\npointers: tempBoard(%d), newMove(%d)", (int)temp, (int)newMove);
-			//#if _WIN32
 			freeHashmap(temp);
 			free(newMove);
-			//#endif
 
 			beta = MIN(beta, move->score);
 			if (alpha >= beta)
