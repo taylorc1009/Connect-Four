@@ -1,7 +1,7 @@
 #include <math.h>
 #include "game.h"
 
-bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
+bool undo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 	struct Stack* moveStack = hashGet(*history, 0);
 
 	if (!moveStack->size)
@@ -25,12 +25,12 @@ bool undo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(undoStack, 1);
 	push(undoStack, (void**)&undoMove);
 
-	*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
+	//*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
 	return true;
 }
 
-bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
+bool redo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 	struct Stack* undoStack = hashGet(*history, 1);
 
 	if (!undoStack->size)
@@ -56,7 +56,7 @@ bool redo(struct Hashmap** board, struct Hashmap** history, int* column) {
 	resizeStack(moveStack, 1);
 	push(moveStack, (void**)&redoMove);
 
-	*column = redoMove->column + 1;
+	//*column = redoMove->column + 1;
 
 	return true;
 }
@@ -89,14 +89,14 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 		}
 	}
 	else if (toChar == 'u') {
-		successfulOperation = undo(board, history, column);
+		successfulOperation = undo(board, history);// , column);
 		if (successfulOperation)
 			*traversing = true;
 		else
 			printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
 	}
 	else if (toChar == 'r') {
-		successfulOperation = redo(board, history, column);
+		successfulOperation = redo(board, history);// , column);
 		if (successfulOperation)
 			*traversing = true;
 		else
