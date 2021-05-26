@@ -33,7 +33,7 @@ void evaluateWindow(int* window, int* score) {
 	else if (count(window, PLAYER_2_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
 		*score += 5;
 	else if (count(window, PLAYER_2_TOKEN) == 4)
-		*score += 50; //if minimax is being used, this is useless, but if we set the Minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
+		*score += 50; //if Minimax is being used, this is useless, but if we set the Minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
 	else if (count(window, PLAYER_1_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
 		*score -= 2; //was previously commented out (does the AI have a better play style without this?)
 	else if (count(window, PLAYER_1_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
