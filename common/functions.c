@@ -50,10 +50,8 @@ struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
 				struct Matrix* win = createMatrix(4, 2);
 				for (int j = 0; j < 4; j++) {
-					//win[j] = (int*)malloc(sizeof(int) * 2);
 					*((int*)matrixCell(win, 0, j)) = (i - 3) + j;
 					*((int*)matrixCell(win, 1, j)) = row;
 				}
@@ -70,10 +68,8 @@ struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
 				struct Matrix* win = createMatrix(4, 2);
 				for (int j = 0; j < 4; j++) {
-					//win[j] = (int*)malloc(sizeof(int) * 2);
 					*((int*)matrixCell(win, 0, j)) = column;
 					*((int*)matrixCell(win, 1, j)) = i - j;
 				}
@@ -98,15 +94,11 @@ struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
 				struct Matrix* win = createMatrix(4, 2);
 				for (int k = 0; k < 4; k++) {
-					//win[k] = (int*)malloc(sizeof(int) * 2);
-					//printf("(%d, %d) i:%d j:%d k:%d\n", j - k, i - k, i, j, k);
 					*((int*)matrixCell(win, 0, k)) = j - k;
 					*((int*)matrixCell(win, 1, k)) = i - k;
 				}
-				//delay(5);
 				return win;
 			}
 		}
@@ -129,15 +121,11 @@ struct Matrix* checkWin(int row, int column, struct Hashmap* board, int token) {
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
 				struct Matrix* win = createMatrix(4, 2);
 				for (int k = 0; k < 4; k++) {
-					//win[k] = (int*)malloc(sizeof(int) * 2);
-					//printf("(%d, %d) i:%d j:%d k:%d\n", j + k, i - k, i, j, k);
 					*((int*)matrixCell(win, 0, k)) = j + k;
 					*((int*)matrixCell(win, 1, k)) = i - k;
 				}
-				//delay(5);
 				return win;
 			}
 		}
