@@ -266,7 +266,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth) {
 	struct AIMove* move = minimax(board, getX(board), getY(board), -1, centres, PLAYER_2_TOKEN, depth, depth, INT_MIN, INT_MAX);
 	*column = move->column + 1;
-	printf("\ndepth %d: final score & column = %d, %d", depth, move->score, move->column + 1);
+	//printf("\ndepth %d: final score & column = %d, %d", depth, move->score, move->column + 1);
 	//delay(10);
 	free(move);
 }
