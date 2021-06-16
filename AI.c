@@ -113,9 +113,9 @@ GameStatus isGameOver(struct Hashmap* board, int row, int column) {
 	//printf("\ncheckWin P1 = %d, P2 = %d >> row: %d, column: %d\n", checkWin(row, column, board, PLAYER_1_TOKEN), checkWin(row, column, board, PLAYER_2_TOKEN), row, column);
 	if (checkWin(row, column, board, PLAYER_2_TOKEN))
 		return AIWin;
-	else if (checkWin(row, column, board, PLAYER_1_TOKEN))
+	if (checkWin(row, column, board, PLAYER_1_TOKEN))
 		return PlayerWin;
-	else if (isBoardFull(board, getX(board)))
+	if (isBoardFull(board, getX(board)))
 		return BoardFull;
 	return Ongoing;
 }
@@ -199,7 +199,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					printf("%d|", p);
 				}
 			}
-			printf("d:%d i:%d", depth, i);*/
+			printf("d:%d i:%d\n", depth, i);*/
 
 			if (newMove->score > move->score) {
 				//printf("\nmaximizing-newMove = { %d, %d } > move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
@@ -243,7 +243,7 @@ struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* cen
 					printf("%d|", p);
 				}
 			}
-			printf("d:%d i:%d", depth, i);*/
+			printf("d:%d i:%d\n", depth, i);*/
 
 			if (newMove->score < move->score) {
 				//printf("\nminimizing-newMove = { %d, %d } < move = { %d, %d }", newMove->score, newMove->column, move->score, move->column);
