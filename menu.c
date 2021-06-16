@@ -27,14 +27,12 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 }
 
 char* inputString(FILE* fp, size_t size) { //credit - https://stackoverflow.com/a/16871702/11136104
-	char* str;
-	int ch;
-	size_t len = 0;
-
-	str = realloc(NULL, sizeof(*str) * size);
-
+	char* str = realloc(NULL, sizeof(*str) * size);
 	if (!str)
 		return str;
+	
+	int ch;
+	size_t len = 0;
 
 	while (EOF != (ch = fgetc(fp)) && ch != '\n') {
 		str[len++] = ch;
