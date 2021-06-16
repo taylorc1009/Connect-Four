@@ -1,4 +1,4 @@
-#include <limits.h> //or '#include <climits>'? check what Microsofts' compiler accepts
+#include <limits.h>
 #include "common/data.h"
 
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
