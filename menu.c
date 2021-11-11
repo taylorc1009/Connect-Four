@@ -12,9 +12,9 @@
 #include "menu.h"
 
 int removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
-	int i, j;
+	int j = 0;
 
-	for (i = j = 0; str[i]; ++i)
+	for (int i = 0; str[i]; ++i)
 		if (str[i] != '\n' && !isspace(str[i]) || (i > 0 && isspace(str[i]) && !isspace(str[i - 1])))
 			str[j++] = str[i];
 
@@ -26,7 +26,8 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 	return j; //return the new length of the string
 }
 
-char* inputString(FILE* fp, size_t size) { //credit - https://stackoverflow.com/a/16871702/11136104
+char* inputString(FILE* fp) { //credit - https://stackoverflow.com/a/16871702/11136104
+	size_t size = 30;
 	char* str = realloc(NULL, sizeof(*str) * size);
 	if (!str)
 		return str;
@@ -54,7 +55,7 @@ void getPlayerName(char** name, int* nameSize, int playerNum) {
 	printf("\n%sPlayer %d%s, please enter your name\n> ", playerNum == 1 ? PLAYER_1_COLOUR : PLAYER_2_COLOUR, playerNum, DEFAULT_COLOUR);
 
 	do {
-		*name = inputString(stdin, 30);
+		*name = inputString(stdin);
 		empty = !*name || *name[0] == '\0';
 
 		if (empty)
