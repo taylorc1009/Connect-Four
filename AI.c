@@ -1,5 +1,3 @@
-//credit - https://www.youtube.com/watch?v=MMLtza3CZFM&list=WL&index=310&t=863s
-
 #include <math.h>
 #include "AI.h"
 
@@ -7,12 +5,14 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	struct Hashmap* copy = createTable(x, y);
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
-			int* token = malloc(sizeof(int));
-			*token = *((int*)getToken(board, i, j));
-			if (*token != EMPTY_SLOT)
+			int temp = *((int*)getToken(board, i, j));
+			if (temp != EMPTY_SLOT) {
+				int* token = malloc(sizeof(int));
+				*token = temp;
 				addMove(copy, i, token);
+			}
 			else
-				free(token);
+				break;
 		}
 	}
 	return copy;
