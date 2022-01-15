@@ -11,7 +11,7 @@ struct Hashmap* createTable(const int x, const int y) {
     return t;
 }
 
-int hashCode(const struct Hashmap* restrict t, const int key) {
+int inline hashCode(const struct Hashmap* restrict t, const int key) {
     if (key < 0)
         return -(key % t->size);
     return key % t->size;
@@ -58,7 +58,7 @@ int getY(const struct Hashmap* board) {
     return hashGet(board, 0)->size;
 }
 
-bool addMove(struct Hashmap* board, const int column, const int* restrict tok) {
+bool addMove(const struct Hashmap* board, const int column, const int* restrict tok) {
     return push(hashGet(board, column), (void**)&tok);
 }
 

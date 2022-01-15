@@ -12,12 +12,12 @@ struct Hashmap {
 };
 
 struct Hashmap* createTable(const int x, const int y);
-int hashCode(const struct Hashmap* restrict t, const int key);
+int inline hashCode(const struct Hashmap* restrict t, const int key);
 void insertStackToNode(struct Hashmap* restrict t, const int key, const int size);
 struct Stack* hashGet(const struct Hashmap* t, const int key);
 int getX(const struct Hashmap* board);
 int getY(const struct Hashmap* board);
-bool addMove(struct Hashmap* board, const int column, const int* restrict tok);
+bool addMove(const struct Hashmap* board, const int column, const int* restrict tok);
 void** getToken(const struct Hashmap* restrict board, const int x, const int y);
 bool columnIsFull(const struct Hashmap* board, const int column);
 bool isBoardFull(const struct Hashmap* restrict board, const int x);
