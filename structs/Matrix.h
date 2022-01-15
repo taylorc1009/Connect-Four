@@ -1,6 +1,6 @@
 #include "Hashmap.h"
 
-struct Matrix{
+struct Matrix {
     int rows;
     int columns;
     int *data;

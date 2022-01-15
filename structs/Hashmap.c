@@ -17,9 +17,9 @@ int inline hashCode(const struct Hashmap* restrict t, const int key) {
     return key % t->size;
 }
 
-void insertStackToNode(struct Hashmap* restrict t, const int key, const int size) { //would it be better to recursively call this method on the next hashNode? Rather than iterating it for the amount of stacks we expect
+void insertStackToNode(struct Hashmap* restrict t, const int key, const int size) {
     if (key >= t->size)
-        return; //return boolean to determine success
+        return;
 
     int pos = hashCode(t, key);
 
