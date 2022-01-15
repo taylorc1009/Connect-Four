@@ -18,7 +18,7 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	return copy;
 }
 
-int count(int* list, int token) {
+int count(const int* restrict list, const int token) {
 	int c = 0;
 	for (int i = 0; i < 4; i++) //the window size will always be 4
 		if (list[i] == token)
@@ -26,19 +26,21 @@ int count(int* list, int token) {
 	return c;
 }
 
-void evaluateWindow(int* window, int* score) {
+void evaluateWindow(const int* restrict window, int* score) {
+	const int countP1 = count(window, PLAYER_1_TOKEN), countP2 = count(window, PLAYER_2_TOKEN), countEmpty = count(window, EMPTY_SLOT);
+
 	// -- NOTICE -- I tried adding/subtracting 50 when the count was 4, which seemed to give good results but whether they were better or not will need to be tested
-	if (count(window, PLAYER_2_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
+	if (countP2 == 2 && countEmpty == 2)
 		*score += 2;
-	else if (count(window, PLAYER_2_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
+	else if (countP2 == 3 && countEmpty == 1)
 		*score += 5;
-	else if (count(window, PLAYER_2_TOKEN) == 4)
+	else if (countP2 == 4)
 		*score += 50; //if Minimax is being used, this is useless, but if we set the Minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
-	else if (count(window, PLAYER_1_TOKEN) == 2 && count(window, EMPTY_SLOT) == 2)
+	else if (countP1 == 2 && countEmpty == 2)
 		*score -= 2; //was previously commented out (does the AI have a better play style without this?)
-	else if (count(window, PLAYER_1_TOKEN) == 3 && count(window, EMPTY_SLOT) == 1)
+	else if (countP1 == 3 && countEmpty == 1)
 		*score -= 5; //was previously at 4 (appeared to work better in some instances)
-	else if (count(window, PLAYER_1_TOKEN) == 4)
+	else if (countP1 == 4)
 		*score -= 50; //same redundancy as the AI token detection above
 
 	//printf("\nwindow: %d, %d, %d, %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], count(window, PLAYER_2_TOKEN), count(window, EMPTY_SLOT), *score);
@@ -57,7 +59,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	//horizontal score
 	for (int i = 0; i < y; i++) {
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = {
+			const int window[4] = {
 				*((int*)getToken(board, j, i)),
 				*((int*)getToken(board, j + 1, i)),
 				*((int*)getToken(board, j + 2, i)),
@@ -70,7 +72,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	//vertical score
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y - 3; j++) {
-			int window[4] = {
+			const int window[4] = {
 				*((int*)getToken(board, i, j)),
 				*((int*)getToken(board, i, j + 1)),
 				*((int*)getToken(board, i, j + 2)),
@@ -83,7 +85,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	//bottom-right to top-left diagonal score
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = {
+			const int window[4] = {
 				*((int*)getToken(board, j, i)),
 				*((int*)getToken(board, j + 1, i + 1)),
 				*((int*)getToken(board, j + 2, i + 2)),
@@ -96,7 +98,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	//bottom-left to top-right diagonal score
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
-			int window[4] = {
+			const int window[4] = {
 				*((int*)getToken(board, j + 3, i)),
 				*((int*)getToken(board, j + 2, i + 1)),
 				*((int*)getToken(board, j + 1, i + 2)),

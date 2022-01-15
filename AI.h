@@ -18,8 +18,8 @@ struct AIMove {
 };
 
 struct Hashmap* copyBoard(struct Hashmap* board, int x, int y);
-int count(int* list, int token);
-void evaluateWindow(int* window, int* score);
+int count(const int* restrict window, int token);
+void evaluateWindow(const int* restrict window, int* score);
 void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore);
 GameStatus isGameOver(struct Hashmap* board, int row, int column);
 int safeWinScore(int scale, int depth, int maxDepth);
