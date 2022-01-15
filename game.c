@@ -88,41 +88,44 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 			delay(2);
 		}
 	}
-	else if (toChar == 'u') {
-		successfulOperation = undo(board, history);// , column);
-		if (successfulOperation)
-			*traversing = true;
-		else
-			printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
-	}
-	else if (toChar == 'r') {
-		successfulOperation = redo(board, history);// , column);
-		if (successfulOperation)
-			*traversing = true;
-		else
-			printf("\n(!) there are no moves to redo, please try something else\n> ");
-	}
-	else if (toChar == 's') {
-		successfulOperation = saveGame(board, history, settings, turn, *traversing);
-		if (successfulOperation) {
-			printf("\nGame saved!");
-			delay(1);
-		}
-		else
-			delay(2); //give time to display the error message
-
-		*saving = true;
-	}
 	else {
-		*traversing = false;
-		int* tok = malloc(sizeof(int));
-		*tok = token;
-		successfulOperation = addMove((*board), *column - 1, tok);
-		if (successfulOperation)
-			updateHistory(history, *column - 1, token);
-		else {
-			free(tok);
-			printf("\n(!) column full, please choose another\n> ");
+		switch (toChar) {
+			case 'u':
+				successfulOperation = undo(board, history);// , column);
+				if (successfulOperation)
+					*traversing = true;
+				else
+					printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
+				break;
+			case 'r':
+				successfulOperation = redo(board, history);// , column);
+				if (successfulOperation)
+					*traversing = true;
+				else
+					printf("\n(!) there are no moves to redo, please try something else\n> ");
+				break;
+			case 's':
+				successfulOperation = saveGame(board, history, settings, turn, *traversing);
+				if (successfulOperation) {
+					printf("\nGame saved!");
+					delay(1);
+				}
+				else
+					delay(2); //give time to display the error message
+				*saving = true;
+				break;
+			default:
+				*traversing = false;
+				int* tok = malloc(sizeof(int));
+				*tok = token;
+				successfulOperation = addMove((*board), *column - 1, tok);
+				if (successfulOperation)
+					updateHistory(history, *column - 1, token);
+				else {
+					free(tok);
+					printf("\n(!) column full, please choose another\n> ");
+				}
+				break;
 		}
 	}
 
@@ -130,7 +133,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 }
 
 void displayBoard(struct Hashmap* board, struct Matrix* win) {
-	int x = getX(board), y = getY(board), i, j, k = 0, l = 0, m = 3;
+	int x = getX(board), y = getY(board), i, j, k = 0, l = 0;
 	system(CLEAR_TERMINAL);
 
 	for (i = 0; i < y; i++) {
@@ -144,7 +147,7 @@ void displayBoard(struct Hashmap* board, struct Matrix* win) {
 			int token = *((int*)getToken(board, j, k));
 
 			if (token) {
-				char* colour = DEFAULT_COLOUR; //initialise as PNRM in case we somehow don't get a colour, will prevent crashing
+				char* colour = DEFAULT_COLOUR; //initialise as default in case we somehow don't get a colour, will prevent crashing
 				if (win && (l >= 0 && l <= 3) && (j == *((int*)matrixCell(win, 0, l)) && k == *((int*)matrixCell(win, 1, l)))) {
 					colour = WIN_COLOUR;
 					l++;
@@ -188,29 +191,15 @@ void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct S
 	* columns - hence the stack implementation. So, ideally, all we would
 	* need to do is give the structure a column to play in and a token to
 	* push to that column.*/
-	if (loadedBoard == NULL && loadedHistory == NULL) {
-		board = createTable(x, y);
-		history = createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
-	}
-	else {
-		board = *loadedBoard;
-		history = *loadedHistory;
-		//column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
-	}
+	board = loadedBoard ? *loadedBoard : createTable(x, y);
+	history = loadedHistory ? *loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
+	//column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
 
 	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
 	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
 	if (settings->solo) {
-		if (x % 2) {
-			//is odd
-			centres[0] = (int)round(x / 2.0f) - 1;
-			centres[1] = 0; //we will use this to skip the double centre columns check
-		}
-		else {
-			//is even
-			centres[0] = (x / 2) - 1;
-			centres[1] = centres[0] + 1;
-		}
+		centres[0] = (int)round(x / 2.0f) - 1;
+		centres[1] = x % 2 ? 0 : centres[0] + 1;
 	}
 
 	do {
