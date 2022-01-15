@@ -1,6 +1,6 @@
 #include "data.h"
 
-char* cancelLoad(struct Hashmap* board, struct Hashmap* history, struct Settings* settings, FILE* file) {
+char* cancelLoad(struct Hashmap* restrict board, struct Hashmap* restrict history, struct Settings* restrict settings, FILE* file) {
 	if (board != NULL)
 		freeHashmap(board);
 	if (history != NULL)
@@ -13,10 +13,12 @@ char* cancelLoad(struct Hashmap* board, struct Hashmap* history, struct Settings
 			free(settings->player2);
 	}
 
+	fclose(file);
+
 	return FAILED_MESSAGE;
 }
 
-bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool turn, bool traversing) {
+bool saveGame(const struct Hashmap** restrict board, const struct Hashmap** restrict history, const struct Settings* restrict settings, const bool turn, const bool traversing) {
 	FILE* file;
 
 	if (file = fopen("save.bin", "wb")) { //should create the file if it doesn't exist, but this is here in case the file could not be created
@@ -70,7 +72,7 @@ bool saveGame(struct Hashmap** board, struct Hashmap** history, struct Settings*
 	return true;
 }
 
-char* loadGame(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, bool* turn, bool* traversing) {
+char* loadGame(struct Hashmap** restrict board, struct Hashmap** restrict history, struct Settings* restrict settings, bool* restrict turn, bool* restrict traversing) {
 	FILE* file;
 
 	if (file = fopen("save.bin", "rb")) {
