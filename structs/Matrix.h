@@ -6,6 +6,6 @@ struct Matrix {
     int *data;
 };
 
-struct Matrix* createMatrix(int x, int y);
-int* matrixCell(struct Matrix* m, int column, int row);
-void freeMatrix(struct Matrix* m);
+struct Matrix* createMatrix(const int x, const int y);
+int* matrixCell(const struct Matrix* restrict m, const int column, const int row);
+void freeMatrix(struct Matrix* restrict m);
