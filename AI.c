@@ -1,7 +1,7 @@
 #include <math.h>
 #include "AI.h"
 
-struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
+struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y) {
 	struct Hashmap* copy = createTable(x, y);
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
@@ -18,15 +18,15 @@ struct Hashmap* copyBoard(struct Hashmap* board, int x, int y) {
 	return copy;
 }
 
-int count(const int* restrict list, const int token) {
+int count(const int* restrict window, const int token) {
 	int c = 0;
 	for (int i = 0; i < 4; i++) //the window size will always be 4
-		if (list[i] == token)
+		if (window[i] == token)
 			c++;
 	return c;
 }
 
-void evaluateWindow(const int* restrict window, int* score) {
+void evaluateWindow(const int* restrict window, int* restrict score) {
 	const int countP1 = count(window, PLAYER_1_TOKEN), countP2 = count(window, PLAYER_2_TOKEN), countEmpty = count(window, EMPTY_SLOT);
 
 	// -- NOTICE -- I tried adding/subtracting 50 when the count was 4, which seemed to give good results but whether they were better or not will need to be tested
@@ -46,7 +46,7 @@ void evaluateWindow(const int* restrict window, int* score) {
 	//printf("\nwindow: %d, %d, %d, %d >> P2 count: %d >> NULL count: %d >> score: %d", window[0], window[1], window[2], window[3], count(window, PLAYER_2_TOKEN), count(window, EMPTY_SLOT), *score);
 }
 
-void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore) { //determines the best column to make a play in by giving each a score based on their current state
+void getScore(const struct Hashmap* restrict board, const int* restrict centres, const int x, const int y, int* restrict finalScore) { //determines the best column to make a play in by giving each a score based on their current state
 	int score = 0;
 
 	//centre score - exists because moves made here give the AI more options
@@ -111,7 +111,7 @@ void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore
 	*finalScore = score;
 }
 
-GameStatus isGameOver(struct Hashmap* board, int row, int column) {
+GameStatus isGameOver(const struct Hashmap* restrict board, const int row, const int column) {
 	//printf("\ncheckWin P1 = %d, P2 = %d >> row: %d, column: %d\n", checkWin(row, column, board, PLAYER_1_TOKEN), checkWin(row, column, board, PLAYER_2_TOKEN), row, column);
 	if (checkWin(row, column, board, PLAYER_2_TOKEN))
 		return AIWin;

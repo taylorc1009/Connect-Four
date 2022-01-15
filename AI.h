@@ -17,11 +17,11 @@ struct AIMove {
 	GameStatus gameStatus;
 };
 
-struct Hashmap* copyBoard(struct Hashmap* board, int x, int y);
+struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y);
 int count(const int* restrict window, int token);
-void evaluateWindow(const int* restrict window, int* score);
-void getScore(struct Hashmap* board, int* centres, int x, int y, int* finalScore);
-GameStatus isGameOver(struct Hashmap* board, int row, int column);
+void evaluateWindow(const int* restrict window, int* restrict score);
+void getScore(const struct Hashmap* restrict board, const int* restrict centres, const int x, const int y, int* restrict finalScore);
+GameStatus isGameOver(const struct Hashmap* restrict board, const int row, const int column);
 int safeWinScore(int scale, int depth, int maxDepth);
 struct AIMove* minimax(struct Hashmap* board, int x, int y, int column, int* centres, int player, int depth, int maxDepth, int alpha, int beta);
 void AIMakeMove(struct Hashmap* board, int* column, int* centres, int depth);
