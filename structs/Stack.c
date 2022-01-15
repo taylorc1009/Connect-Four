@@ -1,6 +1,6 @@
 #include "Stack.h"
 
-struct Stack* createStack(int size) {
+struct Stack* createStack(const int size) {
 	struct Stack* s = (struct Stack*)malloc(sizeof(struct Stack));
 
 	s->top = -1;
@@ -13,7 +13,7 @@ struct Stack* createStack(int size) {
 	return s;
 }
 
-bool push(struct Stack* s, void** val) {
+bool push(struct Stack* restrict s, void** restrict val) {
 	if (stackIsFull(s)) //if the stack is full
 		return false;
 
@@ -32,7 +32,7 @@ bool push(struct Stack* s, void** val) {
 	return true;
 }
 
-bool pop(struct Stack* s) {
+bool pop(struct Stack* restrict s) {
 	if (s->top == -1)
 		return false;
 
@@ -44,23 +44,23 @@ bool pop(struct Stack* s) {
 	return true;
 }
 
-void* stackGet(struct Stack* s, int index) {
+void* stackGet(const struct Stack* restrict s, const int index) {
 	if (index < s->size && s->list[index] != NULL)
 		return s->list[index]->val;
 	else
 		return NULL;
 }
 
-bool stackIsFull(struct Stack* s) {
+bool stackIsFull(const struct Stack* restrict s) {
 	return s->top == s->size - 1;
 }
 
-void resizeStack(struct Stack* s, int n) {
+void resizeStack(struct Stack* restrict s, const int n) {
 	s->size += n;
 	s->list = (struct stackNode**)realloc(s->list, (sizeof(struct stackNode) * (s->size)));
 }
 
-void freeStack(struct Stack* s) {
+void freeStack(struct Stack* restrict s) {
 	for (int i = 0; i < s->size; i++) {
 		if (i <= s->top)
 			free(s->list[i]->val);
