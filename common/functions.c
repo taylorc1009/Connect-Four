@@ -1,6 +1,6 @@
 #include "functions.h"
 
-void delay(int numOfSeconds) {
+void delay(const int numOfSeconds) {
 	#if !_WIN32
 	unsigned int retTime = time(0) + numOfSeconds;
     while (time(0) < retTime); // Unix 'sleep' - the block below does not work with Unix's standard library
@@ -11,12 +11,12 @@ void delay(int numOfSeconds) {
 	#endif
 }
 
-void cleanStdin() {
+void inline cleanStdin() {
 	char c = NUL;
 	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
 }
 
-int validateOption(int min, int max, bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
+int validateOption(const int min, const int max, const bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
 	bool valid;
 	int num;
 	char buffer[3]; //I'm aware that this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway
@@ -25,11 +25,11 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 		fgets(buffer, sizeof buffer, stdin);
 
 		num = (int)buffer[0];
-		const bool juncture = buffer[1] == '\n';
+		const bool newLine = buffer[1] == '\n';
 
-		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && juncture);
+		valid = (((num >= min + '0' && num <= max + '0') || (inPlay && (num == 'r' || num == 'u' || num == 's'))) && newLine);
 		if (!valid) {
-			if (!juncture)
+			if (!newLine)
 				cleanStdin();
 			if (min == 0 && max == 0)
 				printf("\n(!) invalid input: please enter an undo/redo operation or 0 to cancel\n> "); //used during the AI move being held as only 0 can be entered
@@ -41,7 +41,7 @@ int validateOption(int min, int max, bool inPlay) { //used to validate integers 
 	return num - '0';
 }
 
-struct Matrix* checkWin(const int row, const int column, const struct Hashmap* restrict board, int token) {
+struct Matrix* checkWin(const int row, const int column, const struct Hashmap* restrict board, const int token) {
 	int x = getX(board), y = getY(board);
 
 	//horizontal check
