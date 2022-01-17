@@ -1,8 +1,9 @@
 #include <ctype.h>
 #include "game.h"
 
-int removeExcessSpaces(char* str);
-char* inputString(FILE* fp);
-void getPlayerName(char** name, int* nameSize, int playerNum);
-void setup(struct Settings* settings);
+int removeExcessSpaces(char* restrict str);
+char* inputString(FILE* restrict fp);
+void getPlayerName(char** restrict name, int* restrict nameSize, const int playerNum);
+void setup(struct Settings* restrict settings);
+void welcome(const int x, const int y);
 int main(int argc, char** argv);

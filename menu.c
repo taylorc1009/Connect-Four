@@ -11,7 +11,7 @@
 
 #include "menu.h"
 
-int removeExcessSpaces(char* str) { //used to remove preceding and exceding spaces from strings
+int removeExcessSpaces(char* restrict str) { //used to remove preceding and exceding spaces from strings
 	int j = 0;
 
 	for (int i = 0; str[i]; ++i)
@@ -26,7 +26,7 @@ int removeExcessSpaces(char* str) { //used to remove preceding and exceding spac
 	return j; //return the new length of the string
 }
 
-char* inputString(FILE* fp) { //credit - https://stackoverflow.com/a/16871702/11136104
+char* inputString(FILE* restrict fp) { //credit - https://stackoverflow.com/a/16871702/11136104
 	size_t size = 30;
 	char* str = realloc(NULL, sizeof(*str) * size);
 	if (!str)
@@ -49,7 +49,7 @@ char* inputString(FILE* fp) { //credit - https://stackoverflow.com/a/16871702/11
 	return realloc(str, sizeof(*str) * len);
 }
 
-void getPlayerName(char** name, int* nameSize, int playerNum) {
+void getPlayerName(char** restrict name, int* restrict nameSize, const int playerNum) {
 	bool empty;
 
 	printf("\n%sPlayer %d%s, please enter your name\n> ", playerNum == 1 ? PLAYER_1_COLOUR : PLAYER_2_COLOUR, playerNum, DEFAULT_COLOUR);
@@ -65,7 +65,7 @@ void getPlayerName(char** name, int* nameSize, int playerNum) {
 	} while (empty);
 }
 
-void setup(struct Settings* settings) {
+void setup(struct Settings* restrict settings) {
 	getPlayerName(&settings->player1, &settings->player1Size, 1);
 
 	if (settings->solo) {
@@ -103,7 +103,7 @@ void setup(struct Settings* settings) {
 		free(settings->player2);
 }
 
-void welcome(int x, int y) {
+void welcome(const int x, const int y) {
 	system(CLEAR_TERMINAL);
 	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
