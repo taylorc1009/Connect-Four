@@ -1,7 +1,7 @@
 #include <math.h>
 #include "game.h"
 
-bool undo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
+bool undo(struct Hashmap** restrict board, struct Hashmap** restrict history) {//, int* column) {
 	struct Stack* moveStack = hashGet(*history, 0);
 
 	if (!moveStack->size)
@@ -30,7 +30,7 @@ bool undo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 	return true;
 }
 
-bool redo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
+bool redo(struct Hashmap** restrict board, struct Hashmap** restrict history) {//, int* column) {
 	struct Stack* undoStack = hashGet(*history, 1);
 
 	if (!undoStack->size)
@@ -61,10 +61,10 @@ bool redo(struct Hashmap** board, struct Hashmap** history) {//, int* column) {
 	return true;
 }
 
-void updateHistory(struct Hashmap** history, int column, int p) {
+void updateHistory(struct Hashmap** restrict history, const int column, const int token) {
 	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 	move->column = column;
-	move->token = p;
+	move->token = token;
 
 	resizeStack(hashGet(*history, 0), 1);
 	push(hashGet(*history, 0), (void**)&move);
@@ -77,7 +77,7 @@ void updateHistory(struct Hashmap** history, int column, int p) {
 	}
 }
 
-bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int token, bool* traversing, bool* saving, bool turn, int AIOperator) {
+bool doOperation(struct Hashmap** restrict board, struct Hashmap** restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
 	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
 	bool successfulOperation = true;
 
@@ -132,7 +132,7 @@ bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settin
 	return successfulOperation;
 }
 
-void displayBoard(struct Hashmap* board, struct Matrix* win) {
+void displayBoard(const struct Hashmap* restrict board, const struct Matrix* restrict win) {
 	int x = getX(board), y = getY(board), i, j, k = 0, l = 0;
 	system(CLEAR_TERMINAL);
 
@@ -174,7 +174,7 @@ void displayBoard(struct Hashmap* board, struct Matrix* win) {
 	printf("\n\n\n");
 }
 
-void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing) {
+void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
 	bool successfulOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NULL;

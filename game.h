@@ -1,8 +1,8 @@
 #include "AI.h"
 
-bool undo(struct Hashmap** board, struct Hashmap** history);// , int* column);
-bool redo(struct Hashmap** board, struct Hashmap** history);// , int* column);
-void updateHistory(struct Hashmap** history, int column, int p);
-bool doOperation(struct Hashmap** board, struct Hashmap** history, struct Settings* settings, int* column, int token, bool* traversing, bool* saving, bool turn, int AIOperator);
-void displayBoard(struct Hashmap* board, struct Matrix* win);
-void play(struct Hashmap** loadedBoard, struct Hashmap** loadedHistory, struct Settings* settings, bool loadedTurn, bool loadedTraversing);
+bool undo(struct Hashmap** restrict board, struct Hashmap** restrict history);// , int* column);
+bool redo(struct Hashmap** restrict board, struct Hashmap** restrict history);// , int* column);
+void updateHistory(struct Hashmap** restrict history, const int column, const int token);
+bool doOperation(struct Hashmap** restrict board, struct Hashmap** restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator);
+void displayBoard(const struct Hashmap* restrict board, const struct Matrix* restrict win);
+void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing);
