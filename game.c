@@ -209,15 +209,13 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 				boardFull = isBoardFull(board, x);
 		}
 
+		displayBoard(board, win);
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
-			displayBoard(board, win);
 			win ? printf("Congratulations %s%s%s, you win!", colour, player, DEFAULT_COLOUR) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
 			delay(2);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
-			displayBoard(board, NULL);
-
 			if (!saving) {
 				if (p1ToPlay) {
 					player = settings->player1;
