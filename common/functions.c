@@ -19,7 +19,7 @@ void inline cleanStdin() {
 int validateOption(const int min, const int max, const bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
 	bool valid;
 	int num;
-	char buffer[3]; //I'm aware that this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway
+	char buffer[3]; //this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway
 
 	do {
 		fgets(buffer, sizeof buffer, stdin);
@@ -41,7 +41,7 @@ int validateOption(const int min, const int max, const bool inPlay) { //used to 
 	return num - '0';
 }
 
-struct Matrix* checkWin(const int row, const int column, const struct Hashmap* restrict board, const int token) {
+struct Matrix* checkWin(const int row, const int column, const struct Hashmap* restrict board, const int token, const bool isAICheck) {
 	int x = getX(board), y = getY(board);
 
 	//horizontal check
@@ -50,13 +50,16 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 		if (*((int*)getToken(board, i, row)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
-				struct Matrix* win = createMatrix(4, 2);
-				for (int j = 0; j < 4; j++) {
-					//win[j] = (int*)malloc(sizeof(int) * 2);
-					*((int*)matrixCell(win, 0, j)) = (i - 3) + j;
-					*((int*)matrixCell(win, 1, j)) = row;
+				struct Matrix* win;
+				if (!isAICheck) { //don't return the matrix containing the winning tokens' coordinates if the AI is checking for a winning move because it doesn't need this information, only a value signifying there's been a win
+					win = createMatrix(4, 2);
+					for (int j = 0; j < 4; j++) {
+						*((int*)matrixCell(win, 0, j)) = (i - 3) + j;
+						*((int*)matrixCell(win, 1, j)) = row;
+					}
 				}
+				else
+					win = (struct Matrix*)&count; //when the AI is doing a check, return an unnecessary, non-null pointer
 				return win;
 			}
 		}
@@ -70,13 +73,16 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 		if (*((int*)getToken(board, column, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
-				struct Matrix* win = createMatrix(4, 2);
-				for (int j = 0; j < 4; j++) {
-					//win[j] = (int*)malloc(sizeof(int) * 2);
-					*((int*)matrixCell(win, 0, j)) = column;
-					*((int*)matrixCell(win, 1, j)) = i - j;
+				struct Matrix* win;
+				if (!isAICheck) { //don't return the matrix containing the winning tokens' coordinates if the AI is checking for a winning move because it doesn't need this information, only a value signifying there's been a win
+					win = createMatrix(4, 2);
+					for (int j = 0; j < 4; j++) {
+						*((int*)matrixCell(win, 0, j)) = column;
+						*((int*)matrixCell(win, 1, j)) = i - j;
+					}
 				}
+				else
+					win = (struct Matrix*)&count; //when the AI is doing a check, return an unnecessary, non-null pointer
 				return win;
 			}
 		}
@@ -98,15 +104,16 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
-				struct Matrix* win = createMatrix(4, 2);
-				for (int k = 0; k < 4; k++) {
-					//win[k] = (int*)malloc(sizeof(int) * 2);
-					//printf("(%d, %d) i:%d j:%d k:%d\n", j - k, i - k, i, j, k);
-					*((int*)matrixCell(win, 0, k)) = j - k;
-					*((int*)matrixCell(win, 1, k)) = i - k;
+				struct Matrix* win;
+				if (!isAICheck) { //don't return the matrix containing the winning tokens' coordinates if the AI is checking for a winning move because it doesn't need this information, only a value signifying there's been a win
+					win = createMatrix(4, 2);
+					for (int k = 0; k < 4; k++) {
+						*((int*)matrixCell(win, 0, k)) = j - k;
+						*((int*)matrixCell(win, 1, k)) = i - k;
+					}
 				}
-				//delay(5);
+				else
+					win = (struct Matrix*)&count; //when the AI is doing a check, return an unnecessary, non-null pointer
 				return win;
 			}
 		}
@@ -129,15 +136,16 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 		if (*((int*)getToken(board, j, i)) == token) {
 			count++;
 			if (count >= 4) {
-				//int** win = (int**)malloc(sizeof(int) * 4);
-				struct Matrix* win = createMatrix(4, 2);
-				for (int k = 0; k < 4; k++) {
-					//win[k] = (int*)malloc(sizeof(int) * 2);
-					//printf("(%d, %d) i:%d j:%d k:%d\n", j + k, i - k, i, j, k);
-					*((int*)matrixCell(win, 0, k)) = j + k;
-					*((int*)matrixCell(win, 1, k)) = i - k;
+				struct Matrix* win;
+				if (!isAICheck) { //don't return the matrix containing the winning tokens' coordinates if the AI is checking for a winning move because it doesn't need this information, only a value signifying there's been a win
+					win = createMatrix(4, 2);
+					for (int k = 0; k < 4; k++) {
+						*((int*)matrixCell(win, 0, k)) = j + k;
+						*((int*)matrixCell(win, 1, k)) = i - k;
+					}
 				}
-				//delay(5);
+				else
+					win = (struct Matrix*)&count; //when the AI is doing a check, return an unnecessary, non-null pointer
 				return win;
 			}
 		}

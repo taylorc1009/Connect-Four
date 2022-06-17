@@ -113,9 +113,9 @@ void getScore(const struct Hashmap* restrict board, const int* restrict centres,
 
 GameStatus isGameOver(const struct Hashmap* restrict board, const int row, const int column) {
 	//printf("\ncheckWin P1 = %d, P2 = %d >> row: %d, column: %d\n", checkWin(row, column, board, PLAYER_1_TOKEN), checkWin(row, column, board, PLAYER_2_TOKEN), row, column);
-	if (checkWin(row, column, board, PLAYER_2_TOKEN))
+	if (checkWin(row, column, board, PLAYER_2_TOKEN, true))
 		return AIWin;
-	if (checkWin(row, column, board, PLAYER_1_TOKEN))
+	if (checkWin(row, column, board, PLAYER_1_TOKEN, true))
 		return PlayerWin;
 	if (isBoardFull(board, getX(board)))
 		return BoardFull;
@@ -154,7 +154,7 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 					int* token = malloc(sizeof(int));
 					*token = PLAYER_1_TOKEN;
 					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
-						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN) != NULL ? true : false;
+						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN, true) != NULL;
 					else
 						free(token);
 					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);

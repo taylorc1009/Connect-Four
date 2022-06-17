@@ -204,7 +204,7 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 
 	do {
 		if (player != NULL && !traversing && !saving) { //used to skip checks before the first move (including after a game has been loaded), otherwise null issues occur
-			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token);
+			win = checkWin(hashGet(board, column - 1)->top, column - 1, board, token, false);
 			if (win == NULL)
 				boardFull = isBoardFull(board, x);
 		}
