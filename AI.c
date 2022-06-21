@@ -157,7 +157,7 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN, true) != NULL;
 					else
 						free(token);
-					score = pWin ? safeWinScore(-1, depth, maxDepth) : safeWinScore(1, depth, maxDepth);
+					score = safeWinScore(pWin ? -1 : 1, depth, maxDepth);
 				}
 				else
 					score = safeWinScore(1, depth, maxDepth);
