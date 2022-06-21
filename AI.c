@@ -122,7 +122,7 @@ GameStatus isGameOver(const struct Hashmap* restrict board, const int row, const
 	return Ongoing;
 }
 
-int safeWinScore(const int scale, const int depth, const int maxDepth) {
+int inline safeWinScore(const int scale, const int depth, const int maxDepth) {
 	/* the idea of this calculation is to give wins closer to the boards current state a
 	 * higher priority as we would prefer the AI moved on those instead: we don't want
 	 * it to prioritise wins that are only possible further in the future*/
