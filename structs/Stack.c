@@ -13,7 +13,7 @@ struct Stack* createStack(const int size) {
 	return s;
 }
 
-bool push(struct Stack* restrict s, void** restrict val) {
+bool push(struct Stack* restrict s, void* restrict val) {
 	if (stackIsFull(s)) //if the stack is full
 		return false;
 
@@ -25,7 +25,7 @@ bool push(struct Stack* restrict s, void** restrict val) {
 		newNode->prev = NULL;
 	s->top++;
 
-	newNode->val = *val;
+	newNode->val = val;
 	newNode->next = NULL;
 	s->list[s->top] = newNode;
 
@@ -47,8 +47,7 @@ bool pop(struct Stack* restrict s) {
 void* stackGet(const struct Stack* restrict s, const int index) {
 	if (index < s->size && s->list[index] != NULL)
 		return s->list[index]->val;
-	else
-		return NULL;
+	return NULL;
 }
 
 bool stackIsFull(const struct Stack* restrict s) {

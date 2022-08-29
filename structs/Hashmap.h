@@ -18,7 +18,7 @@ struct Stack* hashGet(const struct Hashmap* t, const int key);
 int getX(const struct Hashmap* board);
 int getY(const struct Hashmap* board);
 bool addMove(const struct Hashmap* board, const int column, const int* restrict tok);
-void** getToken(const struct Hashmap* restrict board, const int x, const int y);
+int getToken(const struct Hashmap* restrict board, const int x, const int y);
 bool columnIsFull(const struct Hashmap* board, const int column);
 bool isBoardFull(const struct Hashmap* restrict board, const int x);
 void freeHashmap(struct Hashmap* restrict h);

@@ -13,7 +13,7 @@ struct Stack {
 };
 
 struct Stack* createStack(const int size);
-bool push(struct Stack* restrict s, const void** restrict val);
+bool push(struct Stack* restrict s, const void* restrict val);
 bool pop(struct Stack* restrict s);
 void* stackGet(const struct Stack* restrict s, const int index);
 bool stackIsFull(const struct Stack* restrict s);

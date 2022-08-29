@@ -59,16 +59,14 @@ int getY(const struct Hashmap* board) {
 }
 
 bool addMove(const struct Hashmap* board, const int column, const int* restrict tok) {
-    return push(hashGet(board, column), (void**)&tok);
+    return push(hashGet(board, column), (void*)tok);
 }
 
-void** getToken(const struct Hashmap* restrict board, const int x, const int y) {
-    void** val = stackGet(hashGet(board, x), y);
-    if (val == NULL) {
-        static void* nul = EMPTY_SLOT;
-        return (&nul);
-    }
-    return val;
+int getToken(const struct Hashmap* restrict board, const int x, const int y) {
+    void* val = stackGet(hashGet(board, x), y);
+    if (val == NULL)
+        return EMPTY_SLOT;
+    return *((int*)val);
 }
 
 bool columnIsFull(const struct Hashmap* board, const int column) {

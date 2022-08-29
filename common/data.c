@@ -26,9 +26,12 @@ bool saveGame(const struct Hashmap** restrict board, const struct Hashmap** rest
 		fwrite(&x, sizeof(int), 1, file);
 		fwrite(&y, sizeof(int), 1, file);
 		
-		for (int i = 0; i < x; i++) 
-			for (int j = 0; j < y; j++)
-				fwrite((int*)getToken(*board, i, j), sizeof(int), 1, file);
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
+				int tok = getToken(*board, i, j);
+				fwrite(&tok, sizeof(int), 1, file);
+			}
+		}
 
 		fwrite(&(*history)->size, sizeof(int), 1, file);
 		struct Stack* stack;
@@ -126,7 +129,7 @@ char* loadGame(struct Hashmap** restrict board, struct Hashmap** restrict histor
 					if (!fread(&move->column, sizeof(int), 1, file) || !fread(&move->token, sizeof(int), 1, file))
 						return cancelLoad(*board, *history, NULL, file);
 
-					if (!push(stack, (void**)&move)) { //push failsafe, it shouldn't fail as the correct size should be used but just in case
+					if (!push(stack, (void*)move)) { //push failsafe, it shouldn't fail as the correct size should be used but just in case
 						free(move);
 						return cancelLoad(*board, *history, NULL, file);
 					}

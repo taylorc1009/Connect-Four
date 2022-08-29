@@ -5,7 +5,7 @@ struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, con
 	struct Hashmap* copy = createTable(x, y);
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
-			int temp = *((int*)getToken(board, i, j));
+			int temp = getToken(board, i, j);
 			if (temp != EMPTY_SLOT) {
 				int* token = malloc(sizeof(int));
 				*token = temp;
@@ -53,17 +53,17 @@ void getScore(const struct Hashmap* restrict board, const int* restrict centres,
 	for (int i = 0; i < 2; i++)
 		if (centres[i] != 0) //prevents the check of a second centre column if there is only 1
 			for (int j = 0; j < y; j++)
-				if (*((int*)getToken(board, centres[i], j)) == EMPTY_SLOT)
+				if (getToken(board, centres[i], j) == EMPTY_SLOT)
 					score++; //only prioritises the centre column(s) depending on the amount of free spaces (it previously prioritised it if the AI had more tokens there)
 
 	//horizontal score
 	for (int i = 0; i < y; i++) {
 		for (int j = 0; j < x - 3; j++) {
 			const int window[4] = {
-				*((int*)getToken(board, j, i)),
-				*((int*)getToken(board, j + 1, i)),
-				*((int*)getToken(board, j + 2, i)),
-				*((int*)getToken(board, j + 3, i))
+				getToken(board, j, i),
+				getToken(board, j + 1, i),
+				getToken(board, j + 2, i),
+				getToken(board, j + 3, i)
 			};
 			evaluateWindow(window, &score);
 		}
@@ -73,10 +73,10 @@ void getScore(const struct Hashmap* restrict board, const int* restrict centres,
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y - 3; j++) {
 			const int window[4] = {
-				*((int*)getToken(board, i, j)),
-				*((int*)getToken(board, i, j + 1)),
-				*((int*)getToken(board, i, j + 2)),
-				*((int*)getToken(board, i, j + 3))
+				getToken(board, i, j),
+				getToken(board, i, j + 1),
+				getToken(board, i, j + 2),
+				getToken(board, i, j + 3)
 			};
 			evaluateWindow(window, &score);
 		}
@@ -86,10 +86,10 @@ void getScore(const struct Hashmap* restrict board, const int* restrict centres,
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
 			const int window[4] = {
-				*((int*)getToken(board, j, i)),
-				*((int*)getToken(board, j + 1, i + 1)),
-				*((int*)getToken(board, j + 2, i + 2)),
-				*((int*)getToken(board, j + 3, i + 3))
+				getToken(board, j, i),
+				getToken(board, j + 1, i + 1),
+				getToken(board, j + 2, i + 2),
+				getToken(board, j + 3, i + 3)
 			};
 			evaluateWindow(window, &score);
 		}
@@ -99,10 +99,10 @@ void getScore(const struct Hashmap* restrict board, const int* restrict centres,
 	for (int i = 0; i < y - 3; i++) {
 		for (int j = 0; j < x - 3; j++) {
 			const int window[4] = {
-				*((int*)getToken(board, j + 3, i)),
-				*((int*)getToken(board, j + 2, i + 1)),
-				*((int*)getToken(board, j + 1, i + 2)),
-				*((int*)getToken(board, j, i + 3))
+				getToken(board, j + 3, i),
+				getToken(board, j + 2, i + 1),
+				getToken(board, j + 1, i + 2),
+				getToken(board, j, i + 3)
 			};
 			evaluateWindow(window, &score);
 		}
@@ -196,10 +196,8 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 
 			/*for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 				printf("\n|");
-				for (int k = 0; k < x; k++) {
-					int p = *((int*)getToken(temp, k, (y - 1) - j));
-					printf("%d|", p);
-				}
+				for (int k = 0; k < x; k++)
+					printf("%d|", getToken(temp, k, (y - 1) - j));
 			}
 			printf("d:%d i:%d\n", depth, i);*/
 
@@ -240,10 +238,8 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 
 			/*for (int j = 0; j < y; j++) { //displays the temporary board (for debugging)
 				printf("\n|");
-				for (int k = 0; k < x; k++) {
-					int p = *((int*)getToken(temp, k, (y - 1) - j));
-					printf("%d|", p);
-				}
+				for (int k = 0; k < x; k++)
+					printf("%d|", getToken(temp, k, (y - 1) - j));
 			}
 			printf("d:%d i:%d\n", depth, i);*/
 

@@ -23,7 +23,7 @@ bool undo(struct Hashmap** restrict board, struct Hashmap** restrict history) {/
 
 	//add the move, that's being undone, to the history of undone moves
 	resizeStack(undoStack, 1);
-	push(undoStack, (void**)&undoMove);
+	push(undoStack, (void*)undoMove);
 
 	//*column = moveStack->top == -1 ? 1 : ((struct Move*)stackGet(moveStack, moveStack->top))->column + 1; //if the next move to undo is the only remaining move, there's no point updating column as it is now the user's turn again, it will crash if we do anyway as the board is now empty
 
@@ -54,7 +54,7 @@ bool redo(struct Hashmap** restrict board, struct Hashmap** restrict history) {/
 
 	//add the move, that's being redone, to the history of moves
 	resizeStack(moveStack, 1);
-	push(moveStack, (void**)&redoMove);
+	push(moveStack, (void*)redoMove);
 
 	//*column = redoMove->column + 1;
 
@@ -67,7 +67,7 @@ void updateHistory(struct Hashmap** restrict history, const int column, const in
 	move->token = token;
 
 	resizeStack(hashGet(*history, 0), 1);
-	push(hashGet(*history, 0), (void**)&move);
+	push(hashGet(*history, 0), (void*)move);
 
 	struct Stack* undoStack = hashGet(*history, 1);
 	if (undoStack->size) { //if there are redo-able moves, clear them as, since the user has made a new move after undoing, these may not be possible to redo
@@ -144,7 +144,7 @@ void displayBoard(const struct Hashmap* restrict board, const struct Matrix* res
 		printf("|");
 		for (j = 0; j < x; j++) {
 			k = (y - 1) - i; //'(y - 1) - i' fixes the display, otherwise it would come out upside down
-			int token = *((int*)getToken(board, j, k));
+			int token = getToken(board, j, k);
 
 			if (token) {
 				char* colour = DEFAULT_COLOUR; //initialise as default in case we somehow don't get a colour, will prevent crashing
@@ -193,7 +193,7 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 	* push to that column.*/
 	board = loadedBoard ? *loadedBoard : createTable(x, y);
 	history = loadedHistory ? *loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
-	//column = *((int*)getToken(history, 0, hashGet(history, 0)->top)) + 1;
+	//column = getToken(history, 0, hashGet(history, 0)->top) + 1;
 
 	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
 	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)

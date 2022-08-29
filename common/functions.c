@@ -47,7 +47,7 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 	//horizontal check
 	int count = 0;
 	for (int i = (column - 3 < 0 ? 0 : column - 3); i < (column + 4 > x ? x : column + 4); i++) {
-		if (*((int*)getToken(board, i, row)) == token) {
+		if (getToken(board, i, row) == token) {
 			count++;
 			if (count >= 4) {
 				struct Matrix* win;
@@ -70,7 +70,7 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 	//vertical check
 	count = 0;
 	for (int i = (row - 3 < 0 ? 0 : row - 3); i < (row + 4 > y ? y : row + 4); i++) {
-		if (*((int*)getToken(board, column, i)) == token) {
+		if (getToken(board, column, i) == token) {
 			count++;
 			if (count >= 4) {
 				struct Matrix* win;
@@ -101,7 +101,7 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 	}
 
 	for (i, j; i < y && j < x && i < row + 4 && j < column + 4; i++, j++) {
-		if (*((int*)getToken(board, j, i)) == token) {
+		if (getToken(board, j, i) == token) {
 			count++;
 			if (count >= 4) {
 				struct Matrix* win;
@@ -133,7 +133,7 @@ struct Matrix* checkWin(const int row, const int column, const struct Hashmap* r
 	}
 
 	for (i, j; i < y && j >= 0 && i < row + 4 && j > column - 4; i++, j--) {
-		if (*((int*)getToken(board, j, i)) == token) {
+		if (getToken(board, j, i) == token) {
 			count++;
 			if (count >= 4) {
 				struct Matrix* win;
