@@ -1,7 +1,7 @@
 #include <math.h>
 #include "AI.h"
 
-struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y) {
+/*struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y) {
 	struct Hashmap* copy = createTable(x, y);
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
@@ -16,7 +16,7 @@ struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, con
 		}
 	}
 	return copy;
-}
+}*/
 
 int count(const int* restrict window, const int token) {
 	int c = 0;
@@ -153,8 +153,10 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 					bool pWin = false;
 					int* token = malloc(sizeof(int));
 					*token = PLAYER_1_TOKEN;
-					if (addMove(board, move->column, token)) //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
+					if (addMove(board, move->column, token)) { //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN, true) != NULL;
+						pop(hashGet(board, move->column));
+					}
 					else
 						free(token);
 					score = safeWinScore(pWin ? -1 : 1, depth, maxDepth);
@@ -178,13 +180,14 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 	if (player == PLAYER_2_TOKEN) { //maximizing player
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
-			struct Hashmap* tempBoard = copyBoard(board, x, y);
+			//struct Hashmap* tempBoard = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
 			*token = PLAYER_2_TOKEN;
 			struct AIMove* newMove;
 
-			if (addMove(tempBoard, i, token)) //I previously used the 'columnIsFull' detection above, but when the board state came to a point where the AI could only make bad moves, it would choose the full column as it's score was still 0 (therefore greater than a negative number)
-				newMove = minimax(tempBoard, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
+			bool moveAdded = addMove(board, i, token);
+			if (moveAdded) //I previously used the 'columnIsFull' detection above, but when the board state came to a point where the AI could only make bad moves, it would choose the full column as it's score was still 0 (therefore greater than a negative number)
+				newMove = minimax(board, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
 				free(token);
 				newMove = malloc(sizeof(struct AIMove));
@@ -207,7 +210,9 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score < -1000 ? newMove->column : i; //prevents the maximizing player from using a really low score (we still return the other values so we can let the algorithm know what happens)
 			}
-			freeHashmap(tempBoard);
+			//freeHashmap(tempBoard);
+			if (moveAdded)
+				pop(hashGet(board, i));
 			free(newMove);
 
 			alpha = MAX(alpha, move->score);
@@ -220,13 +225,14 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 	else { //minimizing player
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
-			struct Hashmap* tempBoard = copyBoard(board, x, y);
+			//struct Hashmap* tempBoard = copyBoard(board, x, y);
 			int* token = malloc(sizeof(int));
 			*token = PLAYER_1_TOKEN;
 			struct AIMove* newMove;
 
-			if (addMove(tempBoard, i, token)) //same as above, but for the minimizing player
-				newMove = minimax(tempBoard, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
+			bool moveAdded = addMove(board, i, token);
+			if (moveAdded) //same as above, but for the minimizing player
+				newMove = minimax(board, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
 				free(token);
 				newMove = malloc(sizeof(struct AIMove));
@@ -249,7 +255,9 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 				move->gameStatus = newMove->gameStatus;
 				move->column = move->gameStatus && move->score > 1000 ? newMove->column : i; //prevents the minimizing player from using a really high (same as the one above; setting these to lower values may make the AI smarter, but too low may break things)
 			}
-			freeHashmap(tempBoard);
+			//freeHashmap(tempBoard);
+			if (moveAdded)
+				pop(hashGet(board, i));
 			free(newMove);
 
 			beta = MIN(beta, move->score);
