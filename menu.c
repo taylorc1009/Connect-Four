@@ -84,7 +84,7 @@ void setup(struct Settings* restrict settings) {
 				settings->depth = 5;
 				break;
 			case 4:
-				settings->depth = 7;
+				settings->depth = 8;
 				break;
 		}
 	}
