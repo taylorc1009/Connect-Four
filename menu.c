@@ -90,12 +90,10 @@ void setup(struct Settings* restrict settings) {
 	}
 	else {
 		getPlayerName(&settings->player2, &settings->player2Size, 2);
-		printf("\nWelcome %s%s%s and %s%s%s!", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR, PLAYER_2_COLOUR, settings->player2, DEFAULT_COLOUR);
-		delay(1);
+		//printf("\nWelcome %s%s%s and %s%s%s!", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR, PLAYER_2_COLOUR, settings->player2, DEFAULT_COLOUR);
+		//delay(1);
 	}
 
-	printf("\nStarting...");
-	delay(2);
 	play(NULL, NULL, settings, true, false);
 
 	free(settings->player1);
@@ -169,16 +167,14 @@ int main(int argc, char** argv) {
 			if (response == NULL) {
 				printf("\nGame loaded!");
 				delay(1);
-				printf("\nStarting...");
-				delay(2);
 
 				play(&board, &history, settings, turn, traversing);
 
 				welcome(settings->boardX, settings->boardY);
 			}
-			else
+			else//in this case, an error occurred, so let the user read it
 				printf("%s", response);
-				//delay(2); //give some time to show the error message
+				getc(stdin);
 
 			break;
 

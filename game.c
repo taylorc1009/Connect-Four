@@ -85,7 +85,6 @@ bool doOperation(struct Hashmap** restrict board, struct Hashmap** restrict hist
 		*traversing = false;
 		if (AIOperator != 0) {
 			printf("\n(!) game closed");
-			delay(2);
 		}
 	}
 	else {
@@ -110,8 +109,9 @@ bool doOperation(struct Hashmap** restrict board, struct Hashmap** restrict hist
 					printf("\nGame saved!");
 					delay(1);
 				}
-				else
-					delay(2); //give time to display the error message
+				else //in this case, an error occurred, so let the user read it
+					printf("\nPress any key to continue...");
+					getc(stdin);
 				*saving = true;
 				break;
 			default:
@@ -174,33 +174,37 @@ void displayBoard(const struct Hashmap* restrict board, const struct Matrix* res
 	printf("\n\n\n");
 }
 
+void switchTurn(const bool playerOneToPlay, const struct Settings* settings, bool* restrict saving, char** restrict player, int* restrict token, char** restrict colour) {
+	if (!*saving) {
+		if (playerOneToPlay) {
+			*player = settings->player1;
+			*token = PLAYER_1_TOKEN;
+			*colour = PLAYER_1_COLOUR;
+		}
+		else {
+			*player = settings->player2;
+			*token = PLAYER_2_TOKEN;
+			*colour = PLAYER_2_COLOUR;
+		}
+	}
+	else
+		*saving = false;
+}
+
 void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool successfulOperation, boardFull = false, p1ToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
+	bool successfulOperation, boardFull = false, playerOneToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NULL;
 	char* colour;
-	int centres[2];
+	if (settings->solo)
+		int centres[2] = {(int)round(x / 2.0f) - 1, x % 2 ? 0 : centres[0] + 1};
 	struct Hashmap* board;
 	struct Hashmap* history;
 	struct Matrix* win = NULL;
 
-	/*The board structure is made of a list of stacks stored in a hashmap.
-	* This is due to the play style of connect 4; a player must only pick
-	* a column to drop a token in, this corresponds to the key of the
-	* hashmap, and they can only interact with the position on top of the
-	* columns - hence the stack implementation. So, ideally, all we would
-	* need to do is give the structure a column to play in and a token to
-	* push to that column.*/
 	board = loadedBoard ? *loadedBoard : createTable(x, y);
 	history = loadedHistory ? *loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
 	//column = getToken(history, 0, hashGet(history, 0)->top) + 1;
-
-	//we need to determine if there is a literal centre column, based on the board dimensions, for the AI scoring (x will be odd if there is)
-	//if there isn't, then we will evaluate the 2 centre columns (StackOverflow claims (x & 1) is faster at determining an odd number?)
-	if (settings->solo) {
-		centres[0] = (int)round(x / 2.0f) - 1;
-		centres[1] = x % 2 ? 0 : centres[0] + 1;
-	}
 
 	do {
 		if (player != NULL && !traversing && !saving) { //used to skip checks before the first move (including after a game has been loaded), otherwise null issues occur
@@ -212,32 +216,18 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 		displayBoard(board, win);
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
 			win ? printf("Congratulations %s%s%s, you win!", colour, player, DEFAULT_COLOUR) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
-			delay(2);
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
-			if (!saving) {
-				if (p1ToPlay) {
-					player = settings->player1;
-					token = PLAYER_1_TOKEN;
-					colour = PLAYER_1_COLOUR;
-				}
-				else {
-					player = settings->player2;
-					token = PLAYER_2_TOKEN;
-					colour = PLAYER_2_COLOUR;
-				}
-			}
-			else
-				saving = false;
+			switchTurn(playerOneToPlay, settings, &saving, &player, &token, &colour);
 
-			if (!p1ToPlay && settings->solo) { //get the AI to make a move
+			if (!playerOneToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
 					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 					
 					do {
 						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-						successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, operation);
+						successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, playerOneToPlay, operation);
 					} while (!successfulOperation);
 
 					if (!traversing)
@@ -257,20 +247,21 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 				}
 			}
 			else {
-				printf("Make your move %s%s%s, what would you like to do?\n> ", colour, player, DEFAULT_COLOUR);
+				printf("Make your move %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
 
 				do {
 					column = validateOption(0, x, true);
-					successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, p1ToPlay, -1);
+					successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, playerOneToPlay, -1);
 				} while (!successfulOperation);
 			}
+
 			if (!saving)
-				p1ToPlay = !p1ToPlay;
+				playerOneToPlay = !playerOneToPlay;
 		}
 	} while ((column >= 1 && column <= x) || traversing || saving);
 
-	printf("\nReturning to the main menu...");
-	delay(2);
+	printf("\nPress any key to continue...");
+	getc(stdin);
 
 	freeHashmap(board);
 	freeHashmap(history);
