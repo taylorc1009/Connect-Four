@@ -223,7 +223,7 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 
 			if (!playerOneToPlay && settings->solo) { //get the AI to make a move
 				if (traversing) {
-					printf("(!) %s%s%s move held - your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
+					printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 					
 					do {
 						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
@@ -247,7 +247,7 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 				}
 			}
 			else {
-				printf("Make your move %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
+				printf("Make your move, %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
 
 				do {
 					column = validateOption(0, x, true);
