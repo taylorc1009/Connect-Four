@@ -27,18 +27,18 @@ int count(const int* restrict window, const int token) {
 }
 
 void evaluateWindow(const int* restrict window, int* restrict score) {
-	const int countP1 = count(window, PLAYER_1_TOKEN), countP2 = count(window, PLAYER_2_TOKEN), countEmpty = count(window, EMPTY_SLOT);
+	const int countP1 = count(window, PLAYER_1_TOKEN), countP2 = count(window, PLAYER_2_TOKEN);
 
 	// -- NOTICE -- I tried adding/subtracting 50 when the count was 4, which seemed to give good results but whether they were better or not will need to be tested
-	if (countP2 == 2 && countEmpty == 2)
+	if (countP2 == 2 && !countP1)
 		*score += 2;
-	else if (countP2 == 3 && countEmpty == 1)
+	else if (countP2 == 3 && !countP1)
 		*score += 5;
 	else if (countP2 == 4)
 		*score += 50; //if Minimax is being used, this is useless, but if we set the Minimax depth to 0 this will have to be used (so this is used when the depth is set to 1)
-	else if (countP1 == 2 && countEmpty == 2)
+	else if (countP1 == 2 && !countP2)
 		*score -= 2; //was previously commented out (does the AI have a better play style without this?)
-	else if (countP1 == 3 && countEmpty == 1)
+	else if (countP1 == 3 && !countP2)
 		*score -= 5; //was previously at 4 (appeared to work better in some instances)
 	else if (countP1 == 4)
 		*score -= 50; //same redundancy as the AI token detection above
