@@ -1,18 +1,18 @@
 #include <math.h>
 #include "game.h"
 
-bool undo(struct Hashmap** restrict board, struct Hashmap** restrict history) {//, int* column) {
-	struct Stack* moveStack = hashGet(*history, 0);
+bool undo(struct Hashmap* restrict board, struct Hashmap* restrict history) {//, int* column) {
+	struct Stack* moveStack = hashGet(history, 0);
 
 	if (!moveStack->size)
 		return false;
 
-	struct Stack* undoStack = hashGet(*history, 1);
+	struct Stack* undoStack = hashGet(history, 1);
 	struct Move* undoMove = (struct Move*)malloc(sizeof(struct Move));
 
 	memcpy(undoMove, (struct Move*)stackGet(moveStack, moveStack->top), sizeof(struct Move));
 
-	if (!pop(hashGet(*board, undoMove->column))) { //if removing (undoing) the move from the column was unsuccessful, prevent move history and undo history manipulation so the move isn't lost
+	if (!pop(hashGet(board, undoMove->column))) { //if removing (undoing) the move from the column was unsuccessful, prevent move history and undo history manipulation so the move isn't lost
 		free(undoMove);
 		return false;
 	}
@@ -30,20 +30,20 @@ bool undo(struct Hashmap** restrict board, struct Hashmap** restrict history) {/
 	return true;
 }
 
-bool redo(struct Hashmap** restrict board, struct Hashmap** restrict history) {//, int* column) {
-	struct Stack* undoStack = hashGet(*history, 1);
+bool redo(struct Hashmap* restrict board, struct Hashmap* restrict history) {//, int* column) {
+	struct Stack* undoStack = hashGet(history, 1);
 
 	if (!undoStack->size)
 		return false;
 
-	struct Stack* moveStack = hashGet(*history, 0);
+	struct Stack* moveStack = hashGet(history, 0);
 
 	struct Move* redoMove = (struct Move*)malloc(sizeof(struct Move));
 	memcpy(redoMove, (struct Move*)stackGet(undoStack, undoStack->top), sizeof(struct Move));
 
 	int* tok = malloc(sizeof(int));
 	*tok = redoMove->token;
-	if(!addMove(*board, redoMove->column, tok)) { //if adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
+	if(!addMove(board, redoMove->column, tok)) { //if adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
 		free(redoMove);
 		return false;
 	}
@@ -61,75 +61,20 @@ bool redo(struct Hashmap** restrict board, struct Hashmap** restrict history) {/
 	return true;
 }
 
-void updateHistory(struct Hashmap** restrict history, const int column, const int token) {
+void updateHistory(struct Hashmap* restrict history, const int column, const int token) {
 	struct Move* move = (struct Move*)malloc(sizeof(struct Move));
 	move->column = column;
 	move->token = token;
 
-	resizeStack(hashGet(*history, 0), 1);
-	push(hashGet(*history, 0), (void*)move);
+	resizeStack(hashGet(history, 0), 1);
+	push(hashGet(history, 0), (void*)move);
 
-	struct Stack* undoStack = hashGet(*history, 1);
+	struct Stack* undoStack = hashGet(history, 1);
 	if (undoStack->size) { //if there are redo-able moves, clear them as, since the user has made a new move after undoing, these may not be possible to redo
 		freeStack(undoStack);
 		undoStack->size = 0;
 		undoStack->top = -1;
 	}
-}
-
-bool doOperation(struct Hashmap** restrict board, struct Hashmap** restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
-	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
-	bool successfulOperation = true;
-
-	if ((*column == 0) || (*traversing && AIOperator == 0)) {
-		*traversing = false;
-		if (AIOperator != 0) {
-			printf("\n(!) game closed");
-		}
-	}
-	else {
-		switch (toChar) {
-			case 'u':
-				successfulOperation = undo(board, history);// , column);
-				if (successfulOperation)
-					*traversing = true;
-				else
-					printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
-				break;
-			case 'r':
-				successfulOperation = redo(board, history);// , column);
-				if (successfulOperation)
-					*traversing = true;
-				else
-					printf("\n(!) there are no moves to redo, please try something else\n> ");
-				break;
-			case 's':
-				successfulOperation = saveGame(board, history, settings, turn, *traversing);
-				if (successfulOperation) {
-					printf("\nGame saved!");
-					delay(1);
-				}
-				else //in this case, an error occurred, so let the user read it
-					printf("\nPress any key to continue...");
-					getc(stdin);
-				*saving = true;
-				break;
-			default:
-				*traversing = false;
-				int* tok = malloc(sizeof(int));
-				*tok = token;
-				successfulOperation = addMove((*board), *column - 1, tok);
-				if (successfulOperation)
-					updateHistory(history, *column - 1, token);
-				else {
-					free(tok);
-					printf("\n(!) column full, please choose another\n> ");
-				}
-				break;
-		}
-	}
-
-	return successfulOperation;
 }
 
 void displayBoard(const struct Hashmap* restrict board, const struct Matrix* restrict win) {
@@ -174,6 +119,62 @@ void displayBoard(const struct Hashmap* restrict board, const struct Matrix* res
 	printf("\n\n\n");
 }
 
+bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
+	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
+	bool successfulOperation = true;
+
+	if ((*column == 0) || (*traversing && AIOperator == 0)) {
+		*traversing = false;
+		if (AIOperator != 0) {
+			printf("\n(!) game closed");
+		}
+	}
+	else {
+		switch (toChar) {
+			case 'u':
+				successfulOperation = undo(board, history);// , column);
+				if (successfulOperation)
+					*traversing = true;
+				else
+					printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
+				break;
+			case 'r':
+				successfulOperation = redo(board, history);// , column);
+				if (successfulOperation)
+					*traversing = true;
+				else
+					printf("\n(!) there are no moves to redo, please try something else\n> ");
+				break;
+			case 's':
+				successfulOperation = saveGame(board, history, settings, turn, *traversing);
+				if (successfulOperation) {
+					printf("\nGame saved!");
+					delay(1);
+				}
+				else { //in this case, an error occurred, so let the user read it
+					printf("\nPress any key to continue...");
+					getc(stdin);
+				}
+				*saving = true;
+				break;
+			default:
+				*traversing = false;
+				int* tok = malloc(sizeof(int));
+				*tok = token;
+				successfulOperation = addMove(board, *column - 1, tok);
+				if (successfulOperation)
+					updateHistory(history, *column - 1, token);
+				else {
+					free(tok);
+					printf("\n(!) column full, please choose another\n> ");
+				}
+				break;
+		}
+	}
+
+	return successfulOperation;
+}
+
 void switchTurn(const bool playerOneToPlay, const struct Settings* settings, bool* restrict saving, char** restrict player, int* restrict token, char** restrict colour) {
 	if (!*saving) {
 		if (playerOneToPlay) {
@@ -191,9 +192,48 @@ void switchTurn(const bool playerOneToPlay, const struct Settings* settings, boo
 		*saving = false;
 }
 
+void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict centres, const bool playerOneToPlay, bool* restrict traversing, bool* restrict saving, int* restrict column, const int token, const char* restrict colour) {
+	bool successfulOperation;
+
+	if (*traversing) {
+		printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
+		
+		do {
+			int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+			successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, operation);
+		} while (!successfulOperation);
+
+		if (!*traversing)
+			printf("\n");
+	}
+	if (!*traversing) { //this looks like it could be an "else" to the above "if" but it can't; if "doOperation", in the above "if", sets 'traversing' to false then that means the user cancelled undoing/redoing an AI move, at which point 'column' would also be 0 and (if this line is an else) the code below won't execute as the code above did, so the AI never makes a move and thus the game is closed
+		printf("%s%s%s is making a move...", colour, settings->player2, DEFAULT_COLOUR);
+
+		AIMakeMove(board, column, centres, settings->depth); //give board by value so we don't accidentally edit it
+
+		int* tok = malloc(sizeof(int));
+		*tok = PLAYER_2_TOKEN;
+		if (!addMove(board, (*column) - 1, tok)) //shouldn't return a full column as we determine this in the AI (if we didn't, we'd need to run Minimax twice from here which is a bad (slow) idea), but just in case, deallocate the memory if this happens
+			free(tok);
+		else
+			updateHistory(history, (*column) - 1, token);
+	}
+}
+
+void playerTurn(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const bool playerOneToPlay, bool* traversing, bool* saving, int* column, const char* restrict player, const int token, const char* restrict colour) {
+	bool successfulOperation;
+
+	printf("Make your move, %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
+
+	do {
+		*column = validateOption(0, getX(board), true);
+		successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, -1);
+	} while (!successfulOperation);
+}
+
 void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
 	int x = settings->boardX, y = settings->boardY, token, column = 1;
-	bool successfulOperation, boardFull = false, playerOneToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
+	bool boardFull = false, playerOneToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NULL;
 	char* colour;
 	if (settings->solo)
@@ -221,39 +261,11 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 		else {
 			switchTurn(playerOneToPlay, settings, &saving, &player, &token, &colour);
 
-			if (!playerOneToPlay && settings->solo) { //get the AI to make a move
-				if (traversing) {
-					printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
-					
-					do {
-						int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-						successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, playerOneToPlay, operation);
-					} while (!successfulOperation);
 
-					if (!traversing)
-						printf("\n");
-				}
-				if (!traversing) { //this looks like it could be an "else" to the above "if" but it can't; if "doOperation", in the above "if", sets 'traversing' to false then that means the user cancelled undoing/redoing an AI move, at which point 'column' would also be 0 and (if this line is an else) the code below won't execute as the code above did, so the AI never makes a move and thus the game is closed
-					printf("%s%s%s is making a move...", colour, settings->player2, DEFAULT_COLOUR);
-
-					AIMakeMove(board, &column, centres, settings->depth); //give board by value so we don't accidentally edit it
-
-					int* tok = malloc(sizeof(int));
-					*tok = PLAYER_2_TOKEN;
-					if (!addMove(board, column - 1, tok)) //shouldn't return a full column as we determine this in the AI (if we didn't, we'd need to run Minimax twice from here which is a bad (slow) idea), but just in case, deallocate the memory if this happens
-						free(tok);
-
-					updateHistory(&history, column - 1, token);
-				}
-			}
-			else {
-				printf("Make your move, %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
-
-				do {
-					column = validateOption(0, x, true);
-					successfulOperation = doOperation(&board, &history, settings, &column, token, &traversing, &saving, playerOneToPlay, -1);
-				} while (!successfulOperation);
-			}
+			if (!playerOneToPlay && settings->solo)
+				AITurn(board, history, settings, centres, playerOneToPlay, &traversing, &saving, &column, token, colour);
+			else
+				playerTurn(board, history, settings, playerOneToPlay, &traversing, &saving, &column, player, token, colour);
 
 			if (!saving)
 				playerOneToPlay = !playerOneToPlay;

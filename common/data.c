@@ -18,7 +18,7 @@ char* cancelLoad(struct Hashmap* restrict board, struct Hashmap* restrict histor
 	return FAILED_MESSAGE;
 }
 
-bool saveGame(const struct Hashmap** restrict board, const struct Hashmap** restrict history, const struct Settings* restrict settings, const bool turn, const bool traversing) {
+bool saveGame(const struct Hashmap* restrict board, const struct Hashmap* restrict history, const struct Settings* restrict settings, const bool turn, const bool traversing) {
 	FILE* file;
 
 	if (file = fopen("save.bin", "wb")) { //should create the file if it doesn't exist, but this is here in case the file could not be created
@@ -28,16 +28,16 @@ bool saveGame(const struct Hashmap** restrict board, const struct Hashmap** rest
 		
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
-				int tok = getToken(*board, i, j);
+				int tok = getToken(board, i, j);
 				fwrite(&tok, sizeof(int), 1, file);
 			}
 		}
 
-		fwrite(&(*history)->size, sizeof(int), 1, file);
+		fwrite(&history->size, sizeof(int), 1, file);
 		struct Stack* stack;
 
-		for (int i = 0; i < (*history)->size; i++) {
-			stack = hashGet(*history, i);
+		for (int i = 0; i < history->size; i++) {
+			stack = hashGet(history, i);
 			fwrite(&stack->size, sizeof(int), 1, file);
 
 			for (int j = 0; j < stack->size; j++) {
