@@ -3,5 +3,5 @@
 
 void delay(int numOfSeconds);
 void inline cleanStdin();
-int validateOption(const int min, const int max, const bool inPlay);
+int getUserOptionInRange(const int min, const int max, const bool inPlay);
 struct Matrix* checkWin(const int row, const int column, const struct Hashmap* restrict board, const int token, const bool isAICheck);

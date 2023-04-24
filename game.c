@@ -77,6 +77,82 @@ void updateHistory(struct Hashmap* restrict history, const int column, const int
 	}
 }
 
+bool inline attemptUndo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing) {
+	bool successfulOperation = undo(board, history);// , column);
+
+	if (successfulOperation)
+		*traversing = true;
+	else
+		printf("\n(!) board is empty; no possible moves to undo\n> ");
+
+	return successfulOperation;
+}
+
+bool inline attemptRedo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing) {
+	bool successfulOperation = redo(board, history);// , column);
+
+	if (successfulOperation)
+		*traversing = true;
+	else
+		printf("\n(!) there are no moves to redo\n> ");
+
+	return successfulOperation;
+}
+
+bool inline attemptSave(const struct Hashmap* restrict board, const struct Hashmap* restrict history, const struct Settings* restrict settings, const bool turn, const bool* traversing, bool* restrict saving) {
+	bool successfulOperation = saveGame(board, history, settings, turn, *traversing);
+
+	if (successfulOperation) {
+		printf("\nGame saved!");
+		delay(1);
+	}
+	else { //in this case, an error occurred, so let the user read it
+		printf("\nPress any key to continue...");
+		getc(stdin);
+	}
+
+	*saving = true;
+	return successfulOperation;
+}
+
+bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restrict history, const int* restrict column, const int token, bool* restrict traversing) {
+	int* tok = malloc(sizeof(int));
+	*tok = token;
+	bool successfulOperation = addMove(board, *column - 1, tok);
+
+	if (successfulOperation)
+		updateHistory(history, *column - 1, token);
+	else {
+		free(tok);
+		printf("\n(!) column full, please choose another\n> ");
+	}
+
+	*traversing = false;
+	return successfulOperation;
+}
+
+bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
+	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
+
+	if ((*column == 0) || (*traversing && AIOperator == 0)) {
+		*traversing = false;
+		if (AIOperator != 0)
+			printf("\n(!) game closed");
+		return true;
+	}
+
+	switch (toChar) {
+		case 'u':
+			return attemptUndo(board, history, traversing);
+		case 'r':
+			return attemptRedo(board, history, traversing);
+		case 's':
+			return attemptSave(board, history, settings, turn, traversing, saving);
+		default:
+			return attemptAddMove(board, history, column, token, traversing);
+	}
+}
+
 void displayBoard(const struct Hashmap* restrict board, const struct Matrix* restrict win) {
 	int x = getX(board), y = getY(board), i, j, k = 0, l = 0;
 	system(CLEAR_TERMINAL);
@@ -119,62 +195,6 @@ void displayBoard(const struct Hashmap* restrict board, const struct Matrix* res
 	printf("\n\n\n");
 }
 
-bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
-	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
-	bool successfulOperation = true;
-
-	if ((*column == 0) || (*traversing && AIOperator == 0)) {
-		*traversing = false;
-		if (AIOperator != 0) {
-			printf("\n(!) game closed");
-		}
-	}
-	else {
-		switch (toChar) {
-			case 'u':
-				successfulOperation = undo(board, history);// , column);
-				if (successfulOperation)
-					*traversing = true;
-				else
-					printf("\n(!) board is empty; no possible moves to undo, please try something else\n> ");
-				break;
-			case 'r':
-				successfulOperation = redo(board, history);// , column);
-				if (successfulOperation)
-					*traversing = true;
-				else
-					printf("\n(!) there are no moves to redo, please try something else\n> ");
-				break;
-			case 's':
-				successfulOperation = saveGame(board, history, settings, turn, *traversing);
-				if (successfulOperation) {
-					printf("\nGame saved!");
-					delay(1);
-				}
-				else { //in this case, an error occurred, so let the user read it
-					printf("\nPress any key to continue...");
-					getc(stdin);
-				}
-				*saving = true;
-				break;
-			default:
-				*traversing = false;
-				int* tok = malloc(sizeof(int));
-				*tok = token;
-				successfulOperation = addMove(board, *column - 1, tok);
-				if (successfulOperation)
-					updateHistory(history, *column - 1, token);
-				else {
-					free(tok);
-					printf("\n(!) column full, please choose another\n> ");
-				}
-				break;
-		}
-	}
-
-	return successfulOperation;
-}
-
 void switchTurn(const bool playerOneToPlay, const struct Settings* settings, bool* restrict saving, char** restrict player, int* restrict token, char** restrict colour) {
 	if (!*saving) {
 		if (playerOneToPlay) {
@@ -199,7 +219,7 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 		printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 		
 		do {
-			int operation = validateOption(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+			int operation = getUserOptionInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
 			successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, operation);
 		} while (!successfulOperation);
 
@@ -226,13 +246,14 @@ void playerTurn(struct Hashmap* restrict board, struct Hashmap* restrict history
 	printf("Make your move, %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
 
 	do {
-		*column = validateOption(0, getX(board), true);
+		*column = getUserOptionInRange(0, getX(board), true);
 		successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, -1);
 	} while (!successfulOperation);
 }
 
 void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
-	int x = settings->boardX, y = settings->boardY, token, column = 1;
+	const int x = settings->boardX;
+	int token, column = 1;
 	bool boardFull = false, playerOneToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
 	char* player = NULL;
 	char* colour;
@@ -242,7 +263,7 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 	struct Hashmap* history;
 	struct Matrix* win = NULL;
 
-	board = loadedBoard ? *loadedBoard : createTable(x, y);
+	board = loadedBoard ? *loadedBoard : createTable(x, settings->boardY);
 	history = loadedHistory ? *loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
 	//column = getToken(history, 0, hashGet(history, 0)->top) + 1;
 

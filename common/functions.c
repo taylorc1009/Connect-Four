@@ -16,7 +16,7 @@ void inline cleanStdin() {
 	while ((c = getchar()) != '\n' && c != 0) { /* do nothing until input buffer is fully flushed */ }
 }
 
-int validateOption(const int min, const int max, const bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
+int getUserOptionInRange(const int min, const int max, const bool inPlay) { //used to validate integers within a given range - because we now use 'fgets' instead of 'scanf', I need to find a way to get numbers with more than 1 digit safely
 	bool valid;
 	int num;
 	char buffer[3]; //this limits the input to numbers with 1 digit, but we'll never be using any > 9 anyway

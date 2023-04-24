@@ -3,6 +3,10 @@
 bool undo(struct Hashmap* restrict board, struct Hashmap* restrict history);// , int* column);
 bool redo(struct Hashmap* restrict board, struct Hashmap* restrict history);// , int* column);
 void updateHistory(struct Hashmap* restrict history, const int column, const int token);
+bool inline attemptUndo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing);
+bool inline attemptRedo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing);
+bool inline attemptSave(const struct Hashmap* restrict board, const struct Hashmap* restrict history, const struct Settings* restrict settings, const bool turn, const bool* traversing, bool* restrict saving);
+bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restrict history, const int* restrict column, const int token, bool* restrict traversing);
 bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator);
 void displayBoard(const struct Hashmap* restrict board, const struct Matrix* restrict win);
 void switchTurn(const bool playerOneToPlay, const struct Settings* settings, bool* restrict saving, char** restrict player, int* restrict token, char** restrict colour);
