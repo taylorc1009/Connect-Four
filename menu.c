@@ -73,7 +73,7 @@ void setup(struct Settings* restrict settings) {
 		settings->player2Size = 3;
 
 		printf("\nWelcome %s%s%s! Which difficulty level would you like to play at?\n\n 1 - easy\n 2 - medium\n 3 - hard\n 4 - expert\n\n> ", PLAYER_1_COLOUR, settings->player1, DEFAULT_COLOUR);
-		switch (getUserOptionInRange(1, 4, false)) {
+		switch (getUserInputInRange(1, 4, false)) {
 			case 1:
 				settings->depth = 1;
 				break;
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		settings->depth = 0;
 
 		printf("\nWhat would you like to do?\n> ");
-		option = getUserOptionInRange(1, 6, false);
+		option = getUserInputInRange(1, 6, false);
 		switch (option) {
 		case 1:
 			printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", PLAYER_1_COLOUR, DEFAULT_COLOUR, PLAYER_2_COLOUR, DEFAULT_COLOUR);
@@ -133,10 +133,10 @@ int main(int argc, char** argv) {
 
 		case 2:
 			printf("\nPlease enter the width (amount of columns) you want to play with (5-9)\n> ");
-			settings->boardX = getUserOptionInRange(5, 9, false);
+			settings->boardX = getUserInputInRange(5, 9, false);
 
 			printf("\nPlease enter the height (amount of rows) you want to play with (5-9)\n> ");
-			settings->boardY = getUserOptionInRange(5, 9, false);
+			settings->boardY = getUserInputInRange(5, 9, false);
 
 			printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
 			delay(2);

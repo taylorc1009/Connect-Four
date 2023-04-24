@@ -219,7 +219,7 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 		printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 		
 		do {
-			int operation = getUserOptionInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+			int operation = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
 			successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, operation);
 		} while (!successfulOperation);
 
@@ -246,7 +246,7 @@ void playerTurn(struct Hashmap* restrict board, struct Hashmap* restrict history
 	printf("Make your move, %s%s%s:\n> ", colour, player, DEFAULT_COLOUR);
 
 	do {
-		*column = getUserOptionInRange(0, getX(board), true);
+		*column = getUserInputInRange(0, getX(board), true);
 		successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, -1);
 	} while (!successfulOperation);
 }
