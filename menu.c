@@ -101,9 +101,9 @@ void setup(struct Settings* restrict settings) {
 		free(settings->player2);
 }
 
-void welcome(const int x, const int y) {
+void inline welcome(const int x, const int y) {
 	system(CLEAR_TERMINAL);
-	printf("Welcome to Connect 4! Reproduced virtually using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
+	printf("Welcome to Connect 4! Developed using C by Taylor Courtney\nTo continue, select either:\n\n 1 - how to play + controls\n 2 - change board size (currently %dx%d)\n 3 - start Player versus Player\n 4 - start Player versus AI\n 5 - load a previous save\n 6 - quit\n", x, y);
 }
 
 int main(int argc, char** argv) {
@@ -117,73 +117,67 @@ int main(int argc, char** argv) {
 	settings->boardX = 7;
 	settings->boardY = 6;
 
-	welcome(settings->boardX, settings->boardY);
-
-	int option;
+	int option = 0;
 	do {
 		settings->solo = false;
 		settings->depth = 0;
 
+		if (option != 1)
+			welcome(settings->boardX, settings->boardY);
 		printf("\nWhat would you like to do?\n> ");
 		option = getUserInputInRange(1, 6, false);
+
 		switch (option) {
-		case 1:
-			printf("\nConnect 4 is a rather simple game. Both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", PLAYER_1_COLOUR, DEFAULT_COLOUR, PLAYER_2_COLOUR, DEFAULT_COLOUR);
-			break;
+			case 1:
+				printf("\nIn Connect 4, both players take a turn each selecting a column\nwhich they would like to drop their token (player 1 = %sRED%s, player 2 = %sYELLOW%s) into next.\n\nThis continues until one player has connected 4 of their tokens in a row either\nhorizontally, vertically or diagonally. Here are the in-game controls:\n\n 1-9 = column you wish to place your token in\n 0 = exit\n u = undo\n r = redo \n s = save\n", PLAYER_1_COLOUR, DEFAULT_COLOUR, PLAYER_2_COLOUR, DEFAULT_COLOUR);
+				break;
 
-		case 2:
-			printf("\nPlease enter the width (amount of columns) you want to play with (5-9)\n> ");
-			settings->boardX = getUserInputInRange(5, 9, false);
+			case 2:
+				printf("\nPlease enter the width (amount of columns) you want to play with (5-9)\n> ");
+				settings->boardX = getUserInputInRange(5, 9, false);
 
-			printf("\nPlease enter the height (amount of rows) you want to play with (5-9)\n> ");
-			settings->boardY = getUserInputInRange(5, 9, false);
+				printf("\nPlease enter the height (amount of rows) you want to play with (5-9)\n> ");
+				settings->boardY = getUserInputInRange(5, 9, false);
 
-			printf("\nBoard dimensions changed successfully to %dx%d\n", settings->boardX, settings->boardY);
-			delay(2);
+				printf("\nBoard dimensions changed successfully to %dx%d", settings->boardX, settings->boardY);
+				delay(2);
+				break;
 
-			welcome(settings->boardX, settings->boardY);
-			break;
+			case 3:
+				//TODO: ask the user if they want to change their settings from the previous game
+				setup(settings);
+				break;
 
-		case 3:
-			setup(settings);
+			case 4:
+				//TODO: ask the user if they want to change their settings from the previous game
+				settings->solo = true;
+				setup(settings);
+				break;
 
-			welcome(settings->boardX, settings->boardY);
-			break;
+			case 5: ; //reason for ';' - https://stackoverflow.com/questions/18496282/why-do-i-get-a-label-can-only-be-part-of-a-statement-and-a-declaration-is-not-a
+				struct Hashmap* board = NULL;
+				struct Hashmap* history = NULL;
+				bool turn, traversing;
 
-		case 4:
-			settings->solo = true;
-			setup(settings);
+				char* response = (char*)loadGame(&board, &history, settings, &turn, &traversing);
 
-			welcome(settings->boardX, settings->boardY);
-			break;
+				if (response == NULL) {
+					printf("\nGame loaded!");
+					delay(1);
+					play(&board, &history, settings, turn, traversing);
+				}
+				else { //in this case, an error occurred, so let the user read it
+					printf("%s", response);
+					getc(stdin);
+				}
+				break;
 
-		case 5: ; //reason for ';' - https://stackoverflow.com/questions/18496282/why-do-i-get-a-label-can-only-be-part-of-a-statement-and-a-declaration-is-not-a
-			struct Hashmap* board = NULL;
-			struct Hashmap* history = NULL;
-			bool turn, traversing;
+			case 6:
+				free(settings); //player names are deallocated when the game is over/quit
 
-			char* response = (char*)loadGame(&board, &history, settings, &turn, &traversing);
-
-			if (response == NULL) {
-				printf("\nGame loaded!");
-				delay(1);
-
-				play(&board, &history, settings, turn, traversing);
-
-				welcome(settings->boardX, settings->boardY);
-			}
-			else//in this case, an error occurred, so let the user read it
-				printf("%s", response);
-				getc(stdin);
-
-			break;
-
-		case 6:
-			free(settings); //player names are deallocated when the game is over/quit
-
-			system(CLEAR_TERMINAL);
-			printf("Connect 4 closed. Goodbye!\n");
-			break;
+				system(CLEAR_TERMINAL);
+				printf("Connect 4 closed. Goodbye!\n");
+				break;
 		}
 	} while (option != 6);
 
