@@ -115,13 +115,13 @@ bool inline attemptSave(const struct Hashmap* restrict board, const struct Hashm
 	return successfulOperation;
 }
 
-bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restrict history, const int* restrict column, const int token, bool* restrict traversing) {
+bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restrict history, const int column, const int token, bool* restrict traversing) {
 	int* tok = malloc(sizeof(int));
 	*tok = token;
-	bool successfulOperation = addMove(board, *column - 1, tok);
+	bool successfulOperation = addMove(board, column - 1, tok);
 
 	if (successfulOperation)
-		updateHistory(history, *column - 1, token);
+		updateHistory(history, column - 1, token);
 	else {
 		free(tok);
 		printf("\n(!) column full, please choose another\n> ");
@@ -131,10 +131,10 @@ bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restr
 	return successfulOperation;
 }
 
-bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int* restrict column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
-	int toChar = AIOperator == -1 ? *column + '0' : AIOperator + '0';
+bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
+	int toChar = AIOperator == -1 ? column + '0' : AIOperator + '0';
 
-	if ((*column == 0) || (*traversing && AIOperator == 0)) {
+	if ((column == 0) || (*traversing && AIOperator == 0)) {
 		*traversing = false;
 		if (AIOperator != 0)
 			printf("\n(!) game closed");
@@ -220,7 +220,7 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 		
 		do {
 			int operation = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-			successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, operation);
+			successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay, operation);
 		} while (!successfulOperation);
 
 		if (!*traversing)
@@ -247,11 +247,11 @@ void playerTurn(struct Hashmap* restrict board, struct Hashmap* restrict history
 
 	do {
 		*column = getUserInputInRange(0, getX(board), true);
-		successfulOperation = doOperation(board, history, settings, column, token, traversing, saving, playerOneToPlay, -1);
+		successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay, -1);
 	} while (!successfulOperation);
 }
 
-void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
+void play(struct Hashmap* restrict loadedBoard, struct Hashmap* restrict loadedHistory, const struct Settings* restrict settings, const bool loadedTurn, const bool loadedTraversing) {
 	const int x = settings->boardX;
 	int token, column = 1;
 	bool boardFull = false, playerOneToPlay = loadedTurn, traversing = loadedTraversing, saving = false;
@@ -263,8 +263,8 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 	struct Hashmap* history;
 	struct Matrix* win = NULL;
 
-	board = loadedBoard ? *loadedBoard : createTable(x, settings->boardY);
-	history = loadedHistory ? *loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
+	board = loadedBoard ? loadedBoard : createTable(x, settings->boardY);
+	history = loadedHistory ? loadedHistory : createTable(2, 0); //keys: 0 = history of moves made, 1 = history of moves undone
 	//column = getToken(history, 0, hashGet(history, 0)->top) + 1;
 
 	do {
@@ -281,7 +281,6 @@ void play(struct Hashmap** restrict loadedBoard, struct Hashmap** restrict loade
 		}
 		else {
 			switchTurn(playerOneToPlay, settings, &saving, &player, &token, &colour);
-
 
 			if (!playerOneToPlay && settings->solo)
 				AITurn(board, history, settings, centres, playerOneToPlay, &traversing, &saving, &column, token, colour);

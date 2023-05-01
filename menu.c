@@ -26,7 +26,7 @@ int removeExcessSpaces(char* restrict str) { //used to remove preceding and exce
 	return j; //return the new length of the string
 }
 
-char* inputString(FILE* restrict fp) { //credit - https://stackoverflow.com/a/16871702/11136104
+char* inputString(FILE* restrict fp) {
 	size_t size = 30;
 	char* str = realloc(NULL, sizeof(*str) * size);
 	if (!str)
@@ -122,7 +122,7 @@ void attemptLoadGame(struct Settings* settings) {
 	if (response == NULL) {
 		printf("\nGame loaded!");
 		delay(1);
-		play(&board, &history, settings, turn, traversing);
+		play(board, history, settings, turn, traversing);
 	}
 	else { //in this case, an error occurred, so let the user read it
 		printf("%s\n\nPress any key to continue...", response);
