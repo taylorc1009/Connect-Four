@@ -131,25 +131,23 @@ bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restr
 	return successfulOperation;
 }
 
-bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int column, const int token, bool* restrict traversing, bool* restrict saving, const bool turn, const int AIOperator) {
-	int toChar = AIOperator == -1 ? column + '0' : AIOperator + '0';
-
-	if ((column == 0) || (*traversing && AIOperator == 0)) {
+bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict history, const struct Settings* restrict settings, const int operation, const int token, bool* restrict traversing, bool* restrict saving, const bool playerOneToPlay) {
+	if (!operation) {
 		*traversing = false;
-		if (AIOperator != 0)
+		if (!settings->solo || (settings->solo && playerOneToPlay))
 			printf("\n(!) game closed");
 		return true;
 	}
 
-	switch (toChar) {
+	switch (operation + '0') {
 		case 'u':
 			return attemptUndo(board, history, traversing);
 		case 'r':
 			return attemptRedo(board, history, traversing);
 		case 's':
-			return attemptSave(board, history, settings, turn, traversing, saving);
-		default:
-			return attemptAddMove(board, history, column, token, traversing);
+			return attemptSave(board, history, settings, playerOneToPlay, traversing, saving);
+		default: //in this case, undo, redo, or save was not selected, so "operation" is a column number to add a move to
+			return attemptAddMove(board, history, operation, token, traversing);
 	}
 }
 
@@ -216,11 +214,11 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 	bool successfulOperation;
 
 	if (*traversing) {
-		printf("(!) %s%s%s move held; your previous move was to undo/redo, do you wish to continue doing so?\n    (enter 0 to cancel this operation, other controls are the regular undo/redo controls)\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
+		printf("(!) %s%s%s move held: your previous choice was to undo/redo, so do you wish to continue undoing/redoing?\nEnter 0 to continue by letting the AI make a move on the current board. Other options are the regular undo/redo controls.\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 		
 		do {
-			int operation = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-			successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay, operation);
+			*column = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+			successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay);
 		} while (!successfulOperation);
 
 		if (!*traversing)
@@ -247,7 +245,7 @@ void playerTurn(struct Hashmap* restrict board, struct Hashmap* restrict history
 
 	do {
 		*column = getUserInputInRange(0, getX(board), true);
-		successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay, -1);
+		successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay);
 	} while (!successfulOperation);
 }
 
