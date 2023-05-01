@@ -224,7 +224,8 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 		if (!*traversing)
 			printf("\n");
 	}
-	if (!*traversing) { //this looks like it could be an "else" to the above "if" but it can't; if "doOperation", in the above "if", sets 'traversing' to false then that means the user cancelled undoing/redoing an AI move, at which point 'column' would also be 0 and (if this line is an else) the code below won't execute as the code above did, so the AI never makes a move and thus the game is closed
+
+	if (!*traversing) { //this looks like it could be an "else" to the above "if" but it can't. If "doOperation", in the above "if", sets 'traversing' to false then that means the user cancelled undoing/redoing an AI move. At which point, 'column' would be 0 and if this line is an else, the code below wouldn't execute because the code above did. So, the AI wouldn't make make a move when the user cancels undoing/redoing and, thus, the game would close because 'column' would still equal 0 from the above "getUserInputInRange"
 		printf("%s%s%s is making a move...", colour, settings->player2, DEFAULT_COLOUR);
 
 		AIMakeMove(board, column, centres, settings->depth); //give board by value so we don't accidentally edit it
