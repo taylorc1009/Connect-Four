@@ -77,26 +77,13 @@ void updateHistory(struct Hashmap* restrict history, const int column, const int
 	}
 }
 
-bool inline attemptUndo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing) {
-	bool successfulOperation = undo(board, history);// , column);
+bool inline attemptUndoRedo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing, bool (*function)(struct Hashmap* restrict, struct Hashmap* restrict)) {
+	*traversing = (*function)(board, history);
 
-	if (successfulOperation)
-		*traversing = true;
-	else
-		printf("\n(!) board is empty; no possible moves to undo\n> ");
+	if (!*traversing)
+		printf(*function == undo ? "\n(!) board is empty; no possible moves to undo\n> " : "\n(!) there are no moves to redo\n> ");
 
-	return successfulOperation;
-}
-
-bool inline attemptRedo(struct Hashmap* restrict board, struct Hashmap* restrict history, bool* restrict traversing) {
-	bool successfulOperation = redo(board, history);// , column);
-
-	if (successfulOperation)
-		*traversing = true;
-	else
-		printf("\n(!) there are no moves to redo\n> ");
-
-	return successfulOperation;
+	return *traversing;
 }
 
 bool inline attemptSave(const struct Hashmap* restrict board, const struct Hashmap* restrict history, const struct Settings* restrict settings, const bool turn, const bool* traversing, bool* restrict saving) {
@@ -141,9 +128,9 @@ bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict histor
 
 	switch (operation + '0') {
 		case 'u':
-			return attemptUndo(board, history, traversing);
+			return attemptUndoRedo(board, history, traversing, undo);
 		case 'r':
-			return attemptRedo(board, history, traversing);
+			return attemptUndoRedo(board, history, traversing, redo);
 		case 's':
 			return attemptSave(board, history, settings, playerOneToPlay, traversing, saving);
 		default: //in this case, undo, redo, or save was not selected, so "operation" is a column number to add a move to
@@ -214,11 +201,11 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 	bool successfulOperation;
 
 	if (*traversing) {
-		printf("(!) %s%s%s move held: your previous choice was to undo/redo, so do you wish to continue undoing/redoing?\nEnter 0 to continue by letting the AI make a move on the current board. Other options are the regular undo/redo controls.\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
+		printf("(!) %s%s%s move held: your previous choice was to undo/redo, so do you wish to continue undoing/redoing?\nIf not, please enter 0 to continue by letting the AI make a move on the current board.\n\n> ", colour, settings->player2, DEFAULT_COLOUR);
 		
 		do {
-			*column = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
-			successfulOperation = doOperation(board, history, settings, *column, token, traversing, saving, playerOneToPlay);
+			int operation = getUserInputInRange(0, 0, true); //we use a separate identifier here ('operation') as 'column' is used to get the column which the undo/redo is made in during the AI hold
+			successfulOperation = doOperation(board, history, settings, operation, token, traversing, saving, playerOneToPlay);
 		} while (!successfulOperation);
 
 		if (!*traversing)
