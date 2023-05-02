@@ -122,7 +122,7 @@ bool doOperation(struct Hashmap* restrict board, struct Hashmap* restrict histor
 	if (!operation) {
 		*traversing = false;
 		if (!settings->solo || (settings->solo && playerOneToPlay))
-			printf("\n(!) game closed");
+			printf("\n(!) game closed\n");
 		return true;
 	}
 
@@ -262,7 +262,7 @@ void play(struct Hashmap* restrict loadedBoard, struct Hashmap* restrict loadedH
 
 		displayBoard(board, win);
 		if (win || boardFull) { //this check is up here and not at the end so we can see the winning move being made
-			win ? printf("Congratulations %s%s%s, you win!", colour, player, DEFAULT_COLOUR) : printf("The board is full... Game over!"); //check for a win instead of board full in case a player won on the last available move
+			win ? printf("Congratulations %s%s%s, you win!\n", colour, player, DEFAULT_COLOUR) : printf("The board is full... Game over!\n"); //check for a win instead of board full in case a player won on the last available move
 			column = 0; //used instead of 'break' as we're at the end of the loop after this anyway and we still need to deallocate the board
 		}
 		else {
@@ -278,7 +278,7 @@ void play(struct Hashmap* restrict loadedBoard, struct Hashmap* restrict loadedH
 		}
 	} while ((column >= 1 && column <= x) || traversing || saving);
 
-	printf("\nPress any key to continue...");
+	printf("Press any key to continue...");
 	getc(stdin);
 
 	freeHashmap(board);
