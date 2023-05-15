@@ -1,8 +1,8 @@
 #include <limits.h>
 #include "common/data.h"
 
-#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
-#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
 
 typedef enum {
 	Ongoing = 0, //game is still going
@@ -17,7 +17,7 @@ struct AIMove {
 	GameStatus gameStatus;
 };
 
-struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y);
+//struct Hashmap* copyBoard(const struct Hashmap* restrict board, const int x, const int y);
 int count(const int* restrict window, int token);
 void evaluateWindow(const int* restrict window, int* restrict score);
 void getScore(const struct Hashmap* restrict board, const int* restrict centres, const int x, const int y, int* restrict finalScore);
