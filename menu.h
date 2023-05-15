@@ -2,7 +2,7 @@
 #include "game.h"
 
 int removeExcessSpaces(char* restrict str);
-char* inputString(FILE* restrict fp);
+char* getStringInput(FILE* restrict fp);
 void getPlayerName(char** restrict name, int* restrict nameSize, const int playerNum);
 void getAIDifficulty(struct Settings* restrict settings);
 void setupGame(struct Settings* restrict settings);

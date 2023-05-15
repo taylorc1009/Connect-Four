@@ -26,7 +26,7 @@ int removeExcessSpaces(char* restrict str) { //used to remove preceding and exce
 	return j; //return the new length of the string
 }
 
-char* inputString(FILE* restrict fp) {
+char* getStringInput(FILE* restrict fp) {
 	size_t size = 30;
 	char* str = realloc(NULL, sizeof(*str) * size);
 	if (!str)
@@ -55,7 +55,7 @@ void getPlayerName(char** restrict name, int* restrict nameSize, const int playe
 	printf("\n%sPlayer %d%s, please enter your name\n> ", playerNum == 1 ? PLAYER_1_COLOUR : PLAYER_2_COLOUR, playerNum, DEFAULT_COLOUR);
 
 	do {
-		*name = inputString(stdin);
+		*name = getStringInput(stdin);
 		empty = !*name || *name[0] == '\0';
 
 		if (empty)
