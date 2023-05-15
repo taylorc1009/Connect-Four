@@ -41,9 +41,7 @@ bool redo(struct Hashmap* restrict board, struct Hashmap* restrict history) {//,
 	struct Move* redoMove = (struct Move*)malloc(sizeof(struct Move));
 	memcpy(redoMove, (struct Move*)stackGet(undoStack, undoStack->top), sizeof(struct Move));
 
-	int* tok = malloc(sizeof(int));
-	*tok = redoMove->token;
-	if(!addMove(board, redoMove->column, tok)) { //if adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
+	if(!addMove(board, redoMove->column, redoMove->token)) { //if adding (redoing) the move to the column was unsuccessful, prevent undo history and move history manipulation so the move isn't lost
 		free(redoMove);
 		return false;
 	}
@@ -103,16 +101,12 @@ bool inline attemptSave(const struct Hashmap* restrict board, const struct Hashm
 }
 
 bool inline attemptAddMove(struct Hashmap* restrict board, struct Hashmap* restrict history, const int column, const int token, bool* restrict traversing) {
-	int* tok = malloc(sizeof(int));
-	*tok = token;
-	bool successfulOperation = addMove(board, column - 1, tok);
+	bool successfulOperation = addMove(board, column - 1, token);
 
 	if (successfulOperation)
 		updateHistory(history, column - 1, token);
-	else {
-		free(tok);
+	else
 		printf("\n(!) column full, please choose another\n> ");
-	}
 
 	*traversing = false;
 	return successfulOperation;
@@ -217,11 +211,7 @@ void AITurn(struct Hashmap* restrict board, struct Hashmap* restrict history, co
 
 		AIMakeMove(board, column, centres, settings->depth); //give board by value so we don't accidentally edit it
 
-		int* tok = malloc(sizeof(int));
-		*tok = PLAYER_2_TOKEN;
-		if (!addMove(board, (*column) - 1, tok)) //shouldn't return a full column as we determine this in the AI (if we didn't, we'd need to run Minimax twice from here which is a bad (slow) idea), but just in case, deallocate the memory if this happens
-			free(tok);
-		else
+		if (addMove(board, (*column) - 1, PLAYER_2_TOKEN)) //shouldn't return a full column (false) as we determine this in the AI (if we didn't, we'd need to run Minimax twice from here which is a bad (slow) idea), but just in case, deallocate the memory if this happens
 			updateHistory(history, (*column) - 1, token);
 	}
 }

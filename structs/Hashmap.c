@@ -58,8 +58,15 @@ int getY(const struct Hashmap* board) {
     return hashGet(board, 0)->size;
 }
 
-bool addMove(const struct Hashmap* board, const int column, const int* restrict tok) {
-    return push(hashGet(board, column), (void*)tok);
+bool addMove(const struct Hashmap* board, const int column, const int token) {
+    int* tok = malloc(sizeof(int));
+    *tok = token;
+    
+    if (push(hashGet(board, column), (void*)tok))
+        return true;
+
+    free(tok);
+    return false;
 }
 
 int getToken(const struct Hashmap* restrict board, const int x, const int y) {

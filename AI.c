@@ -151,14 +151,11 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 					row++;
 
 					bool pWin = false;
-					int* token = malloc(sizeof(int));
-					*token = PLAYER_1_TOKEN;
-					if (addMove(board, move->column, token)) { //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
+					if (addMove(board, move->column, PLAYER_1_TOKEN)) { //if it is unsuccessful as the column is full, that doesn't matter as we're only trying to prevent the player winning by placing a token on top of the AI's
 						pWin = checkWin(row, move->column, board, PLAYER_1_TOKEN, true) != NULL;
 						pop(hashGet(board, move->column));
 					}
-					else
-						free(token);
+
 					score = safeWinScore(pWin ? -1 : 1, depth, maxDepth);
 				}
 				else
@@ -181,15 +178,12 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 		move->score = INT_MIN;
 		for (int i = 0; i < x; i++) {
 			//struct Hashmap* tempBoard = copyBoard(board, x, y);
-			int* token = malloc(sizeof(int));
-			*token = PLAYER_2_TOKEN;
 			struct AIMove* newMove;
 
-			bool moveAdded = addMove(board, i, token);
+			bool moveAdded = addMove(board, i, PLAYER_2_TOKEN);
 			if (moveAdded) //I previously used the 'columnIsFull' detection above, but when the board state came to a point where the AI could only make bad moves, it would choose the full column as it's score was still 0 (therefore greater than a negative number)
 				newMove = minimax(board, x, y, i, centres, PLAYER_1_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
-				free(token);
 				newMove = malloc(sizeof(struct AIMove));
 				
 				newMove->score = INT_MIN;
@@ -226,15 +220,12 @@ struct AIMove* minimax(const struct Hashmap* restrict board, const int x, const 
 		move->score = INT_MAX;
 		for (int i = 0; i < x; i++) {
 			//struct Hashmap* tempBoard = copyBoard(board, x, y);
-			int* token = malloc(sizeof(int));
-			*token = PLAYER_1_TOKEN;
 			struct AIMove* newMove;
 
-			bool moveAdded = addMove(board, i, token);
+			bool moveAdded = addMove(board, i, PLAYER_1_TOKEN);
 			if (moveAdded) //same as above, but for the minimizing player
 				newMove = minimax(board, x, y, i, centres, PLAYER_2_TOKEN, depth - 1, maxDepth, alpha, beta);
 			else {
-				free(token);
 				newMove = malloc(sizeof(struct AIMove));
 
 				newMove->score = INT_MAX;

@@ -97,14 +97,8 @@ char* loadGame(struct Hashmap** restrict board, struct Hashmap** restrict histor
 					if (!fread(&buffer, sizeof(int), 1, file))
 						return cancelLoad(*board, NULL, NULL, file);
 
-					if (buffer != EMPTY_SLOT) {
-						int* token = malloc(sizeof(int));
-						*token = buffer;
-						if (!addMove(*board, i, token)) {
-							free(token);
-							return cancelLoad(*board, *history, NULL, file);
-						}
-					}
+					if (buffer != EMPTY_SLOT && !addMove(*board, i, buffer))
+						return cancelLoad(*board, *history, NULL, file);
 				}
 			}
 			
